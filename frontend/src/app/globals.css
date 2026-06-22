@@ -1,0 +1,185 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Source+Sans+Pro:wght@300;400;600;700&family=Noto+Sans:wght@400;500;600&display=swap');
+
+:root {
+  /* Government Dark Palette (ISRO/NRSC Command Center style) */
+  --gov-blue: #050c1e;          /* Deepest Navy / Black */
+  --gov-blue-mid: #0a142c;      /* Deep Navy */
+  --gov-blue-light: #102046;    /* Navy Blue */
+  --gov-saffron: #ff6600;       /* Satellite Orange */
+  --gov-saffron-light: #ff8833;
+  --gov-green: #00ff66;         /* Radar Green */
+  --gov-green-light: #33ff88;
+  --gov-cyan: #00f0ff;          /* Subtle Cyan */
+
+  /* Risk Colors */
+  --risk-low: #00ff66;
+  --risk-moderate: #ffcc00;
+  --risk-high: #ff6600;
+  --risk-critical: #ff3333;
+
+  /* Neutrals (Inverted for Dark Theme) */
+  --neutral-50: #050b14;        /* Main Page Background */
+  --neutral-100: #121418;       /* Panel Background */
+  --neutral-200: #1b1e24;       /* Subsections */
+  --neutral-300: #262932;
+  --neutral-400: #3b3f4d;
+  --neutral-500: #626778;
+  --neutral-600: #8890a6;
+  --neutral-700: #aeb6cc;
+  --neutral-800: #d6deeb;
+  --neutral-900: #ffffff;
+
+  /* Semantic */
+  --surface: #121418;           /* Graphite panel background */
+  --surface-alt: #0a0b0e;
+  --surface-dark: #050608;
+  --border: rgba(0, 240, 255, 0.12); /* Glowing subtle cyan border */
+  --border-dark: rgba(0, 240, 255, 0.25);
+  --text-primary: #e2eafc;
+  --text-secondary: #a5b8db;
+  --text-muted: #7c91ba;
+  --text-light: #52678f;
+
+  /* Sidebar */
+  --sidebar-bg: #040817;
+  --sidebar-text: #a5b8db;
+  --sidebar-active: #ff6600;
+  --sidebar-hover: rgba(0, 240, 255, 0.08);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: 'Inter', 'Source Sans Pro', 'Noto Sans', system-ui, sans-serif;
+  background-color: var(--neutral-50);
+  background-image: 
+    linear-gradient(rgba(0, 240, 255, 0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 240, 255, 0.015) 1px, transparent 1px);
+  background-size: 40px 40px;
+  color: var(--text-primary);
+  line-height: 1.6;
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--surface-dark); }
+::-webkit-scrollbar-thumb { background: var(--neutral-300); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--neutral-400); }
+
+/* ─── Risk Level Badges ─── */
+.risk-low      { background: rgba(0, 255, 102, 0.1); color: #00ff66; border: 1px solid rgba(0, 255, 102, 0.3); }
+.risk-moderate { background: rgba(255, 204, 0, 0.1); color: #ffcc00; border: 1px solid rgba(255, 204, 0, 0.3); }
+.risk-high     { background: rgba(255, 102, 0, 0.1); color: #ff6600; border: 1px solid rgba(255, 102, 0, 0.3); }
+.risk-critical { background: rgba(255, 51, 51, 0.1); color: #ff3333; border: 1px solid rgba(255, 51, 51, 0.3); }
+
+/* ─── Data Source Badges ─── */
+.data-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-family: 'Noto Sans', monospace;
+}
+.data-badge-imd    { background: rgba(0, 240, 255, 0.1); color: #00f0ff; border: 1px solid rgba(0, 240, 255, 0.3); }
+.data-badge-insat  { background: rgba(255, 102, 0, 0.1); color: #ff6600; border: 1px solid rgba(255, 102, 0, 0.3); }
+.data-badge-mosdac { background: rgba(255, 204, 0, 0.1); color: #ffcc00; border: 1px solid rgba(255, 204, 0, 0.3); }
+.data-badge-nrsc   { background: rgba(0, 255, 102, 0.1); color: #00ff66; border: 1px solid rgba(0, 255, 102, 0.3); }
+
+/* ─── Gov Panel ─── */
+.gov-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+}
+
+.gov-panel-header {
+  padding: 12px 16px;
+  border-bottom: 2px solid var(--gov-saffron);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(0,0,0,0.2);
+}
+
+/* ─── Live Counter ─── */
+@keyframes countUp {
+  from { opacity: 0; transform: translateY(4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.counter-value {
+  animation: countUp 0.6s ease forwards;
+}
+
+/* ─── Status Pulse ─── */
+@keyframes statusPulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.4; }
+}
+.status-live { animation: statusPulse 2s ease-in-out infinite; }
+
+/* ─── Map Leaflet overrides ─── */
+.leaflet-container {
+  font-family: 'Inter', sans-serif;
+  border-radius: 4px;
+  background: #03060f !important;
+}
+.leaflet-control-attribution {
+  font-size: 9px !important;
+  background: rgba(4, 8, 23, 0.85) !important;
+  color: #a5b8db !important;
+}
+.leaflet-bar a {
+  background-color: var(--surface) !important;
+  color: var(--text-primary) !important;
+  border-bottom: 1px solid var(--border) !important;
+}
+.leaflet-bar a:hover {
+  background-color: var(--neutral-300) !important;
+}
+
+/* ─── Chart overrides ─── */
+.recharts-cartesian-axis-tick-value {
+  font-family: 'Noto Sans', monospace;
+  font-size: 11px;
+  fill: var(--text-muted);
+}
+.recharts-default-tooltip {
+  background-color: var(--surface) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 4px !important;
+  color: var(--text-primary) !important;
+}
+.recharts-legend-item-text {
+  color: var(--text-secondary) !important;
+}
+
+/* ─── Print styles ─── */
+@media print {
+  .sidebar, nav { display: none !important; }
+  body { background: white; color: black; }
+}
+
+/* ─── Spin Animation ─── */
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.animate-spin {
+  animation: spin 1s linear infinite;
+}

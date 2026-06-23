@@ -3,8 +3,8 @@ from datetime import datetime, date, timedelta
 from typing import Any
 from sqlalchemy.orm import Session
 from sqlalchemy import text
-from backend.models import Region, ClimateObservation, DatasetMetadata
-from backend.database import is_sqlite
+from models import Region, ClimateObservation, DatasetMetadata
+from database import is_sqlite
 
 # Fallback imports to prevent crashes when Windows App Control blocks C-extensions
 try:

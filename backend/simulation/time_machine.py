@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from datetime import datetime, date
 from typing import List, Dict, Any
 
-from backend.models import Forecast, Scenario, Simulation
+from models import Forecast, Scenario, Simulation
 
 class ClimateTimeMachine:
     def __init__(self, db: Session):

@@ -12,8 +12,8 @@ from sqlalchemy.orm import Session
 from datetime import datetime, date
 from sqlalchemy import func
 
-from backend.config import settings
-from backend.models import Forecast, Simulation, ClimateInsight, ClimateObservation, ClimateSatelliteLayer, Region
+from config import settings
+from models import Forecast, Simulation, ClimateInsight, ClimateObservation, ClimateSatelliteLayer, Region
 
 SYSTEM_PROMPT = """You are a Senior Climate Scientist and Disaster Risk Analyst operating within the 
 BHARAT-TWIN National Climate Digital Twin Platform, jointly maintained with reference data from 

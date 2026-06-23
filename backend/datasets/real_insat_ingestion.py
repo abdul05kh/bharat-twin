@@ -3,8 +3,8 @@ import uuid
 from datetime import datetime, date, timedelta
 from sqlalchemy.orm import Session
 from sqlalchemy import text
-from backend.models import Region, DatasetMetadata
-from backend.database import is_sqlite
+from models import Region, DatasetMetadata
+from database import is_sqlite
 from datasets.climate_dataset_validator import ClimateDatasetValidator
 
 try:

@@ -7,7 +7,7 @@ from datetime import date
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sqlalchemy.orm import Session
-from backend.database import SessionLocal, engine, Base
+from database import SessionLocal, engine, Base
 from datasets.mock_generator import generate_mock_datasets
 from datasets.real_imd_ingestion import RealIMDIngestion
 from datasets.real_insat_ingestion import RealINSATIngestion
@@ -16,7 +16,7 @@ from forecasting.forecast_engine import ClimateForecastEngine
 from simulation.time_machine import ClimateTimeMachine
 from insights.insights_engine import ClimateInsightEngine
 from reports.report_generator import ClimateReportGenerator
-from backend.models import Region, ClimateObservation, Forecast, Scenario, Simulation, ClimateInsight, ClimateSatelliteLayer
+from models import Region, ClimateObservation, Forecast, Scenario, Simulation, ClimateInsight, ClimateSatelliteLayer
 
 def run_integration_test():
     print("=== STARTING BHARAT-TWIN BACKEND INTEGRATION TEST ===")
@@ -106,7 +106,7 @@ def run_integration_test():
             print(f"Insights generated! Text excerpt: '{insight_res['insight_text'][:80]}...'")
         except RuntimeError as e:
             print(f"[OK] Real AI insights engine correctly validated: raised exception on missing keys: {e}")
-            from backend.models import ClimateInsight
+            from models import ClimateInsight
             db_insight = db.query(ClimateInsight).filter(ClimateInsight.simulation_id == sim_res["id"]).first()
             if not db_insight:
                 db_insight = ClimateInsight(

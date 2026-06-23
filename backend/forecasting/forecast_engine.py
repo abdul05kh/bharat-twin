@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 from sqlalchemy import text
 from typing import List, Dict, Any, Tuple
 
-from backend.models import ClimateObservation, Region, Forecast
-from backend.database import is_sqlite
+from models import ClimateObservation, Region, Forecast
+from database import is_sqlite
 
 # Fallback imports to prevent crashes when Windows App Control blocks C-extensions
 try:

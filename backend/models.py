@@ -4,7 +4,7 @@ from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
 from datetime import datetime
 
-from backend.database import Base, is_sqlite
+from database import Base, is_sqlite
 
 # Define UUID type based on backend
 if is_sqlite:

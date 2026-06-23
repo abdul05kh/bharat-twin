@@ -276,12 +276,7 @@ def startup_database_initialization():
             hyd = db.query(models.Region).filter(models.Region.name == "Hyderabad Metropolitan Region").first()
             if not hyd:
                 print("Seeding Hyderabad region boundary...")
-                if is_sqlite:
-                    # SQLite: bounding box stored as text WKT
-                    bounding_box_val = "POLYGON((78.10 17.10, 78.80 17.10, 78.80 17.65, 78.10 17.65, 78.10 17.10))"
-                else:
-                    # Postgres: Use ST_GeomFromText
-                    bounding_box_val = text("ST_GeomFromText('POLYGON((78.10 17.10, 78.80 17.10, 78.80 17.65, 78.10 17.65, 78.10 17.10))', 4326)")
+                bounding_box_val = "POLYGON((78.10 17.10, 78.80 17.10, 78.80 17.65, 78.10 17.65, 78.10 17.10))"
                 
                 new_region = models.Region(
                     name="Hyderabad Metropolitan Region",
@@ -321,8 +316,6 @@ def startup_database_initialization():
                                 if rain < 0: rain = 0.0
                                 
                                 geom_val = f"POINT({lon} {lat})"
-                                if not is_sqlite:
-                                    geom_val = text(f"ST_GeomFromText('POINT({lon} {lat})', 4326)")
                                     
                                 obs = models.ClimateObservation(
                                     region_id=new_region.id,

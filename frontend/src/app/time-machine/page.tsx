@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import CommandStatusStrip from '@/components/CommandStatusStrip';
+import PrimaryRiskHero from '@/components/PrimaryRiskHero';
 import { useClimateStore } from '@/store/store';
 import { useRouter } from 'next/navigation';
 import { Settings2, Info, AlertCircle } from 'lucide-react';
@@ -26,6 +27,16 @@ export default function ClimateScenarioLaboratory() {
       fetchLatestForecast();
     }
   }, [selectedRegion, fetchLatestForecast]);
+
+  const handleWowRun = async (name: string, temp: number, rain: number) => {
+    if (!latestForecast) return;
+    setScenarioName(name);
+    setTempAdj(temp);
+    setRainAdj(rain);
+    const scenario = await createScenario(name, rain, temp, duration);
+    await runSimulation(scenario.id, latestForecast.id);
+    router.push('/compare?wow=true');
+  };
 
   const handleRun = async () => {
     if (!latestForecast) return;
@@ -71,6 +82,68 @@ export default function ClimateScenarioLaboratory() {
         </header>
 
         <div style={{ flex: 1, overflowY: 'auto', padding: '24px', maxWidth: '960px', width: '100%', margin: '0 auto' }}>
+          <PrimaryRiskHero />
+
+          {/* WOW Presets panel */}
+          <div style={{
+            background: 'linear-gradient(135deg, rgba(20, 27, 45, 0.9) 0%, rgba(10, 15, 30, 0.95) 100%)',
+            border: '1px solid var(--border)',
+            borderLeft: '5px solid var(--gov-saffron)',
+            borderRadius: '6px',
+            padding: '16px 20px',
+            marginBottom: '20px',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.3)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <div>
+                <h4 style={{ margin: 0, fontSize: '13px', fontWeight: 800, color: 'white', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                  ⚡ Hackathon WOW Demo Mode — Quick Stress Presets
+                </h4>
+                <p style={{ margin: '2px 0 0', fontSize: '11px', color: 'var(--text-secondary)' }}>
+                  Trigger immediate multi-agency alerts, stress overlays, and advisory generation (&lt; 2s).
+                </p>
+              </div>
+            </div>
+            
+            <div style={{ display: 'flex', gap: '12px' }}>
+              {[
+                { name: 'Heatwave Preset', label: '🌡️ Heatwave Pulse', temp: 4.0, rain: -10, desc: '+4.0°C Extreme Temperature Anomaly' },
+                { name: 'AQI Surge Preset', label: '💨 AQI Surge Deficit', temp: 3.0, rain: -35, desc: 'High thermal PM aggregation stress' },
+                { name: 'Delayed Monsoon Preset', label: '🌧️ Delayed Monsoon Drought', temp: 1.5, rain: -80, desc: '-80% Critical Moisture Deficit' }
+              ].map(preset => (
+                <button
+                  key={preset.label}
+                  onClick={() => handleWowRun(preset.name, preset.temp, preset.rain)}
+                  style={{
+                    flex: 1,
+                    background: 'var(--surface-dark)',
+                    border: '1px solid var(--border)',
+                    borderRadius: '4px',
+                    padding: '10px 14px',
+                    textAlign: 'left',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
+                  }}
+                  onMouseEnter={e => {
+                    e.currentTarget.style.borderColor = 'var(--gov-saffron)';
+                    e.currentTarget.style.transform = 'translateY(-2px)';
+                  }}
+                  onMouseLeave={e => {
+                    e.currentTarget.style.borderColor = 'var(--border)';
+                    e.currentTarget.style.transform = 'none';
+                  }}
+                >
+                  <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'white', marginBottom: '2px' }}>
+                    {preset.label}
+                  </span>
+                  <span style={{ display: 'block', fontSize: '10px', color: 'var(--text-muted)' }}>
+                    {preset.desc}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
 
           <div style={{ marginBottom: '24px' }}>
             <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'white', marginBottom: '4px' }}>

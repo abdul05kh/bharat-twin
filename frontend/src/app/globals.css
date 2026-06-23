@@ -1,50 +1,50 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Source+Sans+Pro:wght@300;400;600;700&family=Noto+Sans:wght@400;500;600&display=swap');
 
 :root {
-  /* Government Dark Palette (ISRO/NRSC Command Center style) */
-  --gov-blue: #050c1e;          /* Deepest Navy / Black */
-  --gov-blue-mid: #0a142c;      /* Deep Navy */
-  --gov-blue-light: #102046;    /* Navy Blue */
-  --gov-saffron: #ff6600;       /* Satellite Orange */
-  --gov-saffron-light: #ff8833;
-  --gov-green: #00ff66;         /* Radar Green */
-  --gov-green-light: #33ff88;
+  /* Government Dark Palette (ISRO/NRSC Command Center style - Palantir Gotham style) */
+  --gov-blue: #080c16;          /* Deepest Navy / Black */
+  --gov-blue-mid: #0d1527;      /* Deep Navy */
+  --gov-blue-light: #16223f;    /* Navy Blue */
+  --gov-saffron: #ff9100;       /* Satellite Orange */
+  --gov-saffron-light: #ffb74d;
+  --gov-green: #00e676;         /* Radar Green */
+  --gov-green-light: #69f0ae;
   --gov-cyan: #00f0ff;          /* Subtle Cyan */
 
-  /* Risk Colors */
-  --risk-low: #00ff66;
-  --risk-moderate: #ffcc00;
-  --risk-high: #ff6600;
-  --risk-critical: #ff3333;
+  /* Risk Colors (v2.0 Hardened Hierarchy) */
+  --risk-low: #00e676;
+  --risk-moderate: #ffd600;
+  --risk-high: #ff9100;
+  --risk-critical: #ff1744;
 
-  /* Neutrals (Inverted for Dark Theme) */
-  --neutral-50: #050b14;        /* Main Page Background */
-  --neutral-100: #121418;       /* Panel Background */
-  --neutral-200: #1b1e24;       /* Subsections */
-  --neutral-300: #262932;
-  --neutral-400: #3b3f4d;
-  --neutral-500: #626778;
-  --neutral-600: #8890a6;
-  --neutral-700: #aeb6cc;
-  --neutral-800: #d6deeb;
+  /* Neutrals (Inverted Slate/Navy for Premium Dark Command Center) */
+  --neutral-50: #0a0e17;        /* Base Page Background */
+  --neutral-100: #141b2d;       /* Elevated Panel Background */
+  --neutral-200: #1c273e;       /* Inner Subsections */
+  --neutral-300: #273554;
+  --neutral-400: #3b4e78;
+  --neutral-500: #627ca8;
+  --neutral-600: #8ba3cf;
+  --neutral-700: #b5c7e7;
+  --neutral-800: #dce4f2;
   --neutral-900: #ffffff;
 
-  /* Semantic */
-  --surface: #121418;           /* Graphite panel background */
-  --surface-alt: #0a0b0e;
-  --surface-dark: #050608;
-  --border: rgba(0, 240, 255, 0.12); /* Glowing subtle cyan border */
-  --border-dark: rgba(0, 240, 255, 0.25);
-  --text-primary: #e2eafc;
-  --text-secondary: #a5b8db;
-  --text-muted: #7c91ba;
-  --text-light: #52678f;
+  /* Semantic Containers */
+  --surface: #141b2d;           /* Slate-navy card surface */
+  --surface-alt: #0a0e17;       /* Dark base surface */
+  --surface-dark: #05070c;      /* Contrast base */
+  --border: rgba(0, 240, 255, 0.18); /* Defined subtle glowing border */
+  --border-dark: rgba(0, 240, 255, 0.35);
+  --text-primary: #f0f5ff;       /* Pure high contrast off-white */
+  --text-secondary: #b5c7e3;     /* Readable body text */
+  --text-muted: #8da0c4;         /* Dim labels */
+  --text-light: #62759a;
 
   /* Sidebar */
-  --sidebar-bg: #040817;
-  --sidebar-text: #a5b8db;
-  --sidebar-active: #ff6600;
-  --sidebar-hover: rgba(0, 240, 255, 0.08);
+  --sidebar-bg: #070b14;
+  --sidebar-text: #b5c7e3;
+  --sidebar-active: #ff9100;
+  --sidebar-hover: rgba(0, 240, 255, 0.10);
 }
 
 *, *::before, *::after {

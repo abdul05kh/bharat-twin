@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import CommandStatusStrip from '@/components/CommandStatusStrip';
+import PrimaryRiskHero from '@/components/PrimaryRiskHero';
 import { useClimateStore } from '@/store/store';
 import { FileText, ShieldAlert, AlertTriangle, MapPin, TrendingUp, Users, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
@@ -81,6 +82,8 @@ export default function ExecutiveClimateBriefingPage() {
         {/* Content */}
         <div style={{ flex: 1, overflowY: 'auto', padding: '24px', maxWidth: '800px', width: '100%', margin: '0 auto' }}>
           
+          <PrimaryRiskHero />
+
           {/* Situation Title */}
           <div style={{ marginBottom: '24px', borderBottom: '1px solid var(--border)', paddingBottom: '16px' }}>
             <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'white', marginBottom: '6px' }}>

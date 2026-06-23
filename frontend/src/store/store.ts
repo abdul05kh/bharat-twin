@@ -142,8 +142,10 @@ interface ClimateStore {
   insights: ClimateInsight | null;
   isLoading: boolean;
   forecastJobStatus: string | null;
+  riskIndex: any | null;
   
   // Actions
+  fetchRiskIndex: () => Promise<void>;
   fetchRegions: () => Promise<void>;
   selectRegion: (region: Region) => void;
   fetchCurrentClimate: () => Promise<void>;
@@ -175,6 +177,7 @@ export const useClimateStore = create<ClimateStore>((set, get) => ({
   satelliteObservations: [],
   isLoading: false,
   forecastJobStatus: null,
+  riskIndex: null,
 
   setLoading: (loading) => set({ isLoading: loading }),
 
@@ -200,6 +203,7 @@ export const useClimateStore = create<ClimateStore>((set, get) => ({
     get().fetchDigitalTwin();
     get().fetchLatestForecast();
     get().fetchSatelliteObservations();
+    get().fetchRiskIndex();
   },
 
   fetchCurrentClimate: async () => {
@@ -400,6 +404,20 @@ export const useClimateStore = create<ClimateStore>((set, get) => ({
       }
     } catch (e) {
       console.error("Failed to fetch satellite observations", e);
+    }
+  },
+
+  fetchRiskIndex: async () => {
+    const region = get().selectedRegion;
+    if (!region) return;
+    try {
+      const res = await fetch(`${get().apiBase}/risk-index/${region.id}`);
+      if (res.ok) {
+        const data = await res.json();
+        set({ riskIndex: data });
+      }
+    } catch (e) {
+      console.error("Failed to fetch risk index", e);
     }
   }
 }));

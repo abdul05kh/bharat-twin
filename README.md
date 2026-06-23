@@ -43,6 +43,14 @@ Urban environments in India are facing severe, compound micro-climatic hazards. 
 
 The inability to rapidly align, fuse, and model these datasets prevents state disaster management authorities (SDMAs) from generating spatial risk indicators and issuing block-level early warnings. BHARAT-TWIN bridges this gap, establishing a unified grid structure for real-time spatial analytics.
 
+### C. Version 2.0 UX Hardening & Judge Impact Pass
+To transform the platform from a meteorology dashboard into an executive decision-support command center, Version 2.0 introduces:
+1. **Primary Risk Hierarchy:** Displays an active NDMA-aligned Risk Index Hero (Low, Moderate, High, Critical) summarizing current situations and answering the 3 key executive questions in under 3 seconds: *What is happening? Why does it matter? What action should be taken?*
+2. **Decision Consequence Matrix:** Explicitly projects raw climate deviations into Environmental (LST, NDVI, AQI), Operational (Water Stress, Crop Risk, Public Health Strain, Grid Load), and Administrative (Resource Demands, Alert level, Service Load) impact indices.
+3. **Animated Judge Playback Milestones:** Replaces step transitions with animated, confirmed milestone badges (`DATA INGESTION VERIFIED`, `SPATIAL FUSION COMPLETE`, `FORECAST GENERATED`, `AI ADVISORY READY`, `DECISION BRIEF GENERATED`).
+4. **Wow Demo Mode:** Features rapid stress preset scenario loading (Heatwave, AQI Surge, Delayed Monsoon) showing animated overlays and updating risk states in less than 2 seconds.
+5. **No Empty States:** Gracefully maps fallback simulated baseline models, skeleton loaders, and warning badges to guarantee that all maps, analytics graphs, and support advisories always render.
+
 ---
 
 ## 2. Platform Architecture & Data Pipeline

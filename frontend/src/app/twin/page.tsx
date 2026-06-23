@@ -5,6 +5,7 @@ import Navbar from '@/components/Navbar';
 import MapContainer from '@/components/MapContainer';
 import CommandStatusStrip from '@/components/CommandStatusStrip';
 import ScientificTrustPanel from '@/components/ScientificTrustPanel';
+import PrimaryRiskHero from '@/components/PrimaryRiskHero';
 import { useClimateStore, GridCell } from '@/store/store';
 import { Monitor, MapPin, Layers, Clock, Play, Pause, RotateCcw, Box } from 'lucide-react';
 
@@ -150,6 +151,7 @@ export default function DigitalTwinConsole() {
         <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
           {/* Map Canvas */}
           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '16px', gap: '12px' }}>
+            <PrimaryRiskHero />
             <div style={{ flex: 1, position: 'relative', border: '1px solid var(--border)', borderRadius: '6px', overflow: 'hidden', background: 'var(--surface-dark)' }}>
               {displayCells.length > 0
                 ? <MapContainer cells={displayCells} activeLayer={activeLayer} viewMode={viewMode} />

@@ -15,10 +15,10 @@ from uuid import UUID
 from datetime import date, datetime, timedelta
 from typing import List, Optional, Dict, Any
 
-from backend.config import settings
-from backend.database import engine, get_db, Base, is_sqlite, SessionLocal
-import backend.models as models
-import backend.schemas as schemas
+from config import settings
+from database import engine, get_db, Base, is_sqlite, SessionLocal
+import models as models
+import schemas as schemas
 
 
 # Import engines

@@ -29,18 +29,101 @@ from reports.report_generator import ClimateReportGenerator
 from datasets.real_imd_ingestion import RealIMDIngestion
 from datasets.real_insat_ingestion import RealINSATIngestion
 
-# Initialize DB on startup
-Base.metadata.create_all(bind=engine)
-with engine.begin() as conn:
-    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_climate_observations_region_id ON climate_observations (region_id)"))
-    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_climate_observations_observation_date ON climate_observations (observation_date)"))
-    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_climate_observations_latitude ON climate_observations (latitude)"))
-    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_climate_observations_longitude ON climate_observations (longitude)"))
+# Database diagnostics state
+db_diagnostics = {
+    "database_url_present": False,
+    "reachable": False,
+    "tables_initialized": False,
+    "host": "unknown",
+    "error": None
+}
+
+def mask_database_url_host(url: str) -> str:
+    if not url:
+        return "Not Configured"
+    try:
+        from urllib.parse import urlparse
+        if url.startswith("sqlite"):
+            return "sqlite_local"
+        
+        parsed = urlparse(url)
+        if parsed.hostname:
+            host = parsed.hostname
+            # Mask the host partially for security (e.g. db.zwvglszzqylhdehxgpfz.supabase.co -> db.zwv...co)
+            parts = host.split(".")
+            if len(parts) > 1:
+                parts[0] = parts[0][:3] + "..."
+                if len(parts) > 2:
+                    return parts[0] + "." + ".".join(parts[1:])
+                return ".".join(parts)
+            return host[:3] + "..."
+        
+        import re
+        match = re.search(r'@([^:/]+)', url)
+        if match:
+            host = match.group(1)
+            return host[:3] + "..." + host[-3:]
+        return "unknown_host"
+    except Exception as e:
+        return f"mask_error: {str(e)}"
+
+def check_db_connection() -> dict:
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        return {
+            "status": "connected",
+            "reachable": True,
+            "host": mask_database_url_host(settings.DATABASE_URL),
+            "error": None
+        }
+    except Exception as e:
+        return {
+            "status": "disconnected",
+            "reachable": False,
+            "host": mask_database_url_host(settings.DATABASE_URL),
+            "error": str(e)
+        }
+
+def init_db_schemas():
+    global db_diagnostics
+    db_url = settings.DATABASE_URL
+    db_diagnostics["database_url_present"] = bool(db_url)
+    db_diagnostics["host"] = mask_database_url_host(db_url)
     
-    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_climate_satellite_layers_region_id ON climate_satellite_layers (region_id)"))
-    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_climate_satellite_layers_observation_date ON climate_satellite_layers (observation_date)"))
-    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_climate_satellite_layers_latitude ON climate_satellite_layers (latitude)"))
-    conn.execute(text("CREATE INDEX IF NOT EXISTS ix_climate_satellite_layers_longitude ON climate_satellite_layers (longitude)"))
+    print("Executing database startup diagnostics...")
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+        db_diagnostics["reachable"] = True
+        print(f"[OK] Database connection verified. Host: {db_diagnostics['host']}")
+    except Exception as e:
+        db_diagnostics["reachable"] = False
+        db_diagnostics["error"] = str(e)
+        print(f"[ERROR] Database connection failed on startup: {e}")
+        return
+
+    try:
+        print("Initializing database tables and schemas...")
+        Base.metadata.create_all(bind=engine)
+        
+        with engine.begin() as conn:
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_climate_observations_region_id ON climate_observations (region_id)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_climate_observations_observation_date ON climate_observations (observation_date)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_climate_observations_latitude ON climate_observations (latitude)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_climate_observations_longitude ON climate_observations (longitude)"))
+            
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_climate_satellite_layers_region_id ON climate_satellite_layers (region_id)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_climate_satellite_layers_observation_date ON climate_satellite_layers (observation_date)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_climate_satellite_layers_latitude ON climate_satellite_layers (latitude)"))
+            conn.execute(text("CREATE INDEX IF NOT EXISTS ix_climate_satellite_layers_longitude ON climate_satellite_layers (longitude)"))
+            
+        db_diagnostics["tables_initialized"] = True
+        print("[OK] Database schemas and indexes created successfully.")
+    except Exception as e:
+        db_diagnostics["tables_initialized"] = False
+        db_diagnostics["error"] = f"Schema creation failed: {str(e)}"
+        print(f"[ERROR] Schema creation or index generation failed: {e}")
 
 
 app = FastAPI(
@@ -69,8 +152,27 @@ def read_root():
 
 @app.get("/health")
 def health_check():
+    # Dynamically probe database connection
+    db_status = check_db_connection()
+    
+    # We return status "healthy" if database is reachable, or "degraded" if database is unreachable.
+    # Note: We return HTTP 200 to satisfy Render deployment check.
+    app_status = "healthy" if db_status["reachable"] else "degraded"
+    
     return {
-        "status": "healthy"
+        "status": app_status,
+        "database": {
+            "status": db_status["status"],
+            "reachable": db_status["reachable"],
+            "host": db_status["host"],
+            "error": db_status["error"]
+        },
+        "diagnostics": {
+            "database_url_present": db_diagnostics.get("database_url_present", False),
+            "startup_reachable": db_diagnostics.get("reachable", False),
+            "tables_initialized": db_diagnostics.get("tables_initialized", False),
+            "startup_error": db_diagnostics.get("error")
+        }
     }
 
 
@@ -99,85 +201,93 @@ def validate_security_keys():
         print("[SUCCESS] All core AI security API keys verified.")
     print("="*60)
 
-# Startup Seeding
+# Startup Seeding and Database Initialization
 @app.on_event("startup")
-def seed_database():
+def startup_database_initialization():
     validate_security_keys()
-    db = next(get_db())
-    try:
-        # Check if Hyderabad is seeded
-        hyd = db.query(models.Region).filter(models.Region.name == "Hyderabad Metropolitan Region").first()
-        if not hyd:
-            print("Seeding Hyderabad region boundary...")
-            if is_sqlite:
-                # SQLite: bounding box stored as text WKT
-                bounding_box_val = "POLYGON((78.10 17.10, 78.80 17.10, 78.80 17.65, 78.10 17.65, 78.10 17.10))"
-            else:
-                # Postgres: Use ST_GeomFromText
-                bounding_box_val = text("ST_GeomFromText('POLYGON((78.10 17.10, 78.80 17.10, 78.80 17.65, 78.10 17.65, 78.10 17.10))', 4326)")
-            
-            new_region = models.Region(
-                name="Hyderabad Metropolitan Region",
-                bounding_box=bounding_box_val
-            )
-            db.add(new_region)
-            db.commit()
-            db.refresh(new_region)
-            print(f"Hyderabad region created with ID: {new_region.id}")
-            
-            # Seed mock climate observations to populate history instantly if empty
-            obs_count = db.query(models.ClimateObservation).filter(models.ClimateObservation.region_id == new_region.id).count()
-            if obs_count == 0:
-                print("Seeding mock climate observations for history...")
-                start_date = date(2024, 1, 1)
-                lats = [17.25, 17.50]
-                lons = [78.25, 78.50, 78.75]
+    
+    # 1. Initialize schemas and indexes inside try/except with structured logging
+    init_db_schemas()
+    
+    # 2. Seed database only if tables were successfully initialized
+    if db_diagnostics.get("tables_initialized"):
+        db = SessionLocal()
+        try:
+            # Check if Hyderabad is seeded
+            hyd = db.query(models.Region).filter(models.Region.name == "Hyderabad Metropolitan Region").first()
+            if not hyd:
+                print("Seeding Hyderabad region boundary...")
+                if is_sqlite:
+                    # SQLite: bounding box stored as text WKT
+                    bounding_box_val = "POLYGON((78.10 17.10, 78.80 17.10, 78.80 17.65, 78.10 17.65, 78.10 17.10))"
+                else:
+                    # Postgres: Use ST_GeomFromText
+                    bounding_box_val = text("ST_GeomFromText('POLYGON((78.10 17.10, 78.80 17.10, 78.80 17.65, 78.10 17.65, 78.10 17.10))', 4326)")
                 
-                observations = []
-                for day_offset in range(365):
-                    obs_date = start_date + timedelta(days=day_offset)
-                    day_of_year = obs_date.timetuple().tm_yday
-                    
-                    # Generates realistic seasonal max temps (peak in summer)
-                    base_max = 30.0 + 10.0 * (1.0 - abs(day_of_year - 135) / 182.5 if day_of_year < 317 else 0.0)
-                    base_min = 18.0 + 6.0 * (1.0 - abs(day_of_year - 200) / 182.5 if day_of_year > 18 else 0.0)
-                    base_rain = 8.0 * (1.0 - abs(day_of_year - 210) / 45.0 if 165 < day_of_year < 255 else 0.0)
-                    if base_rain < 0: base_rain = 0.0
-                    
-                    for lat in lats:
-                        for lon in lons:
-                            rain = base_rain + (0.5 * (lat - 17.25)) + (0.3 * (lon - 78.25)) + (day_offset % 3)
-                            max_t = base_max + (0.2 * (lat - 17.25))
-                            min_t = base_min - (0.1 * (lon - 78.25))
-                            
-                            # Clamping
-                            if rain < 0: rain = 0.0
-                            
-                            geom_val = f"POINT({lon} {lat})"
-                            if not is_sqlite:
-                                geom_val = text(f"ST_GeomFromText('POINT({lon} {lat})', 4326)")
-                                
-                            obs = models.ClimateObservation(
-                                region_id=new_region.id,
-                                observation_date=obs_date,
-                                latitude=lat,
-                                longitude=lon,
-                                geom=geom_val,
-                                rainfall=round(rain, 2),
-                                max_temperature=round(max_t, 1),
-                                min_temperature=round(min_t, 1),
-                                source="IMD"
-                            )
-                            observations.append(obs)
-                            
-                db.bulk_save_objects(observations)
+                new_region = models.Region(
+                    name="Hyderabad Metropolitan Region",
+                    bounding_box=bounding_box_val
+                )
+                db.add(new_region)
                 db.commit()
-                print(f"Seeded {len(observations)} observation points successfully.")
-    except Exception as e:
-        print(f"Error during seeding: {e}")
-        db.rollback()
-    finally:
-        db.close()
+                db.refresh(new_region)
+                print(f"Hyderabad region created with ID: {new_region.id}")
+                
+                # Seed mock climate observations to populate history instantly if empty
+                obs_count = db.query(models.ClimateObservation).filter(models.ClimateObservation.region_id == new_region.id).count()
+                if obs_count == 0:
+                    print("Seeding mock climate observations for history...")
+                    start_date = date(2024, 1, 1)
+                    lats = [17.25, 17.50]
+                    lons = [78.25, 78.50, 78.75]
+                    
+                    observations = []
+                    for day_offset in range(365):
+                        obs_date = start_date + timedelta(days=day_offset)
+                        day_of_year = obs_date.timetuple().tm_yday
+                        
+                        # Generates realistic seasonal max temps (peak in summer)
+                        base_max = 30.0 + 10.0 * (1.0 - abs(day_of_year - 135) / 182.5 if day_of_year < 317 else 0.0)
+                        base_min = 18.0 + 6.0 * (1.0 - abs(day_of_year - 200) / 182.5 if day_of_year > 18 else 0.0)
+                        base_rain = 8.0 * (1.0 - abs(day_of_year - 210) / 45.0 if 165 < day_of_year < 255 else 0.0)
+                        if base_rain < 0: base_rain = 0.0
+                        
+                        for lat in lats:
+                            for lon in lons:
+                                rain = base_rain + (0.5 * (lat - 17.25)) + (0.3 * (lon - 78.25)) + (day_offset % 3)
+                                max_t = base_max + (0.2 * (lat - 17.25))
+                                min_t = base_min - (0.1 * (lon - 78.25))
+                                
+                                # Clamping
+                                if rain < 0: rain = 0.0
+                                
+                                geom_val = f"POINT({lon} {lat})"
+                                if not is_sqlite:
+                                    geom_val = text(f"ST_GeomFromText('POINT({lon} {lat})', 4326)")
+                                    
+                                obs = models.ClimateObservation(
+                                    region_id=new_region.id,
+                                    observation_date=obs_date,
+                                    latitude=lat,
+                                    longitude=lon,
+                                    geom=geom_val,
+                                    rainfall=round(rain, 2),
+                                    max_temperature=round(max_t, 1),
+                                    min_temperature=round(min_t, 1),
+                                    source="IMD"
+                                )
+                                observations.append(obs)
+                                
+                    db.bulk_save_objects(observations)
+                    db.commit()
+                    print(f"Seeded {len(observations)} observation points successfully.")
+        except Exception as e:
+            print(f"[ERROR] Error during seeding: {e}")
+            db.rollback()
+        finally:
+            db.close()
+    else:
+        print("[WARNING] Skipping database seeding because database schemas are not initialized.")
 
 # --- ENDPOINTS ---
 

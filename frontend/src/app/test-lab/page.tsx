@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Navbar from '@/components/Navbar';
 import CommandStatusStrip from '@/components/CommandStatusStrip';
-import { ToggleLeft, ToggleRight, AlertTriangle, ShieldAlert, CheckCircle2, Terminal } from 'lucide-react';
+import { ToggleLeft, ToggleRight, AlertTriangle, Terminal } from 'lucide-react';
 
 export default function TestLabPage() {
   const [aiOffline, setAiOffline] = useState(false);
@@ -39,8 +39,8 @@ export default function TestLabPage() {
           
           <div style={{ marginBottom: '24px' }}>
             <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'white', marginBottom: '4px' }}>E2E Fault Injection Simulator</h3>
-            <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
-              Test the platform's robustness under active failure states. Toggle faults below to witness real-time fallback notifications, logs masking alerts, and local cached dataset retrieval procedures.
+              <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.6 }}>
+              Test the platform&apos;s robustness under active failure states. Toggle faults below to witness real-time fallback notifications, logs masking alerts, and local cached dataset retrieval procedures.
             </p>
           </div>
 

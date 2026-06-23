@@ -7,6 +7,7 @@ import CommandStatusStrip from '@/components/CommandStatusStrip';
 import PrimaryRiskHero from '@/components/PrimaryRiskHero';
 import { useClimateStore } from '@/store/store';
 import { CloudRain, ThermometerSun, ThermometerSnowflake, Calendar, ChevronRight, Activity } from 'lucide-react';
+import downloadExecutiveBrief from '@/lib/reportClient';
 import Link from 'next/link';
 
 export default function ClimateOperationsCentre() {
@@ -39,7 +40,7 @@ export default function ClimateOperationsCentre() {
   ] as const;
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--neutral-50)', paddingLeft: '240px', fontFamily: "'Inter', sans-serif", color: 'var(--text-primary)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingLeft: '240px', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
       <Navbar />
       <main style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
         <CommandStatusStrip />
@@ -51,8 +52,8 @@ export default function ClimateOperationsCentre() {
           padding: '0 24px', flexShrink: 0,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            <Activity size={18} color="var(--gov-saffron)" />
-            <h2 style={{ fontWeight: 700, fontSize: '15px', color: 'white' }}>
+            <Activity size={18} color="var(--warning)" />
+            <h2 style={{ fontWeight: 700, fontSize: '15px', color: 'var(--text)' }}>
               Climate Operations Centre
             </h2>
             <span style={{
@@ -197,7 +198,16 @@ export default function ClimateOperationsCentre() {
               </div>
 
               {/* Sensor Integrity Verification Card */}
-              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', padding: '14px', borderTop: '3px solid var(--risk-low)', boxShadow: '0 4px 12px rgba(0,0,0,0.15)' }}>
+                {/* Executive Brief Card (prominent) */}
+                <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', padding: '14px', boxShadow: '0 4px 12px rgba(0,0,0,0.04)' }}>
+                    <h3 style={{ fontWeight: 700, fontSize: '12px', color: 'var(--text)', marginBottom: '8px' }}>Executive Climate Brief</h3>
+                      <div style={{ fontSize: '13px', color: 'var(--muted)', marginBottom: '12px' }}>One-click brief: impact, recommended action, confidence.</div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    <button onClick={() => downloadExecutiveBrief({})} style={{ padding: '10px 12px', background: 'var(--accent)', color: 'white', borderRadius: '6px', border: 'none', fontWeight: 700 }}>Download PDF</button>
+                    <Link href="/briefing" style={{ padding: '10px 12px', border: '1px solid var(--border)', borderRadius: '6px', color: 'var(--primary)', textDecoration: 'none', fontWeight: 700 }}>View Report</Link>
+                  </div>
+                </div>
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', padding: '14px', borderTop: '3px solid var(--risk-low)', boxShadow: '0 4px 12px rgba(0,0,0,0.05)' }}>
                 <h3 style={{ fontWeight: 600, fontSize: '11px', color: 'white', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '8px' }}>
                   Sensor Integrity Registry
                 </h3>

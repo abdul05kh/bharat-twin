@@ -9,7 +9,7 @@
 
 ### 🚀 Production Deployment Links
 * **Live Web Application (Frontend):** [https://bharat-twin.web.app](https://bharat-twin.web.app) (Backup: [https://bharat-twin.firebaseapp.com](https://bharat-twin.firebaseapp.com))
-* **Production API Service (Backend):** [https://bharat-twin-backend.onrender.com](https://bharat-twin-backend.onrender.com)
+* **Production API Service (Backend):** [https://bharat-twin.onrender.com](https://bharat-twin.onrender.com)
 * **Cloud Database Engine:** Supabase PostgreSQL + PostGIS
 
 ---

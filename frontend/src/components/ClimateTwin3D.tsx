@@ -11,6 +11,7 @@ interface GridCell {
   min_temperature: number;
   rainfall_delta?: number;
   max_temp_delta?: number;
+  lst_temperature?: number;
 }
 
 interface ClimateTwin3DProps {
@@ -21,10 +22,11 @@ interface ClimateTwin3DProps {
 
 export default function ClimateTwin3D({ cells, activeLayer, deltaMode = 'max_temp' }: ClimateTwin3DProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [hoveredCell, setHoveredCell] = useState<any>(null);
+  const [hoveredCell, setHoveredCell] = useState<GridCell | null>(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    const container = containerRef.current;
+    if (!container) return;
 
     // --- SETUP SCENE ---
     const width = containerRef.current.clientWidth || 800;
@@ -42,7 +44,7 @@ export default function ClimateTwin3D({ cells, activeLayer, deltaMode = 'max_tem
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    containerRef.current.appendChild(renderer.domElement);
+    container.appendChild(renderer.domElement);
 
     // --- LIGHTING ---
     const ambientLight = new THREE.AmbientLight('#1d2a4a', 1.5);
@@ -142,7 +144,7 @@ export default function ClimateTwin3D({ cells, activeLayer, deltaMode = 'max_tem
           value = cell.min_temperature;
           colorStr = getTempColor(value);
         } else if (activeLayer === 'lst_temperature') {
-          value = (cell as any).lst_temperature ?? cell.max_temperature;
+          value = cell.lst_temperature ?? cell.max_temperature;
           colorStr = getTempColor(value);
         } else if (activeLayer === 'delta') {
           if (deltaMode === 'max_temp') {
@@ -361,8 +363,8 @@ export default function ClimateTwin3D({ cells, activeLayer, deltaMode = 'max_tem
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
       canvasEl.removeEventListener('wheel', handleWheel);
-      if (containerRef.current && renderer.domElement) {
-        containerRef.current.removeChild(renderer.domElement);
+      if (container && renderer.domElement) {
+        container.removeChild(renderer.domElement);
       }
       renderer.dispose();
     };
@@ -398,10 +400,10 @@ export default function ClimateTwin3D({ cells, activeLayer, deltaMode = 'max_tem
               <span style={{ color: 'var(--text-muted)' }}>Rainfall:</span>
               <span style={{ fontWeight: 700, color: '#00ff66' }}>{hoveredCell.rainfall.toFixed(2)} mm</span>
             </div>
-            {(hoveredCell as any).lst_temperature !== undefined && (
+            {hoveredCell?.lst_temperature !== undefined && (
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <span style={{ color: 'var(--text-muted)' }}>INSAT LST:</span>
-                <span style={{ fontWeight: 700, color: '#ff9900' }}>{(hoveredCell as any).lst_temperature.toFixed(1)} °C</span>
+                <span style={{ fontWeight: 700, color: '#ff9900' }}>{hoveredCell.lst_temperature!.toFixed(1)} °C</span>
               </div>
             )}
           </div>

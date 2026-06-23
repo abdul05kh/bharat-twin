@@ -7,6 +7,7 @@ import PrimaryRiskHero from '@/components/PrimaryRiskHero';
 import { useClimateStore } from '@/store/store';
 import { useRouter } from 'next/navigation';
 import { Settings2, Info, AlertCircle } from 'lucide-react';
+import downloadExecutiveBrief from '@/lib/reportClient';
 import Link from 'next/link';
 
 export default function ClimateScenarioLaboratory() {
@@ -45,13 +46,29 @@ export default function ClimateScenarioLaboratory() {
     router.push('/compare');
   };
 
+  const handleRunAndDownload = async () => {
+    if (!latestForecast) return;
+    try {
+      const scenario = await createScenario(scenarioName, rainAdj, tempAdj, duration);
+      await runSimulation(scenario.id, latestForecast.id);
+      // Trigger executive brief download for the produced scenario
+      try {
+        await downloadExecutiveBrief({ simulationId: scenario.id, forecastId: latestForecast.id });
+      } catch (err) {
+        console.warn('Executive brief download failed', err);
+      }
+      router.push('/briefing');
+    } catch (err) {
+      console.error('Scenario execution failed', err);
+    }
+  };
+
   const labelStyle: React.CSSProperties = {
     fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)',
     textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: '8px',
   };
 
   const metricBadge = (val: number, unit: string, positiveIsWarning = true) => {
-    const isPositive = val >= 0;
     const color = positiveIsWarning
       ? (val > 2 ? '#ff3333' : val < -1 ? '#00f0ff' : '#00ff66')
       : (val > 20 ? '#00ff66' : val < -20 ? '#ff6600' : 'var(--text-secondary)');
@@ -84,7 +101,7 @@ export default function ClimateScenarioLaboratory() {
         <div style={{ flex: 1, overflowY: 'auto', padding: '24px', maxWidth: '960px', width: '100%', margin: '0 auto' }}>
           <PrimaryRiskHero />
 
-          {/* WOW Presets panel */}
+          {/* Compact 3-step flow + WOW Presets */}
           <div style={{
             background: 'linear-gradient(135deg, rgba(20, 27, 45, 0.9) 0%, rgba(10, 15, 30, 0.95) 100%)',
             border: '1px solid var(--border)',
@@ -104,44 +121,60 @@ export default function ClimateScenarioLaboratory() {
                 </p>
               </div>
             </div>
-            
-            <div style={{ display: 'flex', gap: '12px' }}>
-              {[
-                { name: 'Heatwave Preset', label: '🌡️ Heatwave Pulse', temp: 4.0, rain: -10, desc: '+4.0°C Extreme Temperature Anomaly' },
-                { name: 'AQI Surge Preset', label: '💨 AQI Surge Deficit', temp: 3.0, rain: -35, desc: 'High thermal PM aggregation stress' },
-                { name: 'Delayed Monsoon Preset', label: '🌧️ Delayed Monsoon Drought', temp: 1.5, rain: -80, desc: '-80% Critical Moisture Deficit' }
-              ].map(preset => (
-                <button
-                  key={preset.label}
-                  onClick={() => handleWowRun(preset.name, preset.temp, preset.rain)}
-                  style={{
-                    flex: 1,
-                    background: 'var(--surface-dark)',
-                    border: '1px solid var(--border)',
-                    borderRadius: '4px',
-                    padding: '10px 14px',
-                    textAlign: 'left',
-                    cursor: 'pointer',
-                    transition: 'all 0.15s ease',
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
-                  }}
-                  onMouseEnter={e => {
-                    e.currentTarget.style.borderColor = 'var(--gov-saffron)';
-                    e.currentTarget.style.transform = 'translateY(-2px)';
-                  }}
-                  onMouseLeave={e => {
-                    e.currentTarget.style.borderColor = 'var(--border)';
-                    e.currentTarget.style.transform = 'none';
-                  }}
-                >
-                  <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'white', marginBottom: '2px' }}>
-                    {preset.label}
-                  </span>
-                  <span style={{ display: 'block', fontSize: '10px', color: 'var(--text-muted)' }}>
-                    {preset.desc}
-                  </span>
-                </button>
-              ))}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ color: 'var(--muted)', fontSize: '13px', fontWeight: 700 }}>Quick 3-step flow</div>
+                <div style={{ fontSize: '12px', color: 'var(--muted)' }}>1 Configure → 2 Execute → 3 Download Brief</div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <button onClick={handleRun} disabled={isLoading} style={{ padding: '10px 14px', background: isLoading ? 'var(--neutral-300)' : 'var(--primary)', color: 'white', borderRadius: 6, border: 'none', fontWeight: 700 }}>Execute Scenario</button>
+                <button onClick={handleRunAndDownload} disabled={isLoading} style={{ padding: '10px 14px', background: isLoading ? 'var(--neutral-300)' : 'var(--gov-saffron)', color: 'white', borderRadius: 6, border: 'none', fontWeight: 700 }}>Execute & Download Brief</button>
+              </div>
+
+              <div style={{ height: 6, background: 'rgba(255,255,255,0.03)', borderRadius: 4, overflow: 'hidden' }}>
+                <div style={{ width: '33%', height: '100%', background: 'var(--gov-cyan)' }} />
+              </div>
+
+              <div style={{ display: 'flex', gap: '12px' }}>
+                {[
+                  { name: 'Heatwave Preset', label: '🌡️ Heatwave Pulse', temp: 4.0, rain: -10, desc: '+4.0°C Extreme Temperature Anomaly' },
+                  { name: 'AQI Surge Preset', label: '💨 AQI Surge Deficit', temp: 3.0, rain: -35, desc: 'High thermal PM aggregation stress' },
+                  { name: 'Delayed Monsoon Preset', label: '🌧️ Delayed Monsoon Drought', temp: 1.5, rain: -80, desc: '-80% Critical Moisture Deficit' }
+                ].map(preset => (
+                  <button
+                    key={preset.label}
+                    onClick={() => handleWowRun(preset.name, preset.temp, preset.rain)}
+                    style={{
+                      flex: 1,
+                      background: 'var(--surface-dark)',
+                      border: '1px solid var(--border)',
+                      borderRadius: '4px',
+                      padding: '10px 14px',
+                      textAlign: 'left',
+                      cursor: 'pointer',
+                      transition: 'all 0.15s ease',
+                      boxShadow: '0 2px 6px rgba(0,0,0,0.2)'
+                    }}
+                    onMouseEnter={e => {
+                      e.currentTarget.style.borderColor = 'var(--gov-saffron)';
+                      e.currentTarget.style.transform = 'translateY(-2px)';
+                    }}
+                    onMouseLeave={e => {
+                      e.currentTarget.style.borderColor = 'var(--border)';
+                      e.currentTarget.style.transform = 'none';
+                    }}
+                  >
+                    <span style={{ display: 'block', fontSize: '12px', fontWeight: 700, color: 'white', marginBottom: '2px' }}>
+                      {preset.label}
+                    </span>
+                    <span style={{ display: 'block', fontSize: '10px', color: 'var(--text-muted)' }}>
+                      {preset.desc}
+                    </span>
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 

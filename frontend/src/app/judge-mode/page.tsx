@@ -4,11 +4,11 @@ import React, { useEffect, useState, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import CommandStatusStrip from '@/components/CommandStatusStrip';
 import { useClimateStore } from '@/store/store';
-import { Play, Pause, ChevronRight, AlertTriangle, ShieldCheck, Database, Layers, RefreshCw, Cpu, CheckCircle2, FileText, ArrowRight } from 'lucide-react';
+import { Play, Pause, ChevronRight, ShieldCheck, Cpu } from 'lucide-react';
 import Link from 'next/link';
 
 export default function JudgeModePage() {
-  const { selectedRegion, apiBase, fetchRegions, latestForecast, insights, generateInsights } = useClimateStore();
+  const { fetchRegions } = useClimateStore();
 
   // Demo Sequencer States
   const [currentStep, setCurrentStep] = useState(1);
@@ -253,7 +253,7 @@ Verification confirms zero null coordinates or averaged grid collapses.`
                   { key: 'deploy', label: 'Deployment' },
                   { key: 'ready', label: 'Judge Q&A Defense' }
                 ].map((tab) => (
-                  <button key={tab.key} onClick={() => setActiveTab(tab.key as any)} style={{
+                  <button key={tab.key} onClick={() => setActiveTab(tab.key as 'sci' | 'sec' | 'fus' | 'build' | 'deploy' | 'ready')} style={{
                     padding: '4px 8px', fontSize: '10.5px', borderRadius: '3px', cursor: 'pointer',
                     background: activeTab === tab.key ? 'var(--gov-green)' : 'var(--surface-dark)',
                     color: activeTab === tab.key ? 'black' : 'var(--text-secondary)',

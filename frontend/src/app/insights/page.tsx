@@ -4,7 +4,7 @@ import React from 'react';
 import Navbar from '@/components/Navbar';
 import CommandStatusStrip from '@/components/CommandStatusStrip';
 import AITransparencyPanel from '@/components/AITransparencyPanel';
-import { useClimateStore } from '@/store/store';
+import { useClimateStore, ClimateInsight } from '@/store/store';
 import { useRouter } from 'next/navigation';
 import { FileText, Download, AlertTriangle, ShieldAlert, CheckCircle2, Clock, Droplets, Wheat, Building2, Heart, Truck } from 'lucide-react';
 import Link from 'next/link';
@@ -82,7 +82,7 @@ export default function DecisionIntelligenceEngine() {
     }
   };
 
-  const activeInsights = (insights || placeholderInsights) as any;
+  const activeInsights = (insights || placeholderInsights) as ClimateInsight;
   const isFallbackMode = !insights;
 
   const handleDownload = () => {
@@ -300,12 +300,16 @@ export default function DecisionIntelligenceEngine() {
                     </div>
                   </div>
                 </div>
-                {(summary as any)?.token_usage && (
-                  <div style={{ marginTop: '10px', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'monospace', display: 'flex', gap: '16px' }}>
-                    <span>Tokens: {(summary as any).token_usage.prompt_tokens} in / {(summary as any).token_usage.completion_tokens} out</span>
-                    <span>Confidence: {summary?.confidence_score ? `${Math.round(Number(summary.confidence_score) * 100)}%` : '—'}</span>
-                  </div>
-                )}
+                {(() => {
+                  const tokenUsage = (summary as Record<string, unknown>)['token_usage'] as { prompt_tokens?: number; completion_tokens?: number } | undefined;
+                  if (!tokenUsage) return null;
+                  return (
+                    <div style={{ marginTop: '10px', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'monospace', display: 'flex', gap: '16px' }}>
+                      <span>Tokens: {tokenUsage.prompt_tokens ?? '—'} in / {tokenUsage.completion_tokens ?? '—'} out</span>
+                      <span>Confidence: {summary?.confidence_score ? `${Math.round(Number(summary.confidence_score) * 100)}%` : '—'}</span>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* AI Transparency Panel */}

@@ -7,7 +7,7 @@ import CommandStatusStrip from '@/components/CommandStatusStrip';
 import ScientificTrustPanel from '@/components/ScientificTrustPanel';
 import PrimaryRiskHero from '@/components/PrimaryRiskHero';
 import { useClimateStore, GridCell } from '@/store/store';
-import { Monitor, MapPin, Layers, Clock, Play, Pause, RotateCcw, Box } from 'lucide-react';
+import { Monitor, MapPin, Layers, Clock, Play, Pause, RotateCcw } from 'lucide-react';
 
 type LayerType = 'rainfall' | 'max_temperature' | 'min_temperature' | 'lst_temperature';
 type PlaybackSource = 'current' | 'forecast' | 'scenario';
@@ -15,7 +15,7 @@ type Speed = 1 | 2 | 5;
 
 export default function DigitalTwinConsole() {
   const { fetchRegions, selectedRegion, digitalTwin, fetchDigitalTwin, latestForecast, fetchLatestForecast, satelliteObservations, fetchSatelliteObservations, activeSimulation, apiBase } = useClimateStore();
-  const [metadata, setMetadata] = useState<any>(null);
+  const [metadata, setMetadata] = useState<Record<string, unknown> | null>(null);
 
   const [activeLayer, setActiveLayer] = useState<LayerType>('max_temperature');
   const [selectedCell, setSelectedCell] = useState<GridCell | null>(null);
@@ -270,12 +270,14 @@ export default function DigitalTwinConsole() {
                   </div>
 
                   <div style={{ fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 600, marginBottom: '8px' }}>Grid Variables</div>
-                  {[
-                    { label: 'Max Temperature', value: `${selectedCell.max_temperature.toFixed(1)} °C`, show: selectedCell.max_temperature > 0, color: '#ff3333', bg: 'rgba(255, 51, 51, 0.1)' },
-                    { label: 'Min Temperature', value: `${selectedCell.min_temperature.toFixed(1)} °C`, show: selectedCell.min_temperature > 0, color: '#00f0ff', bg: 'rgba(0, 240, 255, 0.1)' },
-                    { label: 'Daily Rainfall', value: `${selectedCell.rainfall.toFixed(2)} mm`, show: selectedCell.rainfall >= 0, color: '#00ff66', bg: 'rgba(0, 255, 102, 0.1)' },
-                    { label: 'Land Surface Temp', value: `${Number((selectedCell as any).lst_temperature || 0).toFixed(1)} °C`, show: (selectedCell as any).lst_temperature !== undefined, color: '#ff6600', bg: 'rgba(255, 102, 0, 0.1)' },
-                  ].filter(v => v.show).map(({ label, value, color, bg }) => (
+                  {(() => {
+                    const lstTemp = selectedCell ? (selectedCell as unknown as Record<string, unknown>)['lst_temperature'] as number | undefined : undefined;
+                    return [
+                      { label: 'Max Temperature', value: `${selectedCell.max_temperature.toFixed(1)} °C`, show: selectedCell.max_temperature > 0, color: '#ff3333', bg: 'rgba(255, 51, 51, 0.1)' },
+                      { label: 'Min Temperature', value: `${selectedCell.min_temperature.toFixed(1)} °C`, show: selectedCell.min_temperature > 0, color: '#00f0ff', bg: 'rgba(0, 240, 255, 0.1)' },
+                      { label: 'Daily Rainfall', value: `${selectedCell.rainfall.toFixed(2)} mm`, show: selectedCell.rainfall >= 0, color: '#00ff66', bg: 'rgba(0, 255, 102, 0.1)' },
+                      { label: 'Land Surface Temp', value: `${(lstTemp ?? 0).toFixed(1)} °C`, show: lstTemp !== undefined, color: '#ff6600', bg: 'rgba(255, 102, 0, 0.1)' },
+                    ].filter(v => v.show).map(({ label, value, color, bg }) => (
                     <div key={label} style={{
                       padding: '10px 12px', background: bg, border: `1px solid ${color}25`,
                       borderLeft: `3px solid ${color}`, borderRadius: '4px', marginBottom: '6px',
@@ -284,7 +286,7 @@ export default function DigitalTwinConsole() {
                       <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>{label}</span>
                       <span style={{ fontSize: '13px', fontWeight: 700, color, fontFamily: "'Noto Sans', monospace" }}>{value}</span>
                     </div>
-                  ))}
+                  ))})()}
                 </div>
               ) : (
                 <div style={{ textAlign: 'center', padding: '24px 0', color: 'var(--text-muted)', fontSize: '12px' }}>

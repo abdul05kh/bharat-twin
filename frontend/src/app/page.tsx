@@ -2,16 +2,14 @@
 
 import React, { useEffect, useState, useRef } from 'react';
 import Link from 'next/link';
-import {
-  Activity, Satellite, TrendingUp, Layers, ShieldCheck,
-  ArrowRight, Database, Cpu, BarChart2, Globe2, AlertTriangle,
-  CheckCircle2, Clock, Monitor
-} from 'lucide-react';
+import { Database, Satellite, TrendingUp, Layers, CheckCircle2, AlertTriangle } from 'lucide-react';
 import { useClimateStore } from '@/store/store';
+import downloadExecutiveBrief from '@/lib/reportClient';
 
 export default function LandingPage() {
   const { fetchRegions, selectedRegion, apiBase } = useClimateStore();
-  const [metadata, setMetadata] = useState<any>(null);
+  const [metadata, setMetadata] = useState<Record<string, unknown> | null>(null);
+  const md = metadata as Record<string, unknown> | null;
   const [currentTime, setCurrentTime] = useState('');
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -52,6 +50,22 @@ export default function LandingPage() {
     tick();
     const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
+  }, []);
+
+  // Attach download brief button handler (client-side only)
+  useEffect(() => {
+    const el = document.getElementById('download-brief-home');
+    if (!el) return;
+    const handler = async () => {
+      try {
+        await downloadExecutiveBrief({});
+      } catch (err) {
+        console.error('Download brief failed', err);
+        alert('Failed to download Executive Brief');
+      }
+    };
+    el.addEventListener('click', handler);
+    return () => el.removeEventListener('click', handler);
   }, []);
 
   // --- HTML5 CANVAS MISSION OBSERVATION GLOBAL ANIMATION ---
@@ -247,8 +261,9 @@ export default function LandingPage() {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const observationsCount = metadata?.observation_count || 17536;
-  const coveragePercent = metadata?.confidence_metrics?.coverage_percentage || 94;
+  const observationsCount = metadata ? Number((metadata['observation_count'] as unknown) ?? 17536) : 17536;
+  const pageConfidenceMetrics = metadata ? (metadata['confidence_metrics'] as Record<string, unknown> | undefined) : undefined;
+  const coveragePercent = pageConfidenceMetrics && typeof pageConfidenceMetrics['coverage_percentage'] === 'number' ? (pageConfidenceMetrics['coverage_percentage'] as number) : 94;
 
   const counterItems = [
     { label: 'Ingested Observations', value: observationsCount.toLocaleString('en-IN'), icon: Database, color: 'var(--gov-cyan)' },
@@ -279,87 +294,44 @@ export default function LandingPage() {
       {/* ─── Flagship Hero Layout ─── */}
       <div style={{ display: 'grid', gridTemplateColumns: '45% 55%', minHeight: 'calc(100vh - 100px)', borderBottom: '1px solid var(--border)' }}>
         
-        {/* Left Side: Mission Control Panels */}
-        <div style={{ padding: '48px', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderRight: '1px solid var(--border)', background: 'rgba(5, 12, 30, 0.4)' }}>
-          <div style={{
-            display: 'inline-flex', alignItems: 'center', gap: '6px',
-            padding: '4px 12px',
-            background: 'rgba(0, 240, 255, 0.1)',
-            border: '1px solid rgba(0, 240, 255, 0.3)',
-            borderRadius: '4px',
-            fontSize: '10px',
-            fontWeight: 700,
-            color: 'var(--gov-cyan)',
-            letterSpacing: '0.12em',
-            textTransform: 'uppercase',
-            marginBottom: '24px',
-            alignSelf: 'flex-start'
-          }}>
-            <span className="status-live" style={{ width: '6px', height: '6px', background: 'var(--gov-cyan)', borderRadius: '50%', display: 'inline-block' }} />
-            Pilot Operational Node — Hyderabad
+        {/* Left Side: Executive Hero */}
+        <div style={{ padding: '48px', display: 'flex', flexDirection: 'column', justifyContent: 'center', borderRight: '1px solid var(--border)', background: 'var(--bg)' }}>
+          <div style={{ marginBottom: '8px', display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ width: '8px', height: '8px', borderRadius: 8, background: 'var(--success)' }} />
+            <div style={{ fontSize: '12px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase' }}>Pilot Operational Node — Hyderabad</div>
           </div>
 
-          <h1 style={{ fontSize: '38px', fontWeight: 800, color: 'white', lineHeight: 1.1, letterSpacing: '-0.02em', marginBottom: '16px' }}>
-            BHARAT-TWIN
-          </h1>
-          <p style={{ fontSize: '17px', color: 'var(--text-secondary)', lineHeight: 1.5, marginBottom: '12px' }}>
-            Scalable Climate Digital Twin &amp; Scenario Intelligence Platform
-          </p>
-          <p style={{ fontSize: '13px', color: 'var(--text-muted)', lineHeight: 1.7, marginBottom: '32px' }}>
-            A high-fidelity mesoscale spatial climate simulator integrating native-resolution IMD gridded telemetry and INSAT HDF5 satellite observation layers into a unified operational grid. Designed to support predictive modeling and local disaster action matrices.
-          </p>
-
-          <div style={{ display: 'flex', gap: '16px', marginBottom: '40px' }}>
-            <Link href="/judge-mode" style={{
-              display: 'flex', alignItems: 'center', gap: '8px',
-              padding: '13px 28px',
-              background: 'var(--gov-saffron)',
-              color: 'white',
-              borderRadius: '4px',
-              textDecoration: 'none',
-              fontSize: '13px',
-              fontWeight: 700,
-              letterSpacing: '0.05em',
-              transition: 'background 0.2s',
-              border: 'none',
-              boxShadow: '0 4px 16px rgba(255,102,0,0.3)',
-            }}>
-              LAUNCH DEMONSTRATION <ArrowRight size={14} />
-            </Link>
-            <Link href="/about" style={{
-              display: 'flex', alignItems: 'center', gap: '8px',
-              padding: '13px 24px',
-              background: 'transparent',
-              color: 'var(--text-secondary)',
-              border: '1px solid var(--border)',
-              borderRadius: '4px',
-              textDecoration: 'none',
-              fontSize: '13px',
-              fontWeight: 600,
-            }}>
-              Mission Directorate
-            </Link>
+          <h1 style={{ fontSize: '40px', fontWeight: 800, color: 'var(--text)', lineHeight: 1.05, marginBottom: '8px' }}>BHARAT-TWIN</h1>
+          <div style={{ fontSize: '16px', color: 'var(--muted)', marginBottom: '18px' }}>Climate Scenario Sandbox for Decision Makers</div>
+          <div style={{ fontSize: '14px', color: 'var(--muted)', marginBottom: '24px', maxWidth: 540 }}>
+            Simulate climate stress scenarios and view concise impacts for timely decision-making.
           </div>
 
-          {/* Operational Command Ticker panel */}
-          <div style={{ background: 'var(--surface-dark)', border: '1px solid var(--border)', borderRadius: '6px', padding: '16px' }}>
-            <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px', borderBottom: '1px solid var(--border)', paddingBottom: '6px' }}>
-              Operations Registry Status
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', fontSize: '11px' }}>
-              {[
-                { label: 'Regional Monitoring', val: 'PASS', color: 'var(--gov-green)' },
-                { label: 'Data Ingestion', val: `${observationsCount.toLocaleString('en-IN')} CELLS`, color: 'var(--gov-cyan)' },
-                { label: 'XGBoost Forecaster', val: 'ACTIVE', color: 'var(--gov-cyan)' },
-                { label: 'Digital Twin Model', val: 'STABLE (3D)', color: 'var(--gov-green)' },
-                { label: 'Risk Registry', val: 'VERIFIED', color: 'var(--gov-green)' },
-                { label: 'INSAT Ingestion Link', val: 'CONNECTED', color: 'var(--gov-green)' }
-              ].map(item => (
-                <div key={item.label} style={{ display: 'flex', justifyContent: 'space-between', padding: '4px 0', borderBottom: '1px solid rgba(255,255,255,0.02)' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>{item.label}:</span>
-                  <span style={{ fontWeight: 700, color: item.color }}>{item.val}</span>
+          <div style={{ display: 'flex', gap: '12px', marginBottom: '22px' }}>
+            <Link href="/time-machine" style={{ padding: '12px 20px', background: 'var(--primary)', color: 'white', borderRadius: 6, fontWeight: 700, textDecoration: 'none' }}>Run Scenario</Link>
+            <Link href="/judge-mode" style={{ padding: '12px 18px', background: 'transparent', color: 'var(--primary)', border: '1px solid var(--border)', borderRadius: 6, textDecoration: 'none', fontWeight: 700 }}>Watch Demo</Link>
+          </div>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginTop: '8px' }}>
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: 12 }}>
+              <div style={{ fontSize: '12px', color: 'var(--muted)', fontWeight: 700, marginBottom: 6 }}>Digital Risk Index</div>
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 12 }}>
+                <div style={{ fontSize: '28px', fontWeight: 800, color: 'var(--risk-high)' }}>42%</div>
+                <div>
+                  <div style={{ fontSize: '12px', color: 'var(--muted)' }}>Trend: +6%</div>
+                  <div style={{ fontSize: '12px', color: 'var(--muted)' }}>Confidence: 91%</div>
                 </div>
-              ))}
+              </div>
+                <div style={{ marginTop: 10, fontSize: '12px', color: 'var(--muted)' }}><strong>Action:</strong> Issue district-level heat advisory.</div>
+            </div>
+
+            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: 12 }}>
+              <div style={{ fontSize: '12px', color: 'var(--muted)', fontWeight: 700, marginBottom: 6 }}>Executive Climate Brief</div>
+                <div style={{ fontSize: '13px', color: 'var(--text)', marginBottom: 12 }}>One-click executive brief: impact, recommended action, and confidence.</div>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button id="download-brief-home" style={{ padding: '10px 14px', background: 'var(--accent)', color: 'white', borderRadius: 6, border: 'none', fontWeight: 700 }}>Download PDF</button>
+                <Link href="/briefing" style={{ padding: '10px 12px', border: '1px solid var(--border)', borderRadius: 6, textDecoration: 'none', color: 'var(--primary)', fontWeight: 700 }}>View Full Report</Link>
+              </div>
             </div>
           </div>
         </div>

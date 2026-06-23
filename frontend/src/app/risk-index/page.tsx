@@ -1,11 +1,10 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Navbar from '@/components/Navbar';
 import CommandStatusStrip from '@/components/CommandStatusStrip';
 import { useClimateStore } from '@/store/store';
-import { Gauge, TrendingUp, TrendingDown, Minus, RefreshCw, Info } from 'lucide-react';
-import Link from 'next/link';
+import { Gauge, TrendingUp, TrendingDown, Minus, Info, RefreshCw } from 'lucide-react';
 
 interface RiskIndex {
   score: number;
@@ -84,9 +83,8 @@ export default function ClimateRiskObservatory() {
   const [error, setError] = useState('');
 
   useEffect(() => { fetchRegions(); }, [fetchRegions]);
-  useEffect(() => { if (selectedRegion) fetchRiskIndex(); }, [selectedRegion]);
 
-  const fetchRiskIndex = async () => {
+  const fetchRiskIndex = useCallback(async () => {
     if (!selectedRegion) return;
     setLoading(true); setError('');
     try {
@@ -98,7 +96,9 @@ export default function ClimateRiskObservatory() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedRegion, apiBase]);
+
+  useEffect(() => { if (selectedRegion) fetchRiskIndex(); }, [selectedRegion, fetchRiskIndex]);
 
   const indices = riskData?.indices;
   const composite = indices?.composite_risk;
@@ -271,7 +271,7 @@ export default function ClimateRiskObservatory() {
                 Risk Index Not Yet Computed
               </h4>
               <p style={{ fontSize: '13px', maxWidth: '360px', margin: '0 auto 16px' }}>
-                Select a region and click "Refresh Index" to compute the Climate Risk Observatory indicators.
+                Select a region and click &quot;Refresh Index&quot; to compute the Climate Risk Observatory indicators.
               </p>
             </div>
           )}

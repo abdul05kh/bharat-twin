@@ -3,7 +3,7 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import CommandStatusStrip from '@/components/CommandStatusStrip';
-import { Layers, Database, RefreshCw, Cpu, Monitor, Brain, AlertCircle, Briefcase } from 'lucide-react';
+import { Layers, Database, RefreshCw, Monitor, Brain, AlertCircle, Briefcase } from 'lucide-react';
 
 const ARCH_LAYERS = [
   {

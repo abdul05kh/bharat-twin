@@ -5,11 +5,11 @@ import Navbar from '@/components/Navbar';
 import CommandStatusStrip from '@/components/CommandStatusStrip';
 import PrimaryRiskHero from '@/components/PrimaryRiskHero';
 import { useClimateStore } from '@/store/store';
-import { FileText, ShieldAlert, AlertTriangle, MapPin, TrendingUp, Users, RefreshCw } from 'lucide-react';
+import { FileText, ShieldAlert, AlertTriangle, MapPin, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ExecutiveClimateBriefingPage() {
-  const { selectedRegion, apiBase, fetchRegions, latestForecast, fetchLatestForecast, insights, generateInsights } = useClimateStore();
+  const { selectedRegion, fetchRegions, latestForecast, fetchLatestForecast, insights, generateInsights } = useClimateStore();
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -20,7 +20,7 @@ export default function ExecutiveClimateBriefingPage() {
     if (selectedRegion) {
       fetchLatestForecast();
     }
-  }, [selectedRegion]);
+  }, [selectedRegion, fetchLatestForecast]);
 
   const handleGenerate = async () => {
     if (!latestForecast) return;

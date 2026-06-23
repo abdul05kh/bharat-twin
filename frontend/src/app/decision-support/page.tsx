@@ -212,8 +212,8 @@ export default function ClimateDecisionSupportCentre() {
               <h4 style={{ fontWeight: 600, fontSize: '15px', color: 'white', marginBottom: '6px' }}>
                 No Decision Support Advisory Generated
               </h4>
-              <p style={{ fontSize: '13px', maxWidth: '400px', margin: '0 auto 16px', lineHeight: 1.7, color: 'var(--text-secondary)' }}>
-                Click "Generate Decision Support" to produce authority-specific climate action recommendations from the current forecast data.
+                <p style={{ fontSize: '13px', maxWidth: '400px', margin: '0 auto 16px', lineHeight: 1.7, color: 'var(--text-secondary)' }}>
+                Click &quot;Generate Decision Support&quot; to produce authority-specific climate action recommendations from the current forecast data.
               </p>
               {!latestForecast && (
                 <Link href="/analytics" style={{

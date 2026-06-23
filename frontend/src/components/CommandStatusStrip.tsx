@@ -2,10 +2,10 @@
 
 import React, { useEffect, useState } from 'react';
 import { useClimateStore } from '@/store/store';
-import { Activity, Database, Satellite, Server, Cpu } from 'lucide-react';
+import { Activity, Database, Satellite } from 'lucide-react';
 
 export default function CommandStatusStrip() {
-  const { selectedRegion, apiBase, currentObservations } = useClimateStore();
+  const { selectedRegion, apiBase } = useClimateStore();
   const [dbStatus, setDbStatus] = useState<'ONLINE' | 'OFFLINE'>('ONLINE');
   const [obsCount, setObsCount] = useState<number>(17536);
   const [aiStatus, setAiStatus] = useState<'ONLINE' | 'DEGRADED' | 'OFFLINE'>('ONLINE');

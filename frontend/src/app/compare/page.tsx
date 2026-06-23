@@ -8,7 +8,7 @@ import PrimaryRiskHero from '@/components/PrimaryRiskHero';
 import { useClimateStore } from '@/store/store';
 import { useRouter } from 'next/navigation';
 import { BarChart2, TrendingDown, TrendingUp, BrainCircuit, ArrowRight, ArrowRightLeft } from 'lucide-react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import Link from 'next/link';
 
 export default function ImpactAssessmentConsole() {

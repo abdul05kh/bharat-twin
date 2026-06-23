@@ -1,13 +1,9 @@
 'use client';
 
 import React from 'react';
-import { Activity, ShieldCheck, Database, Calendar } from 'lucide-react';
+import { ShieldCheck, Database, Calendar } from 'lucide-react';
 
-interface ValidationCenterProps {
-  regionId?: string;
-}
-
-export default function ValidationCenter({ regionId }: ValidationCenterProps) {
+export default function ValidationCenter(): JSX.Element {
   // Real-world validation metrics for the Hyderabad XGBoost pilot model
   const metrics = {
     temp: {

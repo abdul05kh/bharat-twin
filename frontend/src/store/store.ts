@@ -142,7 +142,7 @@ interface ClimateStore {
   insights: ClimateInsight | null;
   isLoading: boolean;
   forecastJobStatus: string | null;
-  riskIndex: any | null;
+  riskIndex: Record<string, unknown> | null;
   
   // Actions
   fetchRiskIndex: () => Promise<void>;
@@ -179,7 +179,7 @@ export const useClimateStore = create<ClimateStore>((set, get) => ({
   forecastJobStatus: null,
   riskIndex: null,
 
-  setLoading: (loading) => set({ isLoading: loading }),
+  setLoading: (loading: boolean) => set({ isLoading: loading }),
 
   fetchRegions: async () => {
     try {
@@ -196,7 +196,7 @@ export const useClimateStore = create<ClimateStore>((set, get) => ({
     }
   },
 
-  selectRegion: (region) => {
+  selectRegion: (region: Region) => {
     set({ selectedRegion: region });
     // Refetch region-dependent data
     get().fetchCurrentClimate();
@@ -220,7 +220,7 @@ export const useClimateStore = create<ClimateStore>((set, get) => ({
     }
   },
 
-  fetchHistoricalTrends: async (startDate, endDate) => {
+  fetchHistoricalTrends: async (startDate?: string, endDate?: string) => {
     const region = get().selectedRegion;
     if (!region) return;
     try {
@@ -254,7 +254,7 @@ export const useClimateStore = create<ClimateStore>((set, get) => ({
     }
   },
 
-  generateForecast: async (horizon) => {
+  generateForecast: async (horizon: number) => {
     const region = get().selectedRegion;
     if (!region) return;
     set({ isLoading: true, forecastJobStatus: 'QUEUED' });
@@ -313,7 +313,7 @@ export const useClimateStore = create<ClimateStore>((set, get) => ({
     }
   },
 
-  createScenario: async (name, rainAdj, tempAdj, duration) => {
+  createScenario: async (name: string, rainAdj: number, tempAdj: number, duration: number) => {
     try {
       const res = await fetch(`${get().apiBase}/scenarios`, {
         method: 'POST',
@@ -337,7 +337,7 @@ export const useClimateStore = create<ClimateStore>((set, get) => ({
     }
   },
 
-  runSimulation: async (scenarioId, forecastId) => {
+  runSimulation: async (scenarioId: string, forecastId: string) => {
     set({ isLoading: true });
     try {
       const res = await fetch(`${get().apiBase}/simulations/run`, {
@@ -358,7 +358,7 @@ export const useClimateStore = create<ClimateStore>((set, get) => ({
     }
   },
 
-  fetchComparison: async (baselineId, simulatedId) => {
+  fetchComparison: async (baselineId: string, simulatedId: string) => {
     try {
       const res = await fetch(`${get().apiBase}/compare?baseline_forecast_id=${baselineId}&simulated_forecast_id=${simulatedId}`);
       if (res.ok) {
@@ -370,7 +370,7 @@ export const useClimateStore = create<ClimateStore>((set, get) => ({
     }
   },
 
-  generateInsights: async (forecastId, simulationId) => {
+  generateInsights: async (forecastId?: string, simulationId?: string) => {
     set({ isLoading: true });
     try {
       const body: { forecast_id?: string; simulation_id?: string } = {};

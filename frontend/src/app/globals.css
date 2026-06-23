@@ -1,50 +1,30 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Source+Sans+Pro:wght@300;400;600;700&family=Noto+Sans:wght@400;500;600&display=swap');
 
 :root {
-  /* Government Dark Palette (ISRO/NRSC Command Center style - Palantir Gotham style) */
-  --gov-blue: #080c16;          /* Deepest Navy / Black */
-  --gov-blue-mid: #0d1527;      /* Deep Navy */
-  --gov-blue-light: #16223f;    /* Navy Blue */
-  --gov-saffron: #ff9100;       /* Satellite Orange */
-  --gov-saffron-light: #ffb74d;
-  --gov-green: #00e676;         /* Radar Green */
-  --gov-green-light: #69f0ae;
-  --gov-cyan: #00f0ff;          /* Subtle Cyan */
-
-  /* Risk Colors (v2.0 Hardened Hierarchy) */
-  --risk-low: #00e676;
-  --risk-moderate: #ffd600;
-  --risk-high: #ff9100;
-  --risk-critical: #ff1744;
-
-  /* Neutrals (Inverted Slate/Navy for Premium Dark Command Center) */
-  --neutral-50: #0a0e17;        /* Base Page Background */
-  --neutral-100: #141b2d;       /* Elevated Panel Background */
-  --neutral-200: #1c273e;       /* Inner Subsections */
-  --neutral-300: #273554;
-  --neutral-400: #3b4e78;
-  --neutral-500: #627ca8;
-  --neutral-600: #8ba3cf;
-  --neutral-700: #b5c7e7;
-  --neutral-800: #dce4f2;
-  --neutral-900: #ffffff;
-
-  /* Semantic Containers */
-  --surface: #141b2d;           /* Slate-navy card surface */
-  --surface-alt: #0a0e17;       /* Dark base surface */
-  --surface-dark: #05070c;      /* Contrast base */
-  --border: rgba(0, 240, 255, 0.18); /* Defined subtle glowing border */
-  --border-dark: rgba(0, 240, 255, 0.35);
-  --text-primary: #f0f5ff;       /* Pure high contrast off-white */
-  --text-secondary: #b5c7e3;     /* Readable body text */
-  --text-muted: #8da0c4;         /* Dim labels */
-  --text-light: #62759a;
-
-  /* Sidebar */
-  --sidebar-bg: #070b14;
-  --sidebar-text: #b5c7e3;
-  --sidebar-active: #ff9100;
-  --sidebar-hover: rgba(0, 240, 255, 0.10);
+  /* BHARAT-TWIN Light Theme Tokens (Executive, high-contrast) */
+  --bg: #F7F9FC;            /* Page background */
+  --surface: #FFFFFF;       /* Primary card surface */
+  --surface-alt: #F8FAFC;   /* Secondary surface */
+  --primary: #0B3D91;       /* Primary brand color */
+  --accent: #00A3A3;        /* Accent / action */
+  --success: #1E8E3E;
+  --warning: #F9AB00;
+  --risk: #D93025;
+  --text: #1F2937;          /* Primary text */
+  --muted: #6B7280;
+  --border: rgba(31,41,55,0.06);
+  --shadow: 0 6px 18px rgba(31,41,55,0.08);
+  --kpi-accent: #0EA5E9;
+  /* Risk gradient */
+  --risk-low: #22C55E;
+  --risk-moderate: #EAB308;
+  --risk-high: #F97316;
+  --risk-critical: #DC2626;
+  /* Data source badges */
+  --ds-imd: #0B3D91;
+  --ds-insat: #00A3A3;
+  --ds-mosdac: #F9AB00;
+  --ds-nrsc: #1E8E3E;
 }
 
 *, *::before, *::after {
@@ -61,12 +41,8 @@ html {
 
 body {
   font-family: 'Inter', 'Source Sans Pro', 'Noto Sans', system-ui, sans-serif;
-  background-color: var(--neutral-50);
-  background-image: 
-    linear-gradient(rgba(0, 240, 255, 0.015) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(0, 240, 255, 0.015) 1px, transparent 1px);
-  background-size: 40px 40px;
-  color: var(--text-primary);
+  background-color: var(--bg);
+  color: var(--text);
   line-height: 1.6;
 }
 

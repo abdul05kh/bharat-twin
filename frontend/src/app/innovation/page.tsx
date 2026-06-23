@@ -3,7 +3,7 @@
 import React from 'react';
 import Navbar from '@/components/Navbar';
 import CommandStatusStrip from '@/components/CommandStatusStrip';
-import { Award, Zap, CheckCircle2, ChevronRight } from 'lucide-react';
+import { Award, Zap, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 
 export default function InnovationPage() {

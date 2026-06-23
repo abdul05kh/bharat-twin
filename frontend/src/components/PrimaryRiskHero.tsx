@@ -19,9 +19,9 @@ export default function PrimaryRiskHero() {
     level: 'High',
     trend: 'increasing',
     confidence: 82,
-    whatIsHappening: 'Average regional max temperatures are projected to climb to 34.6°C (+1.8°C above seasonal baseline), with persistent moisture deficits extending the dry spell.',
-    whyItMatters: 'Triggers agricultural thermal stress, increased municipal water stress, and elevates the Urban Heat Island (UHI) intensity in the metropolitan core.',
-    whatActionToBeTaken: 'Pre-position emergency water tankers, enforce misting sprays, adjust crop irrigation schedules, and activate public heat advisories.'
+    whatIsHappening: 'Max temperatures ~1.8°C above seasonal baseline with ongoing moisture deficits.',
+    whyItMatters: 'Increases agricultural and municipal water stress and heat-related health risks.',
+    whatActionToBeTaken: 'Pre-position water supplies, enforce cooling measures, adjust irrigation, and issue heat advisories.'
   };
 
   const hasData = riskIndex && riskIndex.indices && riskIndex.indices.composite_risk;
@@ -40,6 +40,18 @@ export default function PrimaryRiskHero() {
   const whatActionToBeTaken = hasData
     ? (riskIndex.indices.composite_risk.impact_summary || fallbackData.whatActionToBeTaken)
     : fallbackData.whatActionToBeTaken;
+
+  // Ensure displayed strings are concise (max 60 words)
+  const truncateWords = (s: string, maxWords = 60) => {
+    if (!s) return s;
+    const parts = s.split(/\s+/);
+    if (parts.length <= maxWords) return s;
+    return parts.slice(0, maxWords).join(' ') + '...';
+  };
+
+  const shortWhat = truncateWords(String(whatIsHappening), 60);
+  const shortWhy = truncateWords(String(whyItMatters), 60);
+  const shortAction = truncateWords(String(whatActionToBeTaken), 60);
 
   // Color mappings based on risk level
   const getRiskColor = (lvl: string) => {
@@ -163,15 +175,15 @@ export default function PrimaryRiskHero() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
         <div style={{ fontSize: '11px', lineHeight: 1.4 }}>
           <strong style={{ color: 'var(--gov-cyan)', textTransform: 'uppercase', fontSize: '9.5px', letterSpacing: '0.04em', display: 'block', marginBottom: '2px' }}>1. What is Happening?</strong>
-          <span style={{ color: 'var(--text-primary)' }}>{whatIsHappening}</span>
+          <span style={{ color: 'var(--text-primary)' }}>{shortWhat}</span>
         </div>
         <div style={{ fontSize: '11px', lineHeight: 1.4 }}>
           <strong style={{ color: 'var(--gov-saffron)', textTransform: 'uppercase', fontSize: '9.5px', letterSpacing: '0.04em', display: 'block', marginBottom: '2px' }}>2. Why Does it Matter?</strong>
-          <span style={{ color: 'var(--text-secondary)' }}>{whyItMatters}</span>
+          <span style={{ color: 'var(--text-secondary)' }}>{shortWhy}</span>
         </div>
         <div style={{ fontSize: '11px', lineHeight: 1.4 }}>
           <strong style={{ color: riskColor, textTransform: 'uppercase', fontSize: '9.5px', letterSpacing: '0.04em', display: 'block', marginBottom: '2px' }}>3. What Action Should Be Taken?</strong>
-          <span style={{ color: 'white', fontWeight: 500 }}>{whatActionToBeTaken}</span>
+          <span style={{ color: 'white', fontWeight: 500 }}>{shortAction}</span>
         </div>
       </div>
     </div>

@@ -4,11 +4,11 @@ import React, { useEffect, useState } from 'react';
 import Navbar from '@/components/Navbar';
 import CommandStatusStrip from '@/components/CommandStatusStrip';
 import { useClimateStore } from '@/store/store';
-import { Database, ShieldAlert, Award, FileSpreadsheet, Lock } from 'lucide-react';
+import { Database, Award, Lock } from 'lucide-react';
 
 export default function DataProvenancePage() {
   const { selectedRegion, apiBase, fetchRegions } = useClimateStore();
-  const [metadata, setMetadata] = useState<any>(null);
+  const [metadata, setMetadata] = useState<Record<string, unknown> | null>(null);
 
   useEffect(() => {
     fetchRegions();
@@ -21,7 +21,9 @@ export default function DataProvenancePage() {
         .then(data => setMetadata(data))
         .catch(e => console.error("Failed to fetch climate metadata for provenance", e));
     }
-  }, [selectedRegion]);
+  }, [selectedRegion, apiBase]);
+
+  const sources = (metadata?.['sources'] as Array<Record<string, unknown>> | undefined) ?? [];
 
   return (
     <div style={{ minHeight: '100vh', background: 'var(--neutral-50)', paddingLeft: '240px', fontFamily: "'Inter', sans-serif", color: 'var(--text-primary)' }}>
@@ -74,14 +76,14 @@ export default function DataProvenancePage() {
                     </tr>
                   </thead>
                   <tbody>
-                    {metadata?.sources && metadata.sources.length > 0 ? (
-                      metadata.sources.map((source: any, i: number) => (
+                    {sources.length > 0 ? (
+                      sources.map((source, i) => (
                         <tr key={i} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', background: i % 2 === 0 ? 'rgba(255,255,255,0.01)' : 'transparent' }}>
-                          <td style={{ padding: '10px', fontWeight: 600, color: 'white' }}>{source.name}</td>
-                          <td style={{ padding: '10px', color: 'var(--text-secondary)' }}>{source.source}</td>
-                          <td style={{ padding: '10px', fontFamily: 'monospace', color: 'var(--gov-cyan)' }}>{source.resolution}</td>
-                          <td style={{ padding: '10px', color: 'var(--text-muted)' }}>{source.coverage}</td>
-                          <td style={{ padding: '10px', fontFamily: 'monospace', color: 'var(--gov-saffron)' }}>{source.checksum}</td>
+                          <td style={{ padding: '10px', fontWeight: 600, color: 'white' }}>{String(source['name'] ?? '')}</td>
+                          <td style={{ padding: '10px', color: 'var(--text-secondary)' }}>{String(source['source'] ?? '')}</td>
+                          <td style={{ padding: '10px', fontFamily: 'monospace', color: 'var(--gov-cyan)' }}>{String(source['resolution'] ?? '')}</td>
+                          <td style={{ padding: '10px', color: 'var(--text-muted)' }}>{String(source['coverage'] ?? '')}</td>
+                          <td style={{ padding: '10px', fontFamily: 'monospace', color: 'var(--gov-saffron)' }}>{String(source['checksum'] ?? '')}</td>
                         </tr>
                       ))
                     ) : (

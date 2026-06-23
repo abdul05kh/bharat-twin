@@ -1,22 +1,23 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import Navbar from '@/components/Navbar';
 import CommandStatusStrip from '@/components/CommandStatusStrip';
 import { useClimateStore } from '@/store/store';
-import { Database, ShieldAlert, Cpu, Activity, Clock, RefreshCw, HardDrive, Key, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Database, Cpu, Activity, RefreshCw, HardDrive, Key, CheckCircle2 } from 'lucide-react';
 
 export default function DataHealthSecurityCenter() {
   const { selectedRegion, apiBase, fetchRegions } = useClimateStore();
   const [loading, setLoading] = useState(false);
-  const [metadata, setMetadata] = useState<any>(null);
+  const [metadata, setMetadata] = useState<Record<string, unknown> | null>(null);
+  const md = metadata as Record<string, unknown> | null;
   
   // Performance telemetry states
-  const [pingTimer, setPingTimer] = useState<number>(0);
-  const [dbQueryTime, setDbQueryTime] = useState<number>(0);
-  const [fps, setFps] = useState<number>(60);
+  const [pingTimer, setPingTimer] = useState<number | string>(0);
+  const [dbQueryTime, setDbQueryTime] = useState<number | string>('n/a');
+  const [fps, setFps] = useState<number | string>('-');
   
-  const fetchHealth = async () => {
+  const fetchHealth = useCallback(async () => {
     if (!selectedRegion) return;
     setLoading(true);
     const start = performance.now();
@@ -26,13 +27,16 @@ export default function DataHealthSecurityCenter() {
       setMetadata(data);
       const end = performance.now();
       setPingTimer(Math.round(end - start));
-      setDbQueryTime(Math.round(Math.random() * 8 + 4)); // SQLite typical fetch time in ms
+      // Use backend-provided timing if available, otherwise mark as 'n/a'
+      const dbMs = (data as Record<string, unknown>)['db_query_ms'];
+      if (typeof dbMs === 'number') setDbQueryTime(dbMs);
+      else setDbQueryTime(String(dbMs ?? 'n/a'));
     } catch (e) {
       console.error(e);
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedRegion, apiBase]);
 
   useEffect(() => {
     fetchRegions();
@@ -42,15 +46,19 @@ export default function DataHealthSecurityCenter() {
     if (selectedRegion) {
       fetchHealth();
     }
-  }, [selectedRegion]);
+  }, [selectedRegion, fetchHealth]);
 
-  // Simulate FPS loop
+  // Prefer server-provided render telemetry; keep placeholder if absent
   useEffect(() => {
-    const interval = setInterval(() => {
-      setFps(Math.round(58 + Math.random() * 2));
-    }, 2000);
-    return () => clearInterval(interval);
-  }, []);
+    const renderFps = metadata?.['render_fps'] as number | undefined;
+    if (renderFps !== undefined) setFps(String(renderFps));
+  }, [metadata]);
+
+  // Safely extract numeric metadata values
+  const observationCount = metadata ? Number((metadata['observation_count'] as unknown) ?? 17536) : 17536;
+  const confidenceMetrics = metadata ? (metadata['confidence_metrics'] as Record<string, unknown> | undefined) : undefined;
+  const qualityScore = confidenceMetrics && typeof confidenceMetrics['quality_score'] === 'number' ? (confidenceMetrics['quality_score'] as number) : 91;
+  const missingRecords = confidenceMetrics && typeof confidenceMetrics['missing_records'] === 'number' ? (confidenceMetrics['missing_records'] as number) : 0;
 
   const systemStatus = {
     gitCommit: '7dfa2c4',
@@ -62,7 +70,7 @@ export default function DataHealthSecurityCenter() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--neutral-50)', paddingLeft: '240px', fontFamily: "'Inter', sans-serif", color: 'var(--text-primary)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingLeft: '240px', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
       <Navbar />
       <main style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
         <CommandStatusStrip />
@@ -74,9 +82,9 @@ export default function DataHealthSecurityCenter() {
           padding: '0 24px', flexShrink: 0,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Activity size={18} color="var(--gov-saffron)" />
-            <h2 style={{ fontWeight: 700, fontSize: '15px', color: 'white' }}>Data Health &amp; Security Center</h2>
-            <span style={{ fontSize: '10.5px', padding: '2px 8px', borderRadius: '3px', background: 'rgba(0, 240, 255, 0.1)', color: 'var(--gov-cyan)', border: '1px solid rgba(0, 240, 255, 0.2)' }}>
+            <Activity size={18} color="var(--warning)" />
+            <h2 style={{ fontWeight: 700, fontSize: '15px', color: 'var(--text)' }}>Data Health &amp; Security Center</h2>
+            <span style={{ fontSize: '10.5px', padding: '2px 8px', borderRadius: '3px', background: 'var(--surface-alt)', color: 'var(--muted)', border: '1px solid var(--border)' }}>
               Operational Telemetry Registry
             </span>
           </div>
@@ -105,16 +113,16 @@ export default function DataHealthSecurityCenter() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '12px' }}>
               {[
                 { label: 'Spatial Study Boundary', value: 'Hyderabad Metropolitan Region (HMR)' },
-                { label: 'Ingested Observation count', value: (metadata?.observation_count ?? 17536).toLocaleString('en-IN') + ' points' },
+                { label: 'Ingested Observation count', value: observationCount.toLocaleString('en-IN') + ' points' },
                 { label: 'Coverage Grid Cells', value: '6 Mesoscale Coordinate Nodes' },
-                { label: 'Data Quality Index', value: `${metadata?.confidence_metrics?.quality_score ?? 91}%`, color: 'var(--gov-green)' },
+                { label: 'Data Quality Index', value: `${qualityScore}%` },
                 { label: 'Last Daily IMD Sync', value: 'Sync active (within 24 hrs)' },
                 { label: 'Last INSAT-3D Sync', value: 'Sync active (daily orbit transit)' },
-                { label: 'Missing Records Logged', value: metadata ? `${metadata?.confidence_metrics?.missing_records ?? 0} records detected` : 'Pending sync', color: 'var(--gov-green)' },
+                { label: 'Missing Records Logged', value: metadata ? `${missingRecords} records detected` : 'Pending sync' },
               ].map((row, i) => (
-                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '8px', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                  <span style={{ color: 'var(--text-muted)' }}>{row.label}:</span>
-                  <span style={{ fontWeight: 600, color: row.color || 'white' }}>{row.value}</span>
+                <div key={i} style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '8px', borderBottom: '1px solid var(--border)' }}>
+                  <span style={{ color: 'var(--muted)' }}>{row.label}:</span>
+                  <span style={{ fontWeight: 600, color: 'var(--text)' }}>{row.value}</span>
                 </div>
               ))}
             </div>

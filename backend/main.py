@@ -136,6 +136,11 @@ def init_db_schemas():
 
     try:
         print("Initializing database tables and schemas...")
+        dialect = engine.dialect.name
+        if dialect != 'sqlite':
+            print("Enabling PostGIS extension...")
+            with engine.begin() as conn:
+                conn.execute(text("CREATE EXTENSION IF NOT EXISTS postgis"))
         Base.metadata.create_all(bind=engine)
         
         with engine.begin() as conn:

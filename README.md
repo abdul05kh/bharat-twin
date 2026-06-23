@@ -7,6 +7,11 @@
 [![Hackathon Category](https://img.shields.io/badge/ISRO--Hackathon-Problem_Statement_5-orange.svg)](#)
 [![Submission Readiness](https://img.shields.io/badge/Submission_Readiness-HIGH-green.svg)](#)
 
+### 🚀 Production Deployment Links
+* **Live Web Application (Frontend):** [https://bharat-twin.web.app](https://bharat-twin.web.app) (Backup: [https://bharat-twin.firebaseapp.com](https://bharat-twin.firebaseapp.com))
+* **Production API Service (Backend):** [https://bharat-twin-backend.onrender.com](https://bharat-twin-backend.onrender.com)
+* **Cloud Database Engine:** Supabase PostgreSQL + PostGIS
+
 ---
 
 ## 1. Executive Summary & Problem Statement
@@ -254,10 +259,10 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ## 7. Development & Mission Directorate Roster
 
-* **Mohammad Abdul Kalam Hussain** (KITS, Singapur) — *Project Lead & AI Systems Architect* (Owner: `main.py`, `forecast_engine.py`, `insights_engine.py`)
-* **Akshay** (JNTUH UCEJ) — *Climate Data Engineering & Backend Systems* (Owner: `real_imd_ingestion.py`, `real_insat_ingestion.py`, `models.py`)
-* **Abhiram** (JNTUH UCEJ) — *Full Stack & Platform Systems* (Owner: `MapContainer.tsx`, `ClimateMap.tsx`, `twin/page.tsx`)
-* **Bhavana** (JNTUH UCEJ) — *Research, Validation & UX Engineering* (Owner: `report_generator.py`, `about/page.tsx`)
+* **Akshay** — *Project Lead* (Systems Strategy & Integration Oversight)
+* **Abdul Kalam Hussain** — *AI Systems Lead* (Climate Intelligence, Forecasting, Platform Architecture)
+* **Abhiram** — *Geospatial Systems Lead* (Visualization & Platform Integration)
+* **Bhavana** — *Research & Validation Lead* (Documentation, QA & System Testing)
 
 ---
 

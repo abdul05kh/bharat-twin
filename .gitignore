@@ -43,3 +43,7 @@ Thumbs.db
 # Large data files
 raw_data/
 
+# Firebase cache
+.firebase/
+
+

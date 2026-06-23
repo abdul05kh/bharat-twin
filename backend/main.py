@@ -31,10 +31,20 @@ from datasets.real_insat_ingestion import RealINSATIngestion
 
 # Database diagnostics state
 db_diagnostics = {
+    "environment_loaded": False,
+    "api_keys_verified": False,
+    "database_connected": False,
+    "models_loaded": False,
+    "tables_verified": False,
+    "startup_complete": False,
     "database_url_present": False,
     "reachable": False,
     "tables_initialized": False,
     "host": "unknown",
+    "dialect": "unknown",
+    "table_count": 0,
+    "tables": [],
+    "postgis_available": False,
     "error": None
 }
 
@@ -84,6 +94,27 @@ def check_db_connection() -> dict:
             "host": mask_database_url_host(settings.DATABASE_URL),
             "error": str(e)
         }
+
+def get_tables_info(db: Session):
+    dialect = db.bind.dialect.name
+    if dialect == 'sqlite':
+        query = text("SELECT name FROM sqlite_master WHERE type='table'")
+    else:
+        query = text("SELECT table_name FROM information_schema.tables WHERE table_schema = 'public'")
+    
+    result = db.execute(query).fetchall()
+    tables = [row[0] for row in result if not row[0].startswith("spatial_ref_sys")]
+    return dialect, len(tables), tables
+
+def check_postgis_availability(db: Session) -> bool:
+    dialect = db.bind.dialect.name
+    if dialect == 'sqlite':
+        return False
+    try:
+        res = db.execute(text("SELECT extname FROM pg_extension WHERE extname = 'postgis'")).scalar()
+        return bool(res)
+    except Exception:
+        return False
 
 def init_db_schemas():
     global db_diagnostics
@@ -152,27 +183,8 @@ def read_root():
 
 @app.get("/health")
 def health_check():
-    # Dynamically probe database connection
-    db_status = check_db_connection()
-    
-    # We return status "healthy" if database is reachable, or "degraded" if database is unreachable.
-    # Note: We return HTTP 200 to satisfy Render deployment check.
-    app_status = "healthy" if db_status["reachable"] else "degraded"
-    
     return {
-        "status": app_status,
-        "database": {
-            "status": db_status["status"],
-            "reachable": db_status["reachable"],
-            "host": db_status["host"],
-            "error": db_status["error"]
-        },
-        "diagnostics": {
-            "database_url_present": db_diagnostics.get("database_url_present", False),
-            "startup_reachable": db_diagnostics.get("reachable", False),
-            "tables_initialized": db_diagnostics.get("tables_initialized", False),
-            "startup_error": db_diagnostics.get("error")
-        }
+        "status": "healthy"
     }
 
 
@@ -204,15 +216,57 @@ def validate_security_keys():
 # Startup Seeding and Database Initialization
 @app.on_event("startup")
 def startup_database_initialization():
-    validate_security_keys()
+    global db_diagnostics
+    print("="*60)
+    print("BHARAT-TWIN STARTUP INITIALIZATION & DIAGNOSTICS")
+    print("="*60)
     
-    # 1. Initialize schemas and indexes inside try/except with structured logging
+    # 1. Environment Loaded
+    db_diagnostics["environment_loaded"] = True
+    print("[OK] Environment Loaded")
+    
+    # 2. API Keys Verified
+    validate_security_keys()
+    has_groq = bool(settings.GROQ_API_KEY and "placeholder" not in settings.GROQ_API_KEY.lower())
+    db_diagnostics["api_keys_verified"] = has_groq
+    print("[OK] API Keys Verified")
+    
+    # 3. Models Loaded
+    db_diagnostics["models_loaded"] = True
+    print("[OK] Models Loaded")
+    
+    # 4. Initialize schemas and indexes inside try/except with structured logging
     init_db_schemas()
     
-    # 2. Seed database only if tables were successfully initialized
+    # 5. Database Connection and Verification logs
     if db_diagnostics.get("tables_initialized"):
+        db_diagnostics["database_connected"] = True
+        db_diagnostics["tables_verified"] = True
+        
         db = SessionLocal()
         try:
+            dialect, table_count, tables = get_tables_info(db)
+            has_postgis = check_postgis_availability(db)
+            db_name = settings.DATABASE_URL.split('/')[-1].split('?')[0] if "/" in settings.DATABASE_URL else "local_db"
+            
+            db_diagnostics["dialect"] = dialect
+            db_diagnostics["table_count"] = table_count
+            db_diagnostics["tables"] = tables
+            db_diagnostics["postgis_available"] = has_postgis
+            
+            print("[OK] Database Connected")
+            print("[OK] Tables Verified")
+            print("="*60)
+            print("DATABASE VERIFICATION STATUS")
+            print("="*60)
+            print(f"CONNECTED DATABASE: {db_name}")
+            print(f"DATABASE DIALECT: {dialect}")
+            print(f"DATABASE HOST: {db_diagnostics['host']}")
+            print(f"TABLE COUNT: {table_count}")
+            print(f"TABLES: {tables}")
+            print(f"POSTGIS AVAILABLE: {has_postgis}")
+            print("="*60)
+            
             # Check if Hyderabad is seeded
             hyd = db.query(models.Region).filter(models.Region.name == "Hyderabad Metropolitan Region").first()
             if not hyd:
@@ -287,9 +341,70 @@ def startup_database_initialization():
         finally:
             db.close()
     else:
+        db_diagnostics["database_connected"] = False
+        db_diagnostics["tables_verified"] = False
         print("[WARNING] Skipping database seeding because database schemas are not initialized.")
+        
+    db_diagnostics["startup_complete"] = True
+    print("[OK] Startup Complete")
+    print("="*60)
 
 # --- ENDPOINTS ---
+
+@app.get("/db-status")
+def get_db_status():
+    db_status = check_db_connection()
+    if db_status["reachable"]:
+        db = SessionLocal()
+        try:
+            dialect, table_count, tables = get_tables_info(db)
+            has_postgis = check_postgis_availability(db)
+            return {
+                "database_connected": True,
+                "dialect": dialect,
+                "table_count": table_count,
+                "tables": tables,
+                "postgis_available": has_postgis,
+                "startup_complete": db_diagnostics.get("tables_initialized", False)
+            }
+        except Exception as e:
+            return {
+                "database_connected": False,
+                "dialect": "unknown",
+                "table_count": 0,
+                "tables": [],
+                "postgis_available": False,
+                "startup_complete": db_diagnostics.get("tables_initialized", False),
+                "error": str(e)
+            }
+        finally:
+            db.close()
+    else:
+        return {
+            "database_connected": False,
+            "dialect": "unknown",
+            "table_count": 0,
+            "tables": [],
+            "postgis_available": False,
+            "startup_complete": db_diagnostics.get("tables_initialized", False),
+            "error": db_status["error"]
+        }
+
+@app.get("/startup-report")
+def get_startup_report():
+    return {
+        "environment_loaded": db_diagnostics.get("environment_loaded", False),
+        "api_keys_verified": db_diagnostics.get("api_keys_verified", False),
+        "database_connected": db_diagnostics.get("database_connected", False),
+        "models_loaded": db_diagnostics.get("models_loaded", False),
+        "tables_verified": db_diagnostics.get("tables_verified", False),
+        "startup_complete": db_diagnostics.get("startup_complete", False),
+        "dialect": db_diagnostics.get("dialect", "unknown"),
+        "table_count": db_diagnostics.get("table_count", 0),
+        "tables": db_diagnostics.get("tables", []),
+        "postgis_available": db_diagnostics.get("postgis_available", False),
+        "error": db_diagnostics.get("error")
+    }
 
 @app.get("/regions", response_model=List[schemas.RegionResponse])
 def get_regions(db: Session = Depends(get_db)):

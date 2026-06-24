@@ -631,6 +631,52 @@ export default function ScenarioSandbox() {
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
                 
+                {/* 🎯 WHY THIS MATTERS CARD (Highest Priority Decision Summary) */}
+                <div className="premium-card" style={{
+                  background: 'linear-gradient(135deg, rgba(11, 61, 145, 0.04) 0%, rgba(0, 140, 255, 0.04) 100%)',
+                  border: '2.5px solid var(--primary)',
+                  borderRadius: '10px',
+                  padding: '16px 18px',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '12px',
+                  boxShadow: '0 6px 20px rgba(11, 61, 145, 0.08)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '2.5px solid var(--primary)', paddingBottom: '6px' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 900, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                      🎯 WHY THIS MATTERS FOR THIS SCENARIO
+                    </span>
+                  </div>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                    <div style={{ background: 'rgba(217, 48, 37, 0.03)', border: '1px solid rgba(217, 48, 37, 0.12)', borderRadius: '6px', padding: '10px 12px' }}>
+                      <span style={{ fontSize: '9px', fontWeight: 900, color: 'var(--critical)', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
+                        Without Intervention (Unmitigated)
+                      </span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700 }}>
+                        <span>Exposed: <strong style={{ color: 'var(--text)' }}>{popExposedVal}</strong></span>
+                        <span>Loss: <strong style={{ color: 'var(--critical)', fontFamily: 'monospace' }}>{econLossVal}</strong></span>
+                        <span>Timeline: <strong style={{ color: 'var(--text)' }}>{recoveryTimeVal}</strong></span>
+                      </div>
+                    </div>
+                    
+                    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '-4px 0', color: 'var(--primary)', fontWeight: 900 }}>
+                      ↓
+                    </div>
+
+                    <div style={{ background: 'rgba(30, 142, 62, 0.03)', border: '1px solid rgba(30, 142, 62, 0.12)', borderRadius: '6px', padding: '10px 12px' }}>
+                      <span style={{ fontSize: '9px', fontWeight: 900, color: 'var(--success)', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
+                        If Action Is Taken Now (Mitigated)
+                      </span>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', fontWeight: 700 }}>
+                        <span>Exposure: <strong style={{ color: 'var(--success)' }}>Reduced by {ndmaRiskReductionVal}</strong></span>
+                        <span>Savings: <strong style={{ color: 'var(--success)', fontFamily: 'monospace' }}>{ndmaSavingsVal}</strong></span>
+                        <span>Timeline: <strong style={{ color: 'var(--success)' }}>{severity === 'Critical' ? '4 Days' : severity === 'High' ? '3 Days' : severity === 'Moderate' ? '2 Days' : '1 Day'}</strong></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* NATIONAL-SCALE DIGITAL RISK INDEX */}
                 <div className="premium-card" style={{
                   border: '1px solid var(--border)',
@@ -864,38 +910,72 @@ export default function ScenarioSandbox() {
                       Economic Impact Engine
                     </span>
                   </div>
+
+                  {/* Dynamic Calculation Chain Formula */}
+                  <div style={{ fontSize: '8.5px', color: 'var(--muted)', background: 'var(--surface-alt)', padding: '6px 8px', borderRadius: '4px', border: '1px solid var(--border)', fontFamily: 'monospace' }}>
+                    <span style={{ fontWeight: 800, color: 'var(--primary)', display: 'block', marginBottom: '2px', textTransform: 'uppercase' }}>Formula (Trust Calculation Chain)</span>
+                    Economic Loss = Agriculture + Power + Water + Healthcare
+                  </div>
                   
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <div style={{ background: 'rgba(217, 48, 37, 0.02)', border: '1px solid rgba(217, 48, 37, 0.08)', borderRadius: '6px', padding: '8px 10px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(217,48,37,0.08)', paddingBottom: '4px', marginBottom: '4px', fontSize: '9.5px', fontWeight: 750 }}>
-                        <span style={{ color: 'var(--critical)' }}>NO ACTION</span>
+                        <span style={{ color: 'var(--critical)' }}>UNMITIGATED (NO ACTION)</span>
                         <strong style={{ fontFamily: 'monospace', color: 'var(--critical)' }}>{econLossVal}</strong>
                       </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '9.5px', color: 'var(--muted)' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5px', fontSize: '9.5px', color: 'var(--muted)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                           <span>Agriculture Loss:</span>
                           <span style={{ fontFamily: 'monospace', color: 'var(--text)' }}>{severity === 'Critical' ? '₹10.4 Cr' : severity === 'High' ? '₹7.8 Cr' : severity === 'Moderate' ? '₹5.2 Cr' : '₹1.5 Cr'}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span>Power Infra Cost:</span>
+                          <span>Power Infrastructure:</span>
                           <span style={{ fontFamily: 'monospace', color: 'var(--text)' }}>{severity === 'Critical' ? '₹12.2 Cr' : severity === 'High' ? '₹6.3 Cr' : severity === 'Moderate' ? '₹4.2 Cr' : '₹1.5 Cr'}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span>Water Infrastructure:</span>
+                          <span style={{ fontFamily: 'monospace', color: 'var(--text)' }}>{severity === 'Critical' ? '₹8.5 Cr' : severity === 'High' ? '₹4.5 Cr' : severity === 'Moderate' ? '₹3.1 Cr' : '₹1.0 Cr'}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span>Healthcare Burden:</span>
+                          <span style={{ fontFamily: 'monospace', color: 'var(--text)' }}>{severity === 'Critical' ? '₹7.5 Cr' : severity === 'High' ? '₹3.8 Cr' : severity === 'Moderate' ? '₹2.0 Cr' : '₹0.8 Cr'}</span>
+                        </div>
+                        <div style={{ borderTop: '1px dotted rgba(217,48,37,0.12)', paddingTop: '2.5px', marginTop: '2.5px', display: 'flex', justifyContent: 'space-between', fontWeight: 800, color: 'var(--critical)' }}>
+                          <span>Chain Sum:</span>
+                          <span style={{ fontFamily: 'monospace' }}>
+                            {severity === 'Critical' ? '10.4 + 12.2 + 8.5 + 7.5 = ₹38.6 Cr' : severity === 'High' ? '7.8 + 6.3 + 4.5 + 3.8 = ₹22.4 Cr' : severity === 'Moderate' ? '5.2 + 4.2 + 3.1 + 2.0 = ₹14.5 Cr' : '1.5 + 1.5 + 1.0 + 0.8 = ₹4.8 Cr'}
+                          </span>
                         </div>
                       </div>
                     </div>
                     
                     <div style={{ background: 'rgba(30, 142, 62, 0.02)', border: '1px solid rgba(30, 142, 62, 0.08)', borderRadius: '6px', padding: '8px 10px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(30,142,62,0.08)', paddingBottom: '4px', marginBottom: '4px', fontSize: '9.5px', fontWeight: 750 }}>
-                        <span style={{ color: 'var(--success)' }}>NDMA MITIGATED</span>
+                        <span style={{ color: 'var(--success)' }}>NDMA DEPLOYED (MITIGATED)</span>
                         <strong style={{ fontFamily: 'monospace', color: 'var(--success)' }}>{ndmaEconLossVal}</strong>
                       </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', fontSize: '9.5px', color: 'var(--muted)' }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '2.5px', fontSize: '9.5px', color: 'var(--muted)' }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                           <span>Agriculture Loss:</span>
                           <span style={{ fontFamily: 'monospace', color: 'var(--success)' }}>{severity === 'Critical' ? '₹1.2 Cr' : severity === 'High' ? '₹0.8 Cr' : severity === 'Moderate' ? '₹0.6 Cr' : '₹0.3 Cr'}</span>
                         </div>
                         <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <span>Power Infra Cost:</span>
+                          <span>Power Infrastructure:</span>
                           <span style={{ fontFamily: 'monospace', color: 'var(--success)' }}>{severity === 'Critical' ? '₹3.0 Cr' : severity === 'High' ? '₹1.8 Cr' : severity === 'Moderate' ? '₹1.2 Cr' : '₹0.4 Cr'}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span>Water Infrastructure:</span>
+                          <span style={{ fontFamily: 'monospace', color: 'var(--success)' }}>{severity === 'Critical' ? '₹1.8 Cr' : severity === 'High' ? '₹1.0 Cr' : severity === 'Moderate' ? '₹0.8 Cr' : '₹0.2 Cr'}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span>Healthcare Burden:</span>
+                          <span style={{ fontFamily: 'monospace', color: 'var(--success)' }}>{severity === 'Critical' ? '₹1.8 Cr' : severity === 'High' ? '₹1.3 Cr' : severity === 'Moderate' ? '₹0.6 Cr' : '₹0.2 Cr'}</span>
+                        </div>
+                        <div style={{ borderTop: '1px dotted rgba(30,142,62,0.12)', paddingTop: '2.5px', marginTop: '2.5px', display: 'flex', justifyContent: 'space-between', fontWeight: 800, color: 'var(--success)' }}>
+                          <span>Chain Sum:</span>
+                          <span style={{ fontFamily: 'monospace' }}>
+                            {severity === 'Critical' ? '1.2 + 3.0 + 1.8 + 1.8 = ₹7.8 Cr' : severity === 'High' ? '0.8 + 1.8 + 1.0 + 1.3 = ₹4.9 Cr' : severity === 'Moderate' ? '0.6 + 1.2 + 0.8 + 0.6 = ₹3.2 Cr' : '0.3 + 0.4 + 0.2 + 0.2 = ₹1.1 Cr'}
+                          </span>
                         </div>
                       </div>
                     </div>
@@ -906,7 +986,7 @@ export default function ScenarioSandbox() {
                     border: '1px solid rgba(30, 142, 62, 0.18)', borderRadius: '6px',
                     display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '10px', fontWeight: 800
                   }}>
-                    <span style={{ color: 'var(--success)' }}>NET SAVINGS:</span>
+                    <span style={{ color: 'var(--success)' }}>NET PROJECTED SAVINGS:</span>
                     <strong style={{ color: 'var(--success)', fontFamily: 'monospace', fontSize: '11.5px' }}>
                       {ndmaSavingsVal}
                     </strong>

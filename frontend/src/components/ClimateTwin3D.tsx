@@ -1151,6 +1151,46 @@ export default function ClimateTwin3D({ cells, activeLayer, showBoundaries, isSi
             </span>
           </div>
 
+          {/* Core Decision Impact Summary Card (Immediate Decision Value) */}
+          <div style={{
+            background: 'var(--surface-alt)',
+            border: '1.5px solid var(--primary)',
+            borderRadius: '8px',
+            padding: '10px 12px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '8px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+          }}>
+            <span style={{ fontSize: '8.5px', color: 'var(--primary)', fontWeight: 900, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              🎯 IMMEDIATE DECISION VALUE
+            </span>
+            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '8px', fontSize: '11px' }}>
+              <div>
+                <span style={{ color: 'var(--muted)', display: 'block', fontSize: '8px', textTransform: 'uppercase' }}>Citizens Affected</span>
+                <strong style={{ color: 'var(--text)' }}>{selectedDistrict.metrics.noAction.popExposed}</strong>
+              </div>
+              <div>
+                <span style={{ color: 'var(--muted)', display: 'block', fontSize: '8px', textTransform: 'uppercase' }}>Economic Loss</span>
+                <strong style={{ color: 'var(--critical)', fontFamily: 'monospace' }}>{selectedDistrict.metrics.noAction.economicLoss}</strong>
+              </div>
+              <div>
+                <span style={{ color: 'var(--muted)', display: 'block', fontSize: '8px', textTransform: 'uppercase' }}>Recovery Time</span>
+                <strong style={{ color: 'var(--text)' }}>{selectedDistrict.metrics.noAction.recoveryTime}</strong>
+              </div>
+              <div>
+                <span style={{ color: 'var(--muted)', display: 'block', fontSize: '8px', textTransform: 'uppercase' }}>Mitigated Savings</span>
+                <strong style={{ color: 'var(--success)', fontFamily: 'monospace' }}>{selectedDistrict.metrics.ndmaDeployed.savings}</strong>
+              </div>
+            </div>
+            <div style={{ borderTop: '1.5px solid var(--border)', paddingTop: '6px', marginTop: '2px' }}>
+              <span style={{ color: 'var(--primary)', display: 'block', fontSize: '8.5px', fontWeight: 800, textTransform: 'uppercase' }}>Recommended Action</span>
+              <strong style={{ color: 'var(--primary)', fontSize: '11px', display: 'block', marginTop: '1px' }}>
+                {selectedDistrict.directives[0] || 'Deploy municipal cooling and rationing assets'}
+              </strong>
+            </div>
+          </div>
+
           {/* Animated 3-Stage Storyboard Navigation Breadcrumbs */}
           <div style={{
             display: 'grid',
@@ -1280,6 +1320,17 @@ export default function ClimateTwin3D({ cells, activeLayer, showBoundaries, isSi
                       <span style={{ color: 'var(--muted)' }}>Expected Recovery Time:</span>
                       <strong style={{ fontFamily: 'monospace' }}>{selectedDistrict.metrics.noAction.recoveryTime}</strong>
                     </div>
+                  </div>
+
+                  {/* Economic Exposure Calculation Chain */}
+                  <div style={{ borderTop: '1px dashed rgba(217, 48, 37, 0.15)', marginTop: '6px', paddingTop: '6px', fontSize: '8.5px', color: 'var(--muted)' }}>
+                    <span style={{ fontWeight: 800, textTransform: 'uppercase', display: 'block', marginBottom: '2px', color: 'var(--critical)' }}>Economic Exposure Chain</span>
+                    <span style={{ fontFamily: 'monospace', display: 'block', color: 'var(--text)', lineHeight: 1.2 }}>
+                      Agri ({selectedDistrict.metrics.noAction.economicBreakdown.agri}) + 
+                      Power ({selectedDistrict.metrics.noAction.economicBreakdown.power}) + 
+                      Water ({selectedDistrict.metrics.noAction.economicBreakdown.water}) + 
+                      Health ({selectedDistrict.metrics.noAction.economicBreakdown.health})
+                    </span>
                   </div>
                 </div>
 

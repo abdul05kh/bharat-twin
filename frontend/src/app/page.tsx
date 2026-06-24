@@ -358,8 +358,8 @@ export default function LandingPage() {
                   <h1 style={{ fontSize: '32px', fontWeight: 800, color: 'var(--primary)', lineHeight: 1.1, marginTop: '6px', marginBottom: '4px', letterSpacing: '-0.02em' }}>
                     BHARAT-TWIN
                   </h1>
-                  <p style={{ fontSize: '12.5px', color: 'var(--muted)', lineHeight: 1.4, maxWidth: '95%' }}>
-                    India's premier Climate Scenario Sandbox. Experience the automated Observe → Simulate → Predict → Act workflow.
+                  <p style={{ fontSize: '13.5px', color: 'var(--primary)', fontWeight: 600, lineHeight: 1.4, maxWidth: '95%' }}>
+                    BHARAT-TWIN predicts climate threats before they become disasters and shows decision-makers exactly what action reduces risk.
                   </p>
                 </div>
               </div>

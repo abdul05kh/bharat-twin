@@ -156,9 +156,9 @@ export default function ImpactAssessmentConsole() {
   const serviceLoad = isHeatwave ? 'ELEVATED (+9.5% hospital ER admissions)' : 'NOMINAL';
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingLeft: '240px', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
+    <div className="page-root" style={{ background: 'var(--bg)', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
       <Navbar />
-      <main style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      <main className="main-content-with-topbar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
         <CommandStatusStrip />
 
         {/* Header */}
@@ -205,7 +205,7 @@ export default function ImpactAssessmentConsole() {
             <PrimaryRiskHero />
 
             {/* Metric Summary Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
+            <div className="grid-3col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
               
               {/* Active Scenario */}
               <div className="premium-card" style={{ borderTop: '3px solid var(--primary)', padding: '14px' }}>
@@ -263,7 +263,7 @@ export default function ImpactAssessmentConsole() {
             </div>
 
             {/* Decision Consequence Matrix */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
+            <div className="grid-3col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
               
               {/* Environmental Impacts */}
               <div className="premium-card" style={{ borderTop: '3px solid var(--accent)', padding: '14px' }}>
@@ -344,7 +344,7 @@ export default function ImpactAssessmentConsole() {
                   Recommended Action Directives
                 </span>
               </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '20px', fontSize: '11.5px' }}>
+              <div className="grid-2col responsive-grid-2" style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '20px', fontSize: '11.5px' }}>
                 <div>
                   <strong>Status: Heatwave Anomaly Detected</strong>
                   <div style={{ color: 'var(--muted)', fontSize: '10px', marginTop: '2px' }}>Operational thresholds breached across grid.</div>
@@ -465,7 +465,7 @@ export default function ImpactAssessmentConsole() {
               <div style={{ width: `${wowProgress}%`, height: '100%', background: 'var(--primary)', transition: 'width 0.05s linear' }} />
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginTop: '4px', fontSize: '11px', fontFamily: 'monospace' }}>
+            <div className="grid-3col" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginTop: '4px', fontSize: '11px', fontFamily: 'monospace' }}>
               <div>
                 <span style={{ color: 'var(--muted)', display: 'block', fontSize: '8px' }}>RISK INDEX</span>
                 <strong style={{ color: 'var(--primary)', fontSize: '14px' }}>{wowRiskScore}%</strong>

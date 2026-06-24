@@ -41,9 +41,9 @@ export default function InnovationPage() {
   ];
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--neutral-50)', paddingLeft: '240px', fontFamily: "'Inter', sans-serif", color: 'var(--text-primary)' }}>
+    <div className="page-root" style={{ background: 'var(--bg)' }}>
       <Navbar />
-      <main style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      <main className="main-content-with-topbar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
         <CommandStatusStrip />
 
         {/* Header */}

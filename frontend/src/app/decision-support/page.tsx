@@ -83,9 +83,9 @@ export default function ClimateDecisionSupportCentre() {
   const displayActions = orderedActions.length > 0 ? orderedActions : recommendedActions;
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--neutral-50)', paddingLeft: '240px', fontFamily: "'Inter', sans-serif", color: 'var(--text-primary)' }}>
+    <div className="page-root" style={{ background: 'var(--bg)' }}>
       <Navbar />
-      <main style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      <main className="main-content-with-topbar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
         <CommandStatusStrip />
 
         <header style={{
@@ -223,7 +223,7 @@ export default function ClimateDecisionSupportCentre() {
                     </div>
 
                     {/* AI Decision Trace Grid */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '16px' }}>
+                    <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '16px' }}>
                       
                       {/* Left Block: Trace Steps */}
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderRight: '1px solid var(--border)', paddingRight: '16px' }}>

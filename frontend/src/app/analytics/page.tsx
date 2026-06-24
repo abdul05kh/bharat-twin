@@ -189,9 +189,9 @@ export default function ClimateIntelligenceHub() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingLeft: '240px', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
+    <div className="page-root" style={{ background: 'var(--bg)', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
       <Navbar />
-      <main style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      <main className="main-content-with-topbar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
         <CommandStatusStrip />
 
         {/* Header */}
@@ -351,7 +351,7 @@ export default function ClimateIntelligenceHub() {
           </div>
 
           {/* Charts Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+          <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
             
             {/* Historical Chart Card */}
             <div className="premium-card" style={{ height: '350px', display: 'flex', flexDirection: 'column' }}>
@@ -464,7 +464,7 @@ export default function ClimateIntelligenceHub() {
           </div>
 
           {/* Diagnostics Section */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginTop: '14px' }}>
+          <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginTop: '14px' }}>
             <ValidationCenter />
             <AITransparencyPanel />
           </div>

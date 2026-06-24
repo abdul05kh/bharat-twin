@@ -395,10 +395,10 @@ export default function ScenarioSandbox() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingLeft: '240px', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
+    <div className="page-root" style={{ background: 'var(--bg)', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
       <Navbar />
       
-      <main style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      <main className="main-content-with-topbar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
         <CommandStatusStrip />
 
         {/* Cockpit Title Bar */}
@@ -422,7 +422,7 @@ export default function ScenarioSandbox() {
         </header>
 
         {/* Map-First Command Center Split Layout */}
-        <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '70% 30%', overflow: 'hidden', zIndex: 2 }}>
+        <div className="grid-split-70-30" style={{ flex: 1, display: 'grid', gridTemplateColumns: '70% 30%', overflow: 'hidden', zIndex: 2 }}>
           
           {/* LEFT COLUMN: 3D Digital Earth Map Hero (70% width) */}
           <div style={{ display: 'flex', flexDirection: 'column', padding: '16px', gap: '12px', overflow: 'hidden', height: '100%', position: 'relative' }}>
@@ -451,7 +451,7 @@ export default function ScenarioSandbox() {
           </div>
 
           {/* RIGHT COLUMN: Parameters Console & Simulated Intelligence HUD (30% width, scrollable) */}
-          <div style={{ 
+          <div className="sandbox-right-panel" style={{ 
             background: 'var(--surface)', 
             borderLeft: '1px solid var(--border)', 
             display: 'flex', 
@@ -558,7 +558,7 @@ export default function ScenarioSandbox() {
                 <label style={{ fontSize: '8.5px', fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                   04 / CLIMATE STRESSORS
                 </label>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                <div className="stressor-chips" style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
                   {(['Heatwave', 'Delayed Monsoon', 'Drought', 'AQI Surge', 'Water Scarcity'] as Stressor[]).map(str => {
                     const active = activeStressors.includes(str);
                     return (
@@ -1051,7 +1051,7 @@ export default function ScenarioSandbox() {
                       Impact Stress Gauges
                     </span>
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                <div className="radial-gauges-row" style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                     <RadialGauge value={heatHazard} label="Heat Hazard" color="var(--risk-critical)" />
                     <RadialGauge value={waterStress} label="Water Stress" color="var(--accent)" />
                     <RadialGauge value={cropRisk} label="Crop Risk" color="var(--success)" />
@@ -1084,7 +1084,7 @@ export default function ScenarioSandbox() {
           animation: 'fadeIn 0.5s ease-out'
         }}>
           
-          <div style={{
+          <div className="wow-overlay-card" style={{
             width: '640px',
             background: 'rgba(255, 255, 255, 0.98)',
             border: '2px solid var(--primary)',
@@ -1273,7 +1273,7 @@ export default function ScenarioSandbox() {
         }}>
           
           {/* Mission Control Panel Container */}
-          <div style={{
+          <div className="mission-modal" style={{
             width: '580px',
             background: 'rgba(255, 255, 255, 0.9)',
             border: '1px solid rgba(11, 61, 145, 0.15)',

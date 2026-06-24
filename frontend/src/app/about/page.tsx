@@ -7,10 +7,10 @@ import { Info, Target, Cpu, ShieldAlert, Users, Database, Globe, Landmark } from
 
 export default function AboutPage() {
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingLeft: '240px', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
+    <div className="page-root" style={{ background: 'var(--bg)', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
       <Navbar />
       
-      <main style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      <main className="main-content-with-topbar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
         <CommandStatusStrip />
 
         {/* Header */}
@@ -29,7 +29,7 @@ export default function AboutPage() {
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', maxWidth: '1000px', width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '14px' }}>
           
           {/* Section 1: Vision and Platform Genesis */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '14px' }}>
+          <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '14px' }}>
             
             {/* Vision & Platform Genesis */}
             <div className="premium-card" style={{ display: 'flex', flexDirection: 'column', gap: '12px', justifyContent: 'center' }}>

@@ -1,9 +1,9 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Monitor, Settings2, BrainCircuit, FileText, Info } from 'lucide-react';
+import { LayoutDashboard, Monitor, Settings2, BrainCircuit, FileText, Info, Menu, X } from 'lucide-react';
 
 const navItems = [
   { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
@@ -16,30 +16,21 @@ const navItems = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const [mobileOpen, setMobileOpen] = useState(false);
 
-  return (
-    <aside
-      style={{
-        width: '240px',
-        background: 'var(--surface)',
-        borderRight: '1px solid var(--border)',
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100vh',
-        position: 'fixed',
-        left: 0,
-        top: 0,
-        color: 'var(--text)',
-        fontFamily: "'Inter', sans-serif",
-        zIndex: 100,
-        boxShadow: 'var(--shadow)'
-      }}
-    >
+  const toggleMobile = () => setMobileOpen(prev => !prev);
+  const closeMobile = () => setMobileOpen(false);
+
+  const sidebarContent = (
+    <>
       {/* Branding */}
       <div style={{
         padding: '20px 16px',
         borderBottom: '1px solid var(--border)',
-        background: 'var(--surface)'
+        background: 'var(--surface)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
           <div style={{
@@ -59,6 +50,23 @@ export default function Navbar() {
             </div>
           </div>
         </div>
+        {/* Close button — only visible on mobile */}
+        <button
+          onClick={closeMobile}
+          aria-label="Close navigation"
+          style={{
+            display: 'none', // shown via CSS on mobile
+            background: 'transparent',
+            border: 'none',
+            cursor: 'pointer',
+            color: 'var(--muted)',
+            padding: '4px',
+            borderRadius: '4px',
+          }}
+          className="mobile-close-btn"
+        >
+          <X size={18} />
+        </button>
       </div>
 
       {/* Navigation */}
@@ -69,13 +77,13 @@ export default function Navbar() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
           {navItems.map((item) => {
             const Icon = item.icon;
-            // Handle active state matching path prefixes cleanly
             const isActive = pathname === item.path || (item.path !== '/' && pathname?.startsWith(item.path));
-            
+
             return (
               <Link
                 key={item.path}
                 href={item.path}
+                onClick={closeMobile}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -88,7 +96,8 @@ export default function Navbar() {
                   borderLeft: isActive ? '3px solid var(--primary)' : '3px solid transparent',
                   textDecoration: 'none',
                   borderRadius: '6px',
-                  transition: 'all 0.15s ease'
+                  transition: 'all 0.15s ease',
+                  minHeight: '44px', // mobile tap target
                 }}
               >
                 <Icon size={16} style={{ flexShrink: 0, color: isActive ? 'var(--primary)' : 'var(--muted)' }} />
@@ -99,7 +108,7 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Data Provenance Footer Indicator (Phase 12) */}
+      {/* Data Provenance Footer */}
       <div style={{ padding: '16px', borderTop: '1px solid var(--border)', background: 'var(--surface-alt)' }}>
         <div style={{ fontSize: '10px', color: 'var(--muted)', marginBottom: '8px', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em' }}>
           Live Provenance Link
@@ -127,6 +136,58 @@ export default function Navbar() {
           <div>Quality: <span style={{ color: 'var(--primary)', fontWeight: 600 }}>99.8% (ISRO Std)</span></div>
         </div>
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* ─── MOBILE HAMBURGER BUTTON ─── */}
+      <button
+        className="mobile-menu-btn"
+        onClick={toggleMobile}
+        aria-label="Open navigation menu"
+        aria-expanded={mobileOpen}
+      >
+        <Menu size={20} />
+      </button>
+
+      {/* ─── OVERLAY BACKDROP (mobile only) ─── */}
+      <div
+        className={`mobile-overlay${mobileOpen ? ' open' : ''}`}
+        onClick={closeMobile}
+        aria-hidden="true"
+      />
+
+      {/* ─── SIDEBAR (desktop: always visible; mobile: slide-in drawer) ─── */}
+      <aside
+        className={`sidebar-desktop${mobileOpen ? ' open' : ''}`}
+        style={{
+          width: '240px',
+          background: 'var(--surface)',
+          borderRight: '1px solid var(--border)',
+          display: 'flex',
+          flexDirection: 'column',
+          height: '100vh',
+          position: 'fixed',
+          left: 0,
+          top: 0,
+          color: 'var(--text)',
+          fontFamily: "'Inter', sans-serif",
+          zIndex: 150,
+          boxShadow: 'var(--shadow)',
+        }}
+      >
+        {sidebarContent}
+      </aside>
+
+      {/* Inject mobile close button CSS */}
+      <style>{`
+        @media (max-width: 1023px) {
+          .mobile-close-btn {
+            display: flex !important;
+          }
+        }
+      `}</style>
+    </>
   );
 }

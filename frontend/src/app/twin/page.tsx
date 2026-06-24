@@ -50,10 +50,10 @@ export default function DigitalTwinConsole() {
   ];
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingLeft: '240px', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
+    <div className="page-root" style={{ background: 'var(--bg)', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
       <Navbar />
       
-      <main style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      <main className="main-content-with-topbar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
         <CommandStatusStrip />
 
         {/* Header */}
@@ -80,7 +80,7 @@ export default function DigitalTwinConsole() {
         </header>
 
         {/* Split screen workspace */}
-        <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '72% 28%', overflow: 'hidden', minHeight: 0 }}>
+        <div className="grid-split-70-30" style={{ flex: 1, display: 'grid', gridTemplateColumns: '72% 28%', overflow: 'hidden', minHeight: 0 }}>
           
           {/* LEFT: 3D Visualization Map & Controls */}
           <div style={{ display: 'flex', flexDirection: 'column', padding: '16px', gap: '12px', overflow: 'hidden' }}>
@@ -173,7 +173,7 @@ export default function DigitalTwinConsole() {
           </div>
 
           {/* RIGHT: Grid Inspector & Scientific Trust Panel */}
-          <div style={{ 
+          <div className="sandbox-right-panel" style={{ 
             background: 'var(--surface)', 
             borderLeft: '1px solid var(--border)', 
             display: 'flex', 

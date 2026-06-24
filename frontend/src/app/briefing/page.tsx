@@ -189,10 +189,10 @@ function BriefingContent() {
   const rc = riskColors[riskLevel as keyof typeof riskColors] || riskColors.Moderate;
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingLeft: '240px', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
+    <div className="page-root" style={{ background: 'var(--bg)', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
       <Navbar />
       
-      <main style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      <main className="main-content-with-topbar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
         <CommandStatusStrip />
 
         {/* Header */}
@@ -272,7 +272,7 @@ function BriefingContent() {
         </header>
 
         {/* Master Registry Workspace Layout */}
-        <div style={{ flex: 1, display: 'grid', gridTemplateColumns: '260px 1fr', overflow: 'hidden' }}>
+        <div className="briefing-layout" style={{ flex: 1, display: 'grid', gridTemplateColumns: '260px 1fr', overflow: 'hidden' }}>
           
           {/* LEFT COLUMN: Scenario Registry Sidebar */}
           <aside style={{

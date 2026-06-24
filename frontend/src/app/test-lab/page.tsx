@@ -12,9 +12,9 @@ export default function TestLabPage() {
   const [satDelay, setSatDelay] = useState(false);
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--neutral-50)', paddingLeft: '240px', fontFamily: "'Inter', sans-serif", color: 'var(--text-primary)' }}>
+    <div className="page-root" style={{ background: 'var(--bg)' }}>
       <Navbar />
-      <main style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      <main className="main-content-with-topbar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
         
         {/* Strip status (We can override its visual appearance if we simulate db failures locally) */}
         <CommandStatusStrip />
@@ -44,7 +44,7 @@ export default function TestLabPage() {
             </p>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '20px' }}>
+          <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '20px' }}>
             
             {/* Control Panel */}
             <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '16px' }}>

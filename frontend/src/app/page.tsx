@@ -296,10 +296,10 @@ export default function LandingPage() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingLeft: '240px', fontFamily: "'Inter', sans-serif", color: 'var(--text)', overflow: 'hidden' }}>
+    <div className="page-root" style={{ background: 'var(--bg)', fontFamily: "'Inter', sans-serif", color: 'var(--text)', overflow: 'hidden' }}>
       <Navbar />
       
-      <main style={{ display: 'flex', flexDirection: 'column', height: '100vh', padding: '16px 20px', gap: '14px', boxSizing: 'border-box' }}>
+      <main className="main-content-with-topbar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', padding: '16px 20px', gap: '14px', boxSizing: 'border-box' }}>
         
         {/* Top Executive Status Bar */}
         <div style={{
@@ -333,7 +333,7 @@ export default function LandingPage() {
         </div>
 
         {/* Main Split Layout */}
-        <div style={{ display: 'grid', gridTemplateColumns: '40% 60%', gap: '14px', flex: 1, overflow: 'hidden', minHeight: 0 }}>
+        <div className="home-hero-grid" style={{ display: 'grid', gridTemplateColumns: '40% 60%', gap: '14px', flex: 1, overflow: 'hidden', minHeight: 0 }}>
           
           {/* LEFT COLUMN: Climate Simulation Theater (Workflow & Terminal) */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', overflowY: 'auto', paddingRight: '2px' }}>
@@ -480,7 +480,7 @@ export default function LandingPage() {
           </div>
 
           {/* RIGHT COLUMN: Holographic Globe & Climate Impact Card */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', overflowY: 'auto' }}>
+          <div className="home-globe-first" style={{ display: 'flex', flexDirection: 'column', gap: '12px', overflowY: 'auto' }}>
             
             {/* HOLOGRAPHIC GLOBE SATELLITE MONITOR */}
             <div className="premium-card" style={{
@@ -548,7 +548,7 @@ export default function LandingPage() {
                 <span style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.08em', display: 'block', marginBottom: '8px' }}>
                   Regional Climate Impact Card
                 </span>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
+                <div className="impact-cards-4col" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
                   <div style={{ background: 'rgba(11,61,145,0.02)', border: '1px solid var(--border)', borderRadius: '6px', padding: '10px' }}>
                     <span style={{ fontSize: '8px', color: 'var(--muted)', display: 'block', textTransform: 'uppercase' }}>Citizens Exposed</span>
                     <strong style={{ fontSize: '16px', color: 'var(--primary)', fontFamily: 'monospace', display: 'block', marginTop: '2px' }}>482,000+</strong>

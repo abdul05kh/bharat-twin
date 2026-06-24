@@ -149,9 +149,9 @@ export default function DecisionIntelligenceEngine() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingLeft: '240px', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
+    <div className="page-root" style={{ background: 'var(--bg)', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
       <Navbar />
-      <main style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      <main className="main-content-with-topbar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
         <CommandStatusStrip />
 
         {/* Header */}
@@ -205,7 +205,7 @@ export default function DecisionIntelligenceEngine() {
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', maxWidth: '960px', width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '14px' }}>
           
           {/* AI Diagnostic Mission Control Widget Panel (Phase 7) */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', flexShrink: 0 }}>
+          <div className="grid-4col" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', flexShrink: 0 }}>
             {[
               { label: 'Forecast Confidence', value: '94.2%', color: 'var(--success)', status: 'High Spatial Coverage' },
               { label: 'Prediction Accuracy', value: '±1.2°C', color: 'var(--accent)', status: 'XGBoost MSE Margin' },
@@ -317,7 +317,7 @@ export default function DecisionIntelligenceEngine() {
                   <h3 style={{ fontWeight: 800, fontSize: '11px', color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: '12px', borderBottom: '1px solid var(--border)', paddingBottom: '6px' }}>
                     Impact Assessment by Dimension
                   </h3>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
                     {Object.entries(impactAssessment).map(([key, text]) => (
                       <div key={key} style={{
                         padding: '12px', border: '1px solid var(--border)', borderRadius: '6px',
@@ -377,7 +377,7 @@ export default function DecisionIntelligenceEngine() {
                 <div style={{ fontSize: '10px', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '10px' }}>
                   Model Transparency & Provenance Registry
                 </div>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
+                <div className="grid-4col" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
                   <div style={{ background: 'var(--surface-alt)', border: '1px solid var(--border)', padding: '8px 10px', borderRadius: '6px' }}>
                     <div style={{ fontSize: '8.5px', color: 'var(--muted)', textTransform: 'uppercase', marginBottom: '2px' }}>Inference Host</div>
                     <div style={{ fontFamily: 'monospace', fontSize: '11px', color: 'var(--primary)', fontWeight: 800 }}>

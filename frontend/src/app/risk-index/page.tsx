@@ -110,9 +110,9 @@ export default function ClimateRiskObservatory() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingLeft: '240px', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
+    <div className="page-root" style={{ background: 'var(--bg)', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
       <Navbar />
-      <main style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      <main className="main-content-with-topbar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
         <CommandStatusStrip />
 
         <header style={{
@@ -189,7 +189,7 @@ export default function ClimateRiskObservatory() {
               <h3 style={{ fontWeight: 800, fontSize: '12px', color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '14px' }}>
                 Risk Category Breakdown
               </h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
+              <div className="risk-gauge-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
                 {RISK_META.map(({ key, label, desc, color, bg, border }) => {
                   const idx = indices?.[key as keyof typeof indices] as RiskIndex | undefined;
                   if (!idx) return null;

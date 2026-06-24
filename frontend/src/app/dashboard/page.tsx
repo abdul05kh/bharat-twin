@@ -71,10 +71,10 @@ export default function ClimateOperationsCentre() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingLeft: '240px', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
+    <div className="page-root" style={{ background: 'var(--bg)', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
       <Navbar />
       
-      <main style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      <main className="main-content-with-topbar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
         <CommandStatusStrip />
         
         {/* Header */}
@@ -109,7 +109,7 @@ export default function ClimateOperationsCentre() {
           <PrimaryRiskHero />
 
           {/* Metric Cards Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+          <div className="grid-4col" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
             {metrics.map(({ label, value, icon: Icon, color, bg }) => (
               <div key={label} className="premium-card" style={{
                 padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px',
@@ -127,7 +127,7 @@ export default function ClimateOperationsCentre() {
           </div>
 
           {/* Split Map and Sidebar */}
-          <div style={{ display: 'grid', gridTemplateColumns: '70% 30%', gap: '14px' }}>
+          <div className="grid-split-70-30" style={{ display: 'grid', gridTemplateColumns: '70% 30%', gap: '14px' }}>
             
             {/* Map Panel */}
             <div className="premium-card" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>

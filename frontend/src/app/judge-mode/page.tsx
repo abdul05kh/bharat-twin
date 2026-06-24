@@ -142,9 +142,9 @@ Verification confirms zero null coordinates or averaged grid collapses.`
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingLeft: '240px', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
+    <div className="page-root" style={{ background: 'var(--bg)', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
       <Navbar />
-      <main style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      <main className="main-content-with-topbar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
         <CommandStatusStrip />
 
         {/* Header */}
@@ -176,7 +176,7 @@ Verification confirms zero null coordinates or averaged grid collapses.`
         </header>
 
         {/* Glowing Operations Timeline Ribbon */}
-        <div style={{
+        <div className="ops-timeline-ribbon" style={{
           background: '#0F172A',
           color: '#E2E8F0',
           padding: '8px 24px',
@@ -198,7 +198,7 @@ Verification confirms zero null coordinates or averaged grid collapses.`
           </div>
           
           {/* Timeline progress tracker dots */}
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flex: 1, justifyContent: 'center', maxWidth: '500px' }}>
+          <div className="ops-timeline-dots" style={{ display: 'flex', gap: '10px', alignItems: 'center', flex: 1, justifyContent: 'center', maxWidth: '500px' }}>
             {[
               { t: 'T+00', name: 'Transit Ingest' },
               { t: 'T+04', name: 'Stressor Injection' },
@@ -232,7 +232,7 @@ Verification confirms zero null coordinates or averaged grid collapses.`
         </div>
 
         {/* Cinematic Layout: 2 Columns */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'grid', gridTemplateColumns: '32% 68%', gap: '14px', minHeight: 0 }}>
+        <div className="grid-split-32-68" style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'grid', gridTemplateColumns: '32% 68%', gap: '14px', minHeight: 0 }}>
           
           {/* LEFT COLUMN: Autoplay Sequencer */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>

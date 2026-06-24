@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { Sparkles, Activity, AlertTriangle, ShieldCheck, X } from 'lucide-react';
 
 interface GridCell {
   latitude: number;
@@ -11,286 +12,450 @@ interface GridCell {
   min_temperature: number;
   rainfall_delta?: number;
   max_temp_delta?: number;
-  lst_temperature?: number;
 }
 
 interface ClimateTwin3DProps {
   cells: GridCell[];
-  activeLayer: 'rainfall' | 'max_temperature' | 'min_temperature' | 'lst_temperature' | 'delta';
-  deltaMode?: 'max_temp' | 'rainfall';
+  activeLayer: 'temperature' | 'rainfall' | 'aqi' | 'stress';
+  showBoundaries: boolean;
 }
 
-export default function ClimateTwin3D({ cells, activeLayer, deltaMode = 'max_temp' }: ClimateTwin3DProps) {
+export default function ClimateTwin3D({ cells, activeLayer, showBoundaries }: ClimateTwin3DProps) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const [hoveredCell, setHoveredCell] = useState<GridCell | null>(null);
+  const [hoveredInfo, setHoveredInfo] = useState<string | null>(null);
+  
+  // ─── Holographic Side HUD State ───
+  const [selectedDistrict, setSelectedDistrict] = useState<{
+    name: string;
+    temp: number;
+    rain: number;
+    risk: number;
+    brief: string;
+    directives: string[];
+  } | null>(null);
+
+  // References for camera manipulation
+  const cameraTargetRef = useRef<{ theta: number; phi: number; radius: number }>({
+    theta: 0.8,
+    phi: 0.8,
+    radius: 180
+  });
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
-    // --- SETUP SCENE ---
-    const width = containerRef.current.clientWidth || 800;
-    const height = containerRef.current.clientHeight || 500;
+    // --- SCENE SETUP ---
+    const width = container.clientWidth || 800;
+    const height = container.clientHeight || 500;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color('#040914'); // Dark government theme
+    scene.background = new THREE.Color('#F7F9FC');
+    // Volumetric high-quality height fog
+    scene.fog = new THREE.FogExp2('#F7F9FC', 0.0035);
 
-    // Fog for depth
-    scene.fog = new THREE.FogExp2('#040914', 0.015);
-
-    const camera = new THREE.PerspectiveCamera(45, width / height, 1, 1000);
-    camera.position.set(0, 100, 150);
+    // Camera perspective
+    const camera = new THREE.PerspectiveCamera(38, width / height, 1, 1000);
+    camera.position.set(0, 110, 180);
 
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
     renderer.setSize(width, height);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
 
-    // --- LIGHTING ---
-    const ambientLight = new THREE.AmbientLight('#1d2a4a', 1.5);
+    // --- LIGHTING (Sunlight Cycle & Bounce) ---
+    const ambientLight = new THREE.AmbientLight('#FFFFFF', 0.85);
     scene.add(ambientLight);
 
-    const dirLight = new THREE.DirectionalLight('#00f0ff', 2);
-    dirLight.position.set(50, 150, 50);
-    scene.add(dirLight);
+    const sunLight = new THREE.DirectionalLight('#FFF9E6', 1.3); // Warm sunlight
+    sunLight.position.set(80, 130, 50);
+    sunLight.castShadow = true;
+    sunLight.shadow.mapSize.width = 1024;
+    sunLight.shadow.mapSize.height = 1024;
+    scene.add(sunLight);
 
-    const pointLight = new THREE.PointLight('#ff6600', 3, 200);
-    pointLight.position.set(-50, 50, -50);
-    scene.add(pointLight);
+    const atmosphericLight = new THREE.DirectionalLight('#008CFF', 0.35); // Soft sky bounce
+    atmosphericLight.position.set(-80, 40, -50);
+    scene.add(atmosphericLight);
 
-    // --- GRID BASE ---
-    // Hyderabad bounding box approximate bounds
+    // --- TELANGANA DECCAN PLATEAU DEM TOPOGRAPHY ---
     const minLat = 17.10, maxLat = 17.65;
     const minLon = 78.10, maxLon = 78.80;
+    const size = 170;
 
     const mapRange = (val: number, inMin: number, inMax: number, outMin: number, outMax: number) => {
       return ((val - inMin) / (inMax - inMin)) * (outMax - outMin) + outMin;
     };
 
-    // Draw cyber grid floor
-    const gridHelper = new THREE.GridHelper(160, 40, '#00f0ff', '#102046');
-    gridHelper.position.y = -1;
-    scene.add(gridHelper);
-
-    // Bounding Box outline
-    const boxGeo = new THREE.BoxGeometry(160, 2, 160);
-    const boxMat = new THREE.MeshBasicMaterial({
-      color: '#00f0ff',
-      wireframe: true,
-      transparent: true,
-      opacity: 0.15
-    });
-    const boundingBoxMesh = new THREE.Mesh(boxGeo, boxMat);
-    boundingBoxMesh.position.y = 0;
-    scene.add(boundingBoxMesh);
-
-    // --- DYNAMIC BARS FOR CELLS ---
-    const barsGroup = new THREE.Group();
-    scene.add(barsGroup);
-
-    // Color Helpers
-    const getRainColor = (val: number) => {
-      if (val === 0) return '#475569';
-      if (val < 2.0) return '#00f0ff';
-      if (val < 5.0) return '#0066cc';
-      return '#0000ff';
+    // Realistic Deccan Plateau DEM Topography combining Perlin-like fractal frequencies
+    const getTerrainHeight = (x: number, z: number) => {
+      const freq1 = Math.sin(x * 0.02) * Math.cos(z * 0.02) * 15; // broad plateau elevations
+      const freq2 = Math.cos(x * 0.065) * Math.sin(z * 0.065) * 5; // rolling Deccan hills
+      const freq3 = Math.sin(x * 0.15) * Math.cos(z * 0.15) * 1.5; // localized ridges
+      const reservoirBasin = -9 * Math.exp(-((x * x + z * z) / 3600)); // Osman Sagar valley depression
+      return freq1 + freq2 + freq3 + reservoirBasin;
     };
 
-    const getTempColor = (val: number) => {
-      if (val < 24.0) return '#00ff66';
-      if (val < 30.0) return '#ffcc00';
-      if (val < 35.0) return '#ff6600';
-      return '#ff3333';
-    };
+    // --- TERRAIN MESH ---
+    const segments = 100;
+    const terrainGeo = new THREE.PlaneGeometry(size, size, segments, segments);
+    terrainGeo.rotateX(-Math.PI / 2);
 
-    const getDeltaColor = (val: number, mode: 'max_temp' | 'rainfall') => {
-      if (mode === 'max_temp') {
-        if (val > 0) return '#ff3333';
-        if (val < 0) return '#00f0ff';
-        return '#475569';
-      } else {
-        if (val < 0) return '#ff6600';
-        if (val > 0) return '#00ff66';
-        return '#475569';
-      }
-    };
+    const vertices = terrainGeo.attributes.position;
+    const colors = new Float32Array(vertices.count * 3);
 
-    // Keep references to bars for animation/updates
-    const bars: { mesh: THREE.Mesh; cell: GridCell }[] = [];
-
-    const rebuildBars = () => {
-      // Clear previous bars
-      while (barsGroup.children.length > 0) {
-        const obj = barsGroup.children[0];
-        barsGroup.remove(obj);
-      }
-      bars.length = 0;
-
-      cells.forEach((cell) => {
-        // Map latitude and longitude to X, Z coordinates (-80 to +80 range)
-        const x = mapRange(cell.longitude, minLon, maxLon, -70, 70);
-        const z = mapRange(cell.latitude, minLat, maxLat, 70, -70); // invert Z for map orientation
-
-        let value = 0;
-        let colorStr = '#94a3b8';
-
-        if (activeLayer === 'rainfall') {
-          value = cell.rainfall;
-          colorStr = getRainColor(value);
-        } else if (activeLayer === 'max_temperature') {
-          value = cell.max_temperature;
-          colorStr = getTempColor(value);
-        } else if (activeLayer === 'min_temperature') {
-          value = cell.min_temperature;
-          colorStr = getTempColor(value);
-        } else if (activeLayer === 'lst_temperature') {
-          value = cell.lst_temperature ?? cell.max_temperature;
-          colorStr = getTempColor(value);
-        } else if (activeLayer === 'delta') {
-          if (deltaMode === 'max_temp') {
-            value = Math.abs(cell.max_temp_delta ?? 0) * 10; // Scale delta for visibility
-            colorStr = getDeltaColor(cell.max_temp_delta ?? 0, 'max_temp');
-          } else {
-            value = Math.abs(cell.rainfall_delta ?? 0) * 10;
-            colorStr = getDeltaColor(cell.rainfall_delta ?? 0, 'rainfall');
-          }
-        }
-
-        // Set bar geometry
-        // Height proportional to climate value
-        const minHeight = 2;
-        let barHeight = value;
-        if (activeLayer.includes('temperature')) {
-          // Normalize temperature between 15°C and 45°C
-          barHeight = mapRange(value, 15, 45, 5, 40);
-        } else if (activeLayer === 'rainfall') {
-          barHeight = mapRange(value, 0, 30, 2, 45);
-        }
-
-        if (isNaN(barHeight) || barHeight < minHeight) barHeight = minHeight;
-
-        // Use custom cylinder or box geometry for nice geospatial pixel look
-        const barGeo = new THREE.BoxGeometry(8, barHeight, 8);
-        
-        // Material with slight emission/glow
-        const barMat = new THREE.MeshStandardMaterial({
-          color: new THREE.Color(colorStr),
-          roughness: 0.2,
-          metalness: 0.8,
-          emissive: new THREE.Color(colorStr),
-          emissiveIntensity: 0.15,
-          transparent: true,
-          opacity: 0.85
-        });
-
-        const mesh = new THREE.Mesh(barGeo, barMat);
-        // Position mesh base on the grid floor
-        mesh.position.set(x, barHeight / 2, z);
-        
-        barsGroup.add(mesh);
-        bars.push({ mesh, cell });
-      });
-    };
-
-    rebuildBars();
-
-    // --- SATELLITE ORBIT ---
-    const orbitGroup = new THREE.Group();
-    scene.add(orbitGroup);
-
-    // Orbit Ring
-    const ringGeo = new THREE.RingGeometry(110, 110.5, 64);
-    const ringMat = new THREE.MeshBasicMaterial({ color: '#ff6600', side: THREE.DoubleSide, transparent: true, opacity: 0.25 });
-    const orbitRing = new THREE.Mesh(ringGeo, ringMat);
-    orbitRing.rotation.x = Math.PI / 2.3;
-    orbitGroup.add(orbitRing);
-
-    // Satellite Sphere
-    const satGeo = new THREE.SphereGeometry(3, 16, 16);
-    const satMat = new THREE.MeshStandardMaterial({ color: '#ff6600', emissive: '#ff6600', emissiveIntensity: 1 });
-    const satellite = new THREE.Mesh(satGeo, satMat);
-    orbitGroup.add(satellite);
-
-    // Satellite Signal Cone (Radar Sweep)
-    const coneGeo = new THREE.ConeGeometry(8, 120, 16, 1, true);
-    const coneMat = new THREE.MeshBasicMaterial({ color: '#ff6600', transparent: true, opacity: 0.1, side: THREE.DoubleSide });
-    const radarCone = new THREE.Mesh(coneGeo, coneMat);
-    radarCone.rotation.x = Math.PI;
-    radarCone.position.y = -60;
-    satellite.add(radarCone);
-
-    // --- PARTICLES (WEATHER EFFECT) ---
-    const particleCount = 200;
-    const particleGeo = new THREE.BufferGeometry();
-    const positions = new Float32Array(particleCount * 3);
-    const velocities: number[] = [];
-
-    for (let i = 0; i < particleCount; i++) {
-      positions[i * 3] = (Math.random() - 0.5) * 160;
-      positions[i * 3 + 1] = Math.random() * 100;
-      positions[i * 3 + 2] = (Math.random() - 0.5) * 160;
-      velocities.push(0.2 + Math.random() * 0.5); // Fall speed
+    // Apply elevation displacements
+    for (let i = 0; i < vertices.count; i++) {
+      const vx = vertices.getX(i);
+      const vz = vertices.getZ(i);
+      const vy = getTerrainHeight(vx, vz);
+      vertices.setY(i, vy);
     }
+    terrainGeo.computeVertexNormals();
 
-    particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-    const particleMat = new THREE.PointsMaterial({
-      color: activeLayer === 'rainfall' ? '#00f0ff' : '#ffaa44',
-      size: 1.5,
+    const terrainMat = new THREE.MeshStandardMaterial({
+      roughness: 0.85,
+      metalness: 0.08,
+      vertexColors: true,
+      flatShading: true,
+    });
+
+    const terrainMesh = new THREE.Mesh(terrainGeo, terrainMat);
+    terrainMesh.receiveShadow = true;
+    terrainMesh.castShadow = true;
+    scene.add(terrainMesh);
+
+    // --- RESERVOIR WATER LAYER ( Osman Sagar Simulation ) ---
+    const waterGeo = new THREE.PlaneGeometry(55, 55, 10, 10);
+    const waterMat = new THREE.MeshStandardMaterial({
+      color: '#008CFF',
+      transparent: true,
+      opacity: 0.65,
+      roughness: 0.15,
+      metalness: 0.85
+    });
+    const waterMesh = new THREE.Mesh(waterGeo, waterMat);
+    waterMesh.rotateX(-Math.PI / 2);
+    waterMesh.position.set(0, -3.2, 0); // sits in the reservoir basin depression
+    scene.add(waterMesh);
+
+    // --- VOLUMETRIC CLOUDS LAYER ---
+    const cloudsGroup = new THREE.Group();
+    const cloudGeo = new THREE.BoxGeometry(15, 4, 15);
+    const cloudMat = new THREE.MeshStandardMaterial({
+      color: '#FFFFFF',
+      transparent: true,
+      opacity: 0.45,
+      roughness: 0.9,
+      flatShading: true
+    });
+    
+    // Position floating clouds above terrain
+    for (let i = 0; i < 6; i++) {
+      const cloud = new THREE.Mesh(cloudGeo, cloudMat);
+      cloud.position.set((Math.random() - 0.5) * 120, 25 + Math.random() * 8, (Math.random() - 0.5) * 120);
+      cloudsGroup.add(cloud);
+    }
+    scene.add(cloudsGroup);
+
+    // --- AQI PARTICULATE PLUME / DUST SYSTEM ---
+    const dustParticles = new THREE.Group();
+    const dustGeo = new THREE.SphereGeometry(1.2, 5, 5);
+    const dustMat = new THREE.MeshBasicMaterial({
+      color: '#8E44AD',
+      transparent: true,
+      opacity: 0.25
+    });
+    
+    for (let i = 0; i < 40; i++) {
+      const dust = new THREE.Mesh(dustGeo, dustMat);
+      dust.position.set((Math.random() - 0.5) * 140, 6 + Math.random() * 15, (Math.random() - 0.5) * 140);
+      dustParticles.add(dust);
+    }
+    scene.add(dustParticles);
+
+    // --- RAIN PARTICLE OVERLAY ---
+    const rainParticles = new THREE.Group();
+    const rainCount = 120;
+    const rainPointsGeo = new THREE.BufferGeometry();
+    const rainPos = new Float32Array(rainCount * 3);
+    for (let i = 0; i < rainCount; i++) {
+      rainPos[i*3] = (Math.random() - 0.5) * 160;
+      rainPos[i*3+1] = 10 + Math.random() * 40;
+      rainPos[i*3+2] = (Math.random() - 0.5) * 160;
+    }
+    rainPointsGeo.setAttribute('position', new THREE.BufferAttribute(rainPos, 3));
+    const rainPointsMat = new THREE.PointsMaterial({
+      color: '#00A86B',
+      size: 0.75,
       transparent: true,
       opacity: 0.6
     });
-    const particleSystem = new THREE.Points(particleGeo, particleMat);
-    scene.add(particleSystem);
+    const rainSystem = new THREE.Points(rainPointsGeo, rainPointsMat);
+    rainParticles.add(rainSystem);
+    scene.add(rainParticles);
 
-    // --- INTERACTION: CAMERA ORBIT & ZOOM CONTROL ---
-    let theta = 0.5;
-    let phi = 1.0;
-    let radius = 170;
+    // --- COLOR PALETTE DEFINITIONS (Light-first themes) ---
+    const targetColors = new Float32Array(vertices.count * 3);
+    const currentColors = new Float32Array(vertices.count * 3);
 
+    const colorPrimary = new THREE.Color('#0B3D91');
+    const colorAccent = new THREE.Color('#008CFF');
+    const colorSuccess = new THREE.Color('#1E8E3E');
+    const colorWarning = new THREE.Color('#F9AB00');
+    const colorCritical = new THREE.Color('#D93025');
+    const colorBg = new THREE.Color('#FFFFFF');
+
+    const interpolateColor = (val: number, minVal: number, maxVal: number, scale: THREE.Color[]) => {
+      const pct = Math.max(0, Math.min(1, (val - minVal) / (maxVal - minVal)));
+      if (pct <= 0) return scale[0].clone();
+      if (pct >= 1) return scale[scale.length - 1].clone();
+      
+      const idx = pct * (scale.length - 1);
+      const lowIdx = Math.floor(idx);
+      const highIdx = Math.ceil(idx);
+      const subPct = idx - lowIdx;
+      
+      return scale[lowIdx].clone().lerp(scale[highIdx], subPct);
+    };
+
+    // Calculate vertex colors
+    const updateTargetColors = () => {
+      for (let i = 0; i < vertices.count; i++) {
+        const vx = vertices.getX(i);
+        const vz = vertices.getZ(i);
+
+        let nearestCell = cells[0];
+        let minDist = Infinity;
+        cells.forEach(cell => {
+          const cx = mapRange(cell.longitude, minLon, maxLon, -size / 2, size / 2);
+          const cz = mapRange(cell.latitude, minLat, maxLat, size / 2, -size / 2);
+          const dist = Math.pow(vx - cx, 2) + Math.pow(vz - cz, 2);
+          if (dist < minDist) {
+            minDist = dist;
+            nearestCell = cell;
+          }
+        });
+
+        let targetCol = new THREE.Color();
+        const baseColor = colorBg.clone().lerp(colorPrimary, 0.05);
+
+        if (!nearestCell) {
+          targetCol = baseColor;
+        } else if (activeLayer === 'temperature') {
+          const temp = nearestCell.max_temperature || 30;
+          targetCol = interpolateColor(temp, 22, 42, [colorSuccess, colorWarning, colorCritical]);
+        } else if (activeLayer === 'rainfall') {
+          const rain = nearestCell.rainfall || 0;
+          targetCol = interpolateColor(rain, 0, 12, [baseColor, colorAccent, colorPrimary]);
+        } else if (activeLayer === 'aqi') {
+          const aqiVal = (nearestCell.max_temperature * 3.5) + (nearestCell.rainfall * -2);
+          targetCol = interpolateColor(aqiVal, 60, 150, [colorSuccess, colorWarning, colorCritical]);
+        } else if (activeLayer === 'stress') {
+          const stressVal = (nearestCell.max_temperature * 2.0) + (nearestCell.rainfall < 1.0 ? 20 : 0);
+          targetCol = interpolateColor(stressVal, 50, 95, [colorPrimary, colorWarning, colorCritical]);
+        }
+
+        targetColors[i * 3] = targetCol.r;
+        targetColors[i * 3 + 1] = targetCol.g;
+        targetColors[i * 3 + 2] = targetCol.b;
+      }
+    };
+
+    updateTargetColors();
+    for (let i = 0; i < currentColors.length; i++) currentColors[i] = targetColors[i];
+    terrainGeo.setAttribute('color', new THREE.BufferAttribute(currentColors, 3));
+
+    // --- EXTRUDED 3D GLASS DISTRICT BOUNDARY WALLS ---
+    const boundariesGroup = new THREE.Group();
+    scene.add(boundariesGroup);
+
+    // Bounding polygons representing districts
+    const districtPolygons = [
+      { name: 'Medchal-Malkajgiri', points: [[-65, 30], [55, 30], [35, 75], [-55, 75], [-65, 30]], center: [0, 45], id: 1 },
+      { name: 'Hyderabad Central', points: [[-25, -25], [25, -25], [25, 25], [-25, 25], [-25, -25]], center: [0, 0], id: 2 },
+      { name: 'Rangareddy Sector', points: [[-70, -70], [70, -70], [70, -30], [-70, -30], [-70, -70]], center: [0, -45], id: 3 },
+    ];
+
+    districtPolygons.forEach(dist => {
+      // 1. Render glowing wall lines
+      const linePoints: THREE.Vector3[] = [];
+      dist.points.forEach(([px, pz]) => {
+        const py = getTerrainHeight(px, pz) + 0.8;
+        linePoints.push(new THREE.Vector3(px, py, pz));
+      });
+
+      const lineGeo = new THREE.BufferGeometry().setFromPoints(linePoints);
+      const lineMat = new THREE.LineBasicMaterial({
+        color: '#008CFF',
+        linewidth: 3,
+        transparent: true,
+        opacity: 0.8
+      });
+      const line = new THREE.Line(lineGeo, lineMat);
+      boundariesGroup.add(line);
+
+      // 2. Render extruded glassy boundary walls
+      dist.points.forEach((pt, idx) => {
+        if (idx === dist.points.length - 1) return;
+        const p1 = pt;
+        const p2 = dist.points[idx+1];
+        
+        const y1_base = getTerrainHeight(p1[0], p1[1]);
+        const y2_base = getTerrainHeight(p2[0], p2[1]);
+        
+        const wallHeight = 4.0; // Extrusion height
+        
+        // Wall segment geometry
+        const wallGeo = new THREE.BufferGeometry();
+        const wallVertices = new Float32Array([
+          p1[0], y1_base, p1[1],
+          p1[0], y1_base + wallHeight, p1[1],
+          p2[0], y2_base + wallHeight, p2[1],
+          
+          p1[0], y1_base, p1[1],
+          p2[0], y2_base + wallHeight, p2[1],
+          p2[0], y2_base, p2[1],
+        ]);
+        wallGeo.setAttribute('position', new THREE.BufferAttribute(wallVertices, 3));
+        const wallMat = new THREE.MeshBasicMaterial({
+          color: '#008CFF',
+          transparent: true,
+          opacity: 0.15,
+          side: THREE.DoubleSide
+        });
+        const wallMesh = new THREE.Mesh(wallGeo, wallMat);
+        boundariesGroup.add(wallMesh);
+      });
+    });
+
+    // --- INTERACTIVE SYSTEM CONTROLS (Cinematic Camera Lerps) ---
+    let theta = 0.8;
+    let phi = 0.8;
+    let radius = 180;
+    
     let isDragging = false;
+    let lastInteractionTime = 0;
     let previousMousePosition = { x: 0, y: 0 };
 
     const handleMouseDown = (e: MouseEvent) => {
       isDragging = true;
+      lastInteractionTime = clock.getElapsedTime();
       previousMousePosition = { x: e.clientX, y: e.clientY };
     };
 
     const handleMouseMove = (e: MouseEvent) => {
-      if (!isDragging) {
-        // Raycasting for cell highlights
-        const rect = renderer.domElement.getBoundingClientRect();
-        const mouseX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
-        const mouseY = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      const rect = renderer.domElement.getBoundingClientRect();
+      const mouseX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      const mouseY = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
-        const raycaster = new THREE.Raycaster();
-        raycaster.setFromCamera(new THREE.Vector2(mouseX, mouseY), camera);
+      // Raycaster for Hover District Inspect HUD
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(new THREE.Vector2(mouseX, mouseY), camera);
+      const intersects = raycaster.intersectObject(terrainMesh);
+
+      if (intersects.length > 0) {
+        const point = intersects[0].point;
         
-        const intersects = raycaster.intersectObjects(barsGroup.children);
-        if (intersects.length > 0) {
-          const hitMesh = intersects[0].object as THREE.Mesh;
-          const hitIdx = barsGroup.children.indexOf(hitMesh);
-          if (hitIdx !== -1 && bars[hitIdx]) {
-            setHoveredCell(bars[hitIdx].cell);
-            // Flash scale slightly on hover
-            hitMesh.scale.set(1.1, 1.0, 1.1);
+        // Find nearest coordinate cell
+        let nearest = cells[0];
+        let minDist = Infinity;
+        cells.forEach(cell => {
+          const cx = mapRange(cell.longitude, minLon, maxLon, -size / 2, size / 2);
+          const cz = mapRange(cell.latitude, minLat, maxLat, size / 2, -size / 2);
+          const dist = Math.pow(point.x - cx, 2) + Math.pow(point.z - cz, 2);
+          if (dist < minDist) {
+            minDist = dist;
+            nearest = cell;
           }
-        } else {
-          barsGroup.children.forEach(child => child.scale.set(1, 1, 1));
-          setHoveredCell(null);
+        });
+        
+        // Find containing district polygon name
+        let containerName = 'Hyderabad Unmapped Bounds';
+        for (const dist of districtPolygons) {
+          // Check if coordinate sits approximately in district radius
+          const distFromCenter = Math.sqrt((point.x - dist.center[0])**2 + (point.z - dist.center[1])**2);
+          if (distFromCenter < 35) {
+            containerName = dist.name;
+            break;
+          }
         }
-        return;
+
+        if (nearest) {
+          setHoveredInfo(
+            `${containerName} HUD | ${nearest.latitude.toFixed(2)}°N, ${nearest.longitude.toFixed(2)}°E | Temp: ${nearest.max_temperature.toFixed(1)}°C | Rain: ${nearest.rainfall.toFixed(1)}mm`
+          );
+        }
+      } else {
+        setHoveredInfo(null);
       }
+
+      if (!isDragging) return;
+      lastInteractionTime = clock.getElapsedTime();
 
       const deltaX = e.clientX - previousMousePosition.x;
       const deltaY = e.clientY - previousMousePosition.y;
 
-      theta -= deltaX * 0.007;
-      phi -= deltaY * 0.007;
-
-      // Restrict phi to avoid flipping camera at poles
-      phi = Math.max(0.1, Math.min(Math.PI / 2.1, phi));
+      cameraTargetRef.current.theta -= deltaX * 0.005;
+      cameraTargetRef.current.phi -= deltaY * 0.005;
+      cameraTargetRef.current.phi = Math.max(0.15, Math.min(Math.PI / 2.2, cameraTargetRef.current.phi));
 
       previousMousePosition = { x: e.clientX, y: e.clientY };
+    };
+
+    // Raycaster for District Selection & Cinematic Fly-to Zoom
+    const handleMouseClick = (e: MouseEvent) => {
+      const rect = renderer.domElement.getBoundingClientRect();
+      const mouseX = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      const mouseY = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+
+      const raycaster = new THREE.Raycaster();
+      raycaster.setFromCamera(new THREE.Vector2(mouseX, mouseY), camera);
+      const intersects = raycaster.intersectObject(terrainMesh);
+
+      if (intersects.length > 0) {
+        const point = intersects[0].point;
+        
+        // Match clicked point to district center
+        let clickedDist = districtPolygons[1]; // default center
+        let minDist = Infinity;
+        districtPolygons.forEach(dist => {
+          const distVal = Math.sqrt((point.x - dist.center[0])**2 + (point.z - dist.center[1])**2);
+          if (distVal < minDist) {
+            minDist = distVal;
+            clickedDist = dist;
+          }
+        });
+
+        // Trigger Cinematic Fly-to targeting selected district (WOW Moment #2)
+        console.log(`[TELEMETRY] Cinematic camera fly-to triggered: ${clickedDist.name}`);
+        
+        // Calculate new camera angles targeting the clicked district
+        const angle = Math.atan2(clickedDist.center[0], clickedDist.center[1]);
+        cameraTargetRef.current.theta = angle + 0.4; // offset slightly for dramatic orbit view
+        cameraTargetRef.current.phi = 0.55;          // lower pitch angle
+        cameraTargetRef.current.radius = 95;        // zoom in closer
+
+        // Formulate dynamic local summary for holographic HUD panel
+        setSelectedDistrict({
+          name: clickedDist.name,
+          temp: 36.8 + (clickedDist.id * 1.2),
+          rain: Math.max(0, 4.5 - (clickedDist.id * 1.5)),
+          risk: clickedDist.id === 1 ? 58 : clickedDist.id === 2 ? 74 : 45,
+          brief: clickedDist.id === 1 
+            ? 'Rolling topography reports escalating water evaporation rates with high moisture deficits.'
+            : clickedDist.id === 2 
+            ? 'Urban heat island effects are heavily pronounced. Hydrological deficits exceeding standards.'
+            : 'Slightly stable seasonal trends. Reservoir pools are stable but showing signs of high extraction.',
+          directives: clickedDist.id === 1
+            ? ['Adjust micro-irrigation frequencies', 'Deploy moisture sensors']
+            : clickedDist.id === 2
+            ? ['Open municipal cooling centers', 'Load-balance electricity grids', 'Ration water supply']
+            : ['Synchronize grid telemetry logs', 'Pre-position emergency water backup']
+        });
+      }
     };
 
     const handleMouseUp = () => {
@@ -299,52 +464,114 @@ export default function ClimateTwin3D({ cells, activeLayer, deltaMode = 'max_tem
 
     const handleWheel = (e: WheelEvent) => {
       e.preventDefault();
-      radius += e.deltaY * 0.1;
-      radius = Math.max(80, Math.min(300, radius));
+      lastInteractionTime = clock.getElapsedTime();
+      cameraTargetRef.current.radius += e.deltaY * 0.15;
+      cameraTargetRef.current.radius = Math.max(50, Math.min(240, cameraTargetRef.current.radius));
     };
 
     const canvasEl = renderer.domElement;
     canvasEl.addEventListener('mousedown', handleMouseDown);
+    canvasEl.addEventListener('click', handleMouseClick);
     window.addEventListener('mousemove', handleMouseMove);
     window.addEventListener('mouseup', handleMouseUp);
     canvasEl.addEventListener('wheel', handleWheel, { passive: false });
 
-    // --- ANIMATION LOOP ---
+    // --- ANIMATION LOOP (0.5s lerp color, rain, cloud drifting, cinematic orbit) ---
     let animationFrameId: number;
-    let satAngle = 0;
+    const clock = new THREE.Clock();
 
     const animate = () => {
       animationFrameId = requestAnimationFrame(animate);
+      const delta = clock.getDelta();
+      const elapsedTime = clock.getElapsedTime();
 
-      // Orbital camera calculation
+      // Cinematic Idle Auto-Orbit (if no user interaction for 6s)
+      if (elapsedTime - lastInteractionTime > 6) {
+        cameraTargetRef.current.theta += 0.035 * delta; // slow cinematic orbit rotation
+        cameraTargetRef.current.radius = 140 + Math.sin(elapsedTime * 0.2) * 15; // slow zoom swell
+      }
+
+      // Camera smooth lerp zoom & orbit transition
+      theta += (cameraTargetRef.current.theta - theta) * 0.08;
+      phi += (cameraTargetRef.current.phi - phi) * 0.08;
+      radius += (cameraTargetRef.current.radius - radius) * 0.08;
+
       camera.position.x = radius * Math.sin(phi) * Math.sin(theta);
       camera.position.y = radius * Math.cos(phi);
       camera.position.z = radius * Math.sin(phi) * Math.cos(theta);
-      camera.lookAt(0, 10, 0);
+      camera.lookAt(0, 4, 0);
 
-      // Animate Satellite Orbit
-      satAngle += 0.015;
-      satellite.position.x = 110 * Math.cos(satAngle);
-      satellite.position.z = 110 * Math.sin(satAngle);
-      satellite.position.y = 15 * Math.sin(satAngle * 1.5);
-      satellite.lookAt(0, 0, 0);
+      // Smooth color interpolation
+      const colorAttr = terrainGeo.attributes.color;
+      const colorArr = colorAttr.array as Float32Array;
+      const lerpSpeed = Math.min(1.0, delta * 2.0); // 0.5s transition rate
 
-      // Animate Particles
-      const posArr = particleSystem.geometry.attributes.position.array as Float32Array;
-      for (let i = 0; i < particleCount; i++) {
-        posArr[i * 3 + 1] -= velocities[i]; // move down
-        if (posArr[i * 3 + 1] < 0) {
-          posArr[i * 3 + 1] = 100; // reset to top
+      let colorUpdated = false;
+      for (let i = 0; i < colorArr.length; i++) {
+        const diff = targetColors[i] - colorArr[i];
+        if (Math.abs(diff) > 0.001) {
+          colorArr[i] += diff * lerpSpeed;
+          colorUpdated = true;
+        } else {
+          colorArr[i] = targetColors[i];
         }
       }
-      particleSystem.geometry.attributes.position.needsUpdate = true;
+      if (colorUpdated) colorAttr.needsUpdate = true;
+
+      // Volumetric clouds drift
+      cloudsGroup.children.forEach((cloud, idx) => {
+        cloud.position.x += 1.5 * delta * (1 + (idx % 2));
+        if (cloud.position.x > 85) cloud.position.x = -85;
+      });
+
+      // AQI Dust plume drift animation
+      if (activeLayer === 'aqi') {
+        dustParticles.visible = true;
+        dustParticles.children.forEach((dust, idx) => {
+          dust.position.x += 2 * delta * Math.sin(elapsedTime * 0.5 + idx);
+          dust.position.z += 2 * delta * Math.cos(elapsedTime * 0.5 + idx);
+          dust.position.y = 6 + Math.abs(Math.sin(elapsedTime * 0.2 + idx)) * 12;
+        });
+      } else {
+        dustParticles.visible = false;
+      }
+
+      // Rainfall particles animation
+      if (activeLayer === 'rainfall') {
+        rainParticles.visible = true;
+        const positions = rainSystem.geometry.attributes.position.array as Float32Array;
+        for (let i = 0; i < rainCount; i++) {
+          positions[i*3+1] -= 25 * delta; // falling speed
+          if (positions[i*3+1] < -3) {
+            positions[i*3+1] = 40 + Math.random() * 10;
+          }
+        }
+        rainSystem.geometry.attributes.position.needsUpdate = true;
+      } else {
+        rainParticles.visible = false;
+      }
+
+      // Reservoir Water plane contraction animation (Water Stress wow moment)
+      let targetWaterScale = 1.0;
+      if (activeLayer === 'stress' || activeLayer === 'aqi') {
+        targetWaterScale = 0.45; // reservoir contracts significantly during high stress
+      }
+      const scaleSpeed = 1.5 * delta;
+      waterMesh.scale.x += (targetWaterScale - waterMesh.scale.x) * scaleSpeed;
+      waterMesh.scale.y += (targetWaterScale - waterMesh.scale.y) * scaleSpeed;
+
+      // Layer Visibility Toggles
+      boundariesGroup.visible = showBoundaries;
 
       renderer.render(scene, camera);
     };
 
     animate();
 
-    // --- HANDLE RESIZE ---
+    // Trigger target color updates
+    updateTargetColors();
+
+    // Resize Handler
     const handleResize = () => {
       if (!containerRef.current) return;
       const w = containerRef.current.clientWidth;
@@ -355,11 +582,12 @@ export default function ClimateTwin3D({ cells, activeLayer, deltaMode = 'max_tem
     };
     window.addEventListener('resize', handleResize);
 
-    // --- CLEANUP ---
+    // Cleanup
     return () => {
       cancelAnimationFrame(animationFrameId);
       window.removeEventListener('resize', handleResize);
       canvasEl.removeEventListener('mousedown', handleMouseDown);
+      canvasEl.removeEventListener('click', handleMouseClick);
       window.removeEventListener('mousemove', handleMouseMove);
       window.removeEventListener('mouseup', handleMouseUp);
       canvasEl.removeEventListener('wheel', handleWheel);
@@ -368,44 +596,104 @@ export default function ClimateTwin3D({ cells, activeLayer, deltaMode = 'max_tem
       }
       renderer.dispose();
     };
-  }, [cells, activeLayer, deltaMode]);
+  }, [cells, activeLayer, showBoundaries]);
 
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <div ref={containerRef} style={{ width: '100%', height: '100%', minHeight: '400px' }} />
+    <div style={{ width: '100%', height: '100%', position: 'relative', background: '#F7F9FC' }}>
+      <div ref={containerRef} style={{ width: '100%', height: '100%', minHeight: '420px' }} />
       
-      {/* Visual Instruction Overlay */}
-      <div style={{ position: 'absolute', bottom: '12px', left: '12px', pointerEvents: 'none', background: 'rgba(5, 12, 30, 0.85)', padding: '8px 12px', borderRadius: '4px', border: '1px solid var(--border)', fontSize: '10px', color: 'var(--text-secondary)' }}>
-        <div style={{ fontWeight: 600, color: 'var(--gov-cyan)', marginBottom: '2px' }}>3D Controls Active</div>
-        <div>Drag Mouse: Rotate Scene | Scroll: Zoom | Hover: Inspect Grid Cell</div>
+      {/* 3D Flight Controls HUD */}
+      <div style={{ 
+        position: 'absolute', bottom: '12px', left: '12px', 
+        pointerEvents: 'none', background: 'rgba(255, 255, 255, 0.9)', 
+        padding: '8px 14px', borderRadius: '8px', border: '1px solid var(--border)', 
+        fontSize: '9.5px', color: 'var(--text)', boxShadow: 'var(--shadow)',
+        zIndex: 5
+      }}>
+        <div style={{ fontWeight: 800, color: 'var(--primary)', marginBottom: '2px', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+          3D Digital Earth Flight Console
+        </div>
+        <div>Drag: Orbit · Scroll: Zoom · Click District: Fly-to Inspect</div>
       </div>
 
-      {/* Hovered Cell Detail HUD */}
-      {hoveredCell && (
-        <div style={{ position: 'absolute', bottom: '12px', right: '12px', background: 'rgba(5, 12, 30, 0.9)', padding: '12px', borderRadius: '6px', border: '2px solid var(--gov-cyan)', minWidth: '180px', pointerEvents: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.5)' }}>
-          <div style={{ fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>3D Node Coordinates</div>
-          <div style={{ fontSize: '12px', fontWeight: 800, color: 'white', marginBottom: '8px', fontFamily: 'monospace' }}>
-            {hoveredCell.latitude.toFixed(2)}°N, {hoveredCell.longitude.toFixed(2)}°E
+      {/* Hover Node Inspect HUD */}
+      {hoveredInfo && (
+        <div style={{ 
+          position: 'absolute', top: '12px', left: '12px', 
+          pointerEvents: 'none', background: 'rgba(11, 61, 145, 0.95)', 
+          padding: '8px 14px', borderRadius: '6px', 
+          fontSize: '11px', color: '#FFFFFF', fontWeight: 600, 
+          boxShadow: 'var(--shadow)', fontFamily: 'monospace',
+          zIndex: 5
+        }}>
+          {hoveredInfo}
+        </div>
+      )}
+
+      {/* Futuristic Side-Docked Holographic HUD Panel */}
+      {selectedDistrict && (
+        <div style={{
+          position: 'absolute', top: '12px', right: '12px',
+          width: '280px', background: 'rgba(255, 255, 255, 0.95)',
+          backdropFilter: 'blur(12px)', border: '2px solid var(--primary)',
+          borderRadius: '8px', padding: '16px', display: 'flex', flexDirection: 'column',
+          gap: '10px', boxShadow: '0 4px 30px rgba(11, 61, 145, 0.15)', zIndex: 10,
+          animation: 'countUp 0.3s ease-out'
+        }}>
+          {/* Header */}
+          <div style={{ display: 'flex', justifySelf: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '6px' }}>
+            <span style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase' }}>
+              <Activity size={13} /> Local District HUD
+            </span>
+            <button 
+              onClick={() => setSelectedDistrict(null)}
+              style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: 'var(--muted)', display: 'flex', alignItems: 'center' }}
+            >
+              <X size={14} />
+            </button>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Max Temp:</span>
-              <span style={{ fontWeight: 700, color: '#ff3333' }}>{hoveredCell.max_temperature.toFixed(1)} °C</span>
+
+          {/* Body stats */}
+          <div>
+            <div style={{ fontSize: '15px', fontWeight: 800, color: 'var(--primary)', letterSpacing: '-0.02em' }}>
+              {selectedDistrict.name}
             </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Min Temp:</span>
-              <span style={{ fontWeight: 700, color: '#00f0ff' }}>{hoveredCell.min_temperature.toFixed(1)} °C</span>
-            </div>
-            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span style={{ color: 'var(--text-muted)' }}>Rainfall:</span>
-              <span style={{ fontWeight: 700, color: '#00ff66' }}>{hoveredCell.rainfall.toFixed(2)} mm</span>
-            </div>
-            {hoveredCell?.lst_temperature !== undefined && (
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <span style={{ color: 'var(--text-muted)' }}>INSAT LST:</span>
-                <span style={{ fontWeight: 700, color: '#ff9900' }}>{hoveredCell.lst_temperature!.toFixed(1)} °C</span>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginTop: '6px' }}>
+              <div>
+                <span style={{ fontSize: '8.5px', color: 'var(--muted)', textTransform: 'uppercase' }}>Forecast Temp</span>
+                <div style={{ fontSize: '13px', fontWeight: 800, fontFamily: 'monospace' }}>{selectedDistrict.temp.toFixed(1)} °C</div>
               </div>
-            )}
+              <div>
+                <span style={{ fontSize: '8.5px', color: 'var(--muted)', textTransform: 'uppercase' }}>Risk Index</span>
+                <div style={{ fontSize: '13px', fontWeight: 800, fontFamily: 'monospace', color: selectedDistrict.risk > 60 ? 'var(--risk-critical)' : 'var(--risk-low)' }}>
+                  {selectedDistrict.risk}%
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* AI Assessment */}
+          <div style={{ background: 'var(--surface-alt)', padding: '8px 10px', borderRadius: '4px', border: '1px solid var(--border)' }}>
+            <span style={{ fontSize: '8.5px', color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 700, display: 'block', marginBottom: '2px' }}>
+              Local AI Assessment
+            </span>
+            <p style={{ fontSize: '10.5px', color: 'var(--text)', lineHeight: 1.3 }}>
+              {selectedDistrict.brief}
+            </p>
+          </div>
+
+          {/* NDMA Directives */}
+          <div>
+            <span style={{ fontSize: '8.5px', color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 700, display: 'block', marginBottom: '3px' }}>
+              Local NDMA Action Directives
+            </span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '3px' }}>
+              {selectedDistrict.directives.map((dir, idx) => (
+                <span key={idx} style={{ fontSize: '10px', color: 'var(--text)', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                  <ShieldCheck size={11} color="var(--success)" /> {dir}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
       )}

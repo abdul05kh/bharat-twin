@@ -15,33 +15,33 @@ export default function PrimaryRiskHero() {
 
   // Fallback default values if database/API fails or is loading
   const fallbackData = {
-    composite: 64,
-    level: 'High',
-    trend: 'increasing',
-    confidence: 82,
-    whatIsHappening: 'Max temperatures ~1.8°C above seasonal baseline with ongoing moisture deficits.',
-    whyItMatters: 'Increases agricultural and municipal water stress and heat-related health risks.',
-    whatActionToBeTaken: 'Pre-position water supplies, enforce cooling measures, adjust irrigation, and issue heat advisories.'
+    composite: 42,
+    level: 'Low',
+    trend: 'stable',
+    confidence: 91,
+    whatIsHappening: 'Regional climate parameters align with seasonal baselines; temperatures are nominal.',
+    whyItMatters: 'Minimizes municipal power strain, reservoir drawdown rates, and public health warning alerts.',
+    whatActionToBeTaken: 'Pre-position emergency municipal supplies and continue grid telemetry sync.'
   };
 
-  const hasData = riskIndex && riskIndex.indices && riskIndex.indices.composite_risk;
-  
-  const score = hasData ? riskIndex.indices.composite_risk.score : fallbackData.composite;
-  const level = hasData ? riskIndex.indices.composite_risk.level : fallbackData.level;
-  const trend = hasData ? riskIndex.indices.composite_risk.trend : fallbackData.trend;
-  const confidence = hasData ? riskIndex.indices.composite_risk.confidence : fallbackData.confidence;
-  
-  const whatIsHappening = hasData 
-    ? (riskIndex.indices.heat_risk.impact_summary || fallbackData.whatIsHappening)
-    : fallbackData.whatIsHappening;
-  const whyItMatters = hasData
-    ? (riskIndex.indices.climate_stress.impact_summary || fallbackData.whyItMatters)
-    : fallbackData.whyItMatters;
-  const whatActionToBeTaken = hasData
-    ? (riskIndex.indices.composite_risk.impact_summary || fallbackData.whatActionToBeTaken)
-    : fallbackData.whatActionToBeTaken;
+  // Safely extract indices
+  const indices = riskIndex ? ((riskIndex as Record<string, unknown>)['indices'] as Record<string, unknown> | undefined) : undefined;
+  const compositeRisk = indices ? (indices['composite_risk'] as Record<string, unknown> | undefined) : undefined;
+  const heatRisk = indices ? (indices['heat_risk'] as Record<string, unknown> | undefined) : undefined;
+  const climateStress = indices ? (indices['climate_stress'] as Record<string, unknown> | undefined) : undefined;
 
-  // Ensure displayed strings are concise (max 60 words)
+  const hasData = !!compositeRisk;
+
+  const score = hasData && typeof compositeRisk!['score'] === 'number' ? (compositeRisk!['score'] as number) : fallbackData.composite;
+  const level = hasData && typeof compositeRisk!['level'] === 'string' ? (compositeRisk!['level'] as string) : fallbackData.level;
+  const trend = hasData && typeof compositeRisk!['trend'] === 'string' ? (compositeRisk!['trend'] as string) : fallbackData.trend;
+  const confidence = hasData && typeof compositeRisk!['confidence'] === 'number' ? (compositeRisk!['confidence'] as number) : fallbackData.confidence;
+
+  const whatIsHappening = hasData && heatRisk ? ((heatRisk['impact_summary'] as string) || fallbackData.whatIsHappening) : fallbackData.whatIsHappening;
+  const whyItMatters = hasData && climateStress ? ((climateStress['impact_summary'] as string) || fallbackData.whyItMatters) : fallbackData.whyItMatters;
+  const whatActionToBeTaken = hasData && compositeRisk ? ((compositeRisk['impact_summary'] as string) || fallbackData.whatActionToBeTaken) : fallbackData.whatActionToBeTaken;
+
+  // Ensure displayed strings are concise (max 60 words, Phase 10)
   const truncateWords = (s: string, maxWords = 60) => {
     if (!s) return s;
     const parts = s.split(/\s+/);
@@ -49,9 +49,9 @@ export default function PrimaryRiskHero() {
     return parts.slice(0, maxWords).join(' ') + '...';
   };
 
-  const shortWhat = truncateWords(String(whatIsHappening), 60);
-  const shortWhy = truncateWords(String(whyItMatters), 60);
-  const shortAction = truncateWords(String(whatActionToBeTaken), 60);
+  const shortWhat = truncateWords(String(whatIsHappening), 45);
+  const shortWhy = truncateWords(String(whyItMatters), 45);
+  const shortAction = truncateWords(String(whatActionToBeTaken), 45);
 
   // Color mappings based on risk level
   const getRiskColor = (lvl: string) => {
@@ -68,122 +68,121 @@ export default function PrimaryRiskHero() {
   const renderTrendIcon = (tr: string) => {
     const style = { display: 'inline-flex', alignItems: 'center', gap: '4px', fontWeight: 700 };
     if (tr === 'increasing') {
-      return <span style={{ ...style, color: 'var(--risk-critical)' }}><TrendingUp size={16} /> INCREASING</span>;
+      return <span style={{ ...style, color: 'var(--critical)' }}><TrendingUp size={14} /> INCREASING</span>;
     }
     if (tr === 'decreasing') {
-      return <span style={{ ...style, color: 'var(--risk-low)' }}><TrendingDown size={16} /> DECREASING</span>;
+      return <span style={{ ...style, color: 'var(--success)' }}><TrendingDown size={14} /> DECREASING</span>;
     }
-    return <span style={{ ...style, color: 'var(--text-muted)' }}><Minus size={16} /> STABLE</span>;
+    return <span style={{ ...style, color: 'var(--muted)' }}><Minus size={14} /> STABLE</span>;
   };
 
   return (
     <div style={{
-      background: 'var(--neutral-100)',
+      background: 'var(--surface)',
       border: '1px solid var(--border)',
       borderLeft: `5px solid ${riskColor}`,
       borderRadius: '8px',
-      padding: '20px',
-      boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+      padding: '16px 20px',
+      boxShadow: 'var(--shadow)',
       display: 'grid',
-      gridTemplateColumns: '150px 1fr 1.5fr',
-      gap: '24px',
+      gridTemplateColumns: '130px 1.2fr 1.8fr',
+      gap: '20px',
       alignItems: 'center',
-      marginBottom: '20px',
       position: 'relative',
-      overflow: 'hidden'
+      overflow: 'hidden',
+      flexShrink: 0
     }}>
       {/* Subtle Background Glow */}
       <div style={{
         position: 'absolute',
         top: '-50px',
         left: '-50px',
-        width: '180px',
-        height: '180px',
+        width: '150px',
+        height: '150px',
         borderRadius: '50%',
         background: riskColor,
-        filter: 'blur(75px)',
-        opacity: 0.15,
+        filter: 'blur(60px)',
+        opacity: 0.08,
         pointerEvents: 'none'
       }} />
 
       {/* Circle Index Panel */}
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
         <div style={{
-          width: '100px',
-          height: '100px',
+          width: '80px',
+          height: '80px',
           borderRadius: '50%',
           border: `4px solid ${riskColor}`,
-          boxShadow: `0 0 16px ${riskColor}33`,
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          background: 'var(--surface-dark)',
+          background: 'var(--surface-alt)',
           position: 'relative'
         }}>
-          <span style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Risk Index</span>
-          <span style={{ fontSize: '28px', fontWeight: 800, color: 'white', fontFamily: "'Noto Sans', monospace", lineHeight: 1.1 }}>{score}</span>
-          <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>/ 100</span>
+          <span style={{ fontSize: '8px', color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 700 }}>Risk Index</span>
+          <span style={{ fontSize: '24px', fontWeight: 800, color: 'var(--primary)', fontFamily: "monospace", lineHeight: 1.1 }}>{score}</span>
+          <span style={{ fontSize: '8px', color: 'var(--muted)', fontWeight: 600 }}>/ 100</span>
         </div>
-        <div style={{
-          marginTop: '10px',
-          fontSize: '11px',
+        <span style={{
+          marginTop: '6px',
+          fontSize: '9px',
           fontWeight: 700,
-          color: 'black',
+          color: '#FFFFFF',
           background: riskColor,
-          padding: '2px 10px',
-          borderRadius: '12px',
+          padding: '2px 8px',
+          borderRadius: '10px',
           textTransform: 'uppercase',
           letterSpacing: '0.04em'
         }}>
           {level}
-        </div>
+        </span>
       </div>
 
       {/* Core Diagnostics & Trends */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', borderRight: '1px solid rgba(255, 255, 255, 0.08)', paddingRight: '20px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', borderRight: '1px solid var(--border)', paddingRight: '16px' }}>
         <div>
-          <h4 style={{ fontSize: '10px', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.06em', margin: '0 0 4px' }}>Active Target Area</h4>
-          <h3 style={{ fontSize: '16px', fontWeight: 700, color: 'white', margin: 0 }}>
-            {selectedRegion?.name || 'Hyderabad Metropolitan Area'}
+          <h4 style={{ fontSize: '9px', textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.06em', margin: '0 0 2px', fontWeight: 700 }}>Active Target Area</h4>
+          <h3 style={{ fontSize: '14px', fontWeight: 800, color: 'var(--primary)', margin: 0 }}>
+            {selectedRegion?.name || 'Hyderabad Region'}
           </h3>
         </div>
         
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '10px' }}>
           <div>
-            <h5 style={{ fontSize: '9px', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.04em', margin: '0 0 2px' }}>Trend Direction</h5>
+            <h5 style={{ fontSize: '8.5px', textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.04em', margin: '0 0 2px', fontWeight: 700 }}>Trend</h5>
             {renderTrendIcon(trend)}
           </div>
           <div>
-            <h5 style={{ fontSize: '9px', textTransform: 'uppercase', color: 'var(--text-muted)', letterSpacing: '0.04em', margin: '0 0 2px' }}>Assessment Confidence</h5>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <span style={{ fontWeight: 700, color: 'var(--gov-cyan)', fontSize: '13px', fontFamily: "'Noto Sans', monospace" }}>{confidence}%</span>
-              <div style={{ width: '45px', height: '4px', background: 'var(--neutral-300)', borderRadius: '2px', overflow: 'hidden' }}>
-                <div style={{ width: `${confidence}%`, height: '100%', background: 'var(--gov-cyan)' }} />
+            <h5 style={{ fontSize: '8.5px', textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.04em', margin: '0 0 2px', fontWeight: 700 }}>Confidence</h5>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span style={{ fontWeight: 700, color: 'var(--primary)', fontSize: '11px', fontFamily: "monospace" }}>{confidence}%</span>
+              <div style={{ width: '40px', height: '4px', background: 'var(--border)', borderRadius: '2px', overflow: 'hidden' }}>
+                <div style={{ width: `${confidence}%`, height: '100%', background: 'var(--primary)' }} />
               </div>
             </div>
           </div>
         </div>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '10px', color: 'var(--gov-green)' }}>
-          <ShieldCheck size={12} />
+        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '9px', color: 'var(--success)', fontWeight: 700 }}>
+          <ShieldCheck size={11} />
           <span>NDMA Composite Framework V2.0</span>
         </div>
       </div>
 
-      {/* Executive Quick-Read (3-Second Action Assessment) */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-        <div style={{ fontSize: '11px', lineHeight: 1.4 }}>
-          <strong style={{ color: 'var(--gov-cyan)', textTransform: 'uppercase', fontSize: '9.5px', letterSpacing: '0.04em', display: 'block', marginBottom: '2px' }}>1. What is Happening?</strong>
-          <span style={{ color: 'var(--text-primary)' }}>{shortWhat}</span>
+      {/* Executive Quick-Read (3-Second Action Assessment - Phase 10 & 11 Compliant) */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+        <div style={{ fontSize: '11px', lineHeight: 1.3 }}>
+          <strong style={{ color: 'var(--accent)', textTransform: 'uppercase', fontSize: '8.5px', letterSpacing: '0.04em', display: 'block' }}>1. What is Happening?</strong>
+          <span style={{ color: 'var(--text)' }}>{shortWhat}</span>
         </div>
-        <div style={{ fontSize: '11px', lineHeight: 1.4 }}>
-          <strong style={{ color: 'var(--gov-saffron)', textTransform: 'uppercase', fontSize: '9.5px', letterSpacing: '0.04em', display: 'block', marginBottom: '2px' }}>2. Why Does it Matter?</strong>
-          <span style={{ color: 'var(--text-secondary)' }}>{shortWhy}</span>
+        <div style={{ fontSize: '11px', lineHeight: 1.3 }}>
+          <strong style={{ color: 'var(--warning)', textTransform: 'uppercase', fontSize: '8.5px', letterSpacing: '0.04em', display: 'block' }}>2. Why Does it Matter?</strong>
+          <span style={{ color: 'var(--text)' }}>{shortWhy}</span>
         </div>
-        <div style={{ fontSize: '11px', lineHeight: 1.4 }}>
-          <strong style={{ color: riskColor, textTransform: 'uppercase', fontSize: '9.5px', letterSpacing: '0.04em', display: 'block', marginBottom: '2px' }}>3. What Action Should Be Taken?</strong>
-          <span style={{ color: 'white', fontWeight: 500 }}>{shortAction}</span>
+        <div style={{ fontSize: '11px', lineHeight: 1.3 }}>
+          <strong style={{ color: riskColor, textTransform: 'uppercase', fontSize: '8.5px', letterSpacing: '0.04em', display: 'block' }}>3. What Action Should Be Taken?</strong>
+          <span style={{ color: 'var(--primary)', fontWeight: 700 }}>{shortAction}</span>
         </div>
       </div>
     </div>

@@ -1,30 +1,89 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Source+Sans+Pro:wght@300;400;600;700&family=Noto+Sans:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Source+Sans+Pro:wght@300;400;600;700&family=Noto+Sans:wght@400;500;600;700&display=swap');
 
 :root {
-  /* BHARAT-TWIN Light Theme Tokens (Executive, high-contrast) */
-  --bg: #F7F9FC;            /* Page background */
-  --surface: #FFFFFF;       /* Primary card surface */
-  --surface-alt: #F8FAFC;   /* Secondary surface */
-  --primary: #0B3D91;       /* Primary brand color */
-  --accent: #00A3A3;        /* Accent / action */
+  /* Default Theme (Cool Blue Slate - Government Trusted) */
+  --bg: #F7F9FC;
+  --surface: #FFFFFF;
+  --surface-alt: #F3F6FA;
+  --primary: #0B3D91;
+  --accent: #008CFF;
   --success: #1E8E3E;
   --warning: #F9AB00;
-  --risk: #D93025;
-  --text: #1F2937;          /* Primary text */
+  --critical: #D93025;
+  --text: #111827;
   --muted: #6B7280;
-  --border: rgba(31,41,55,0.06);
-  --shadow: 0 6px 18px rgba(31,41,55,0.08);
-  --kpi-accent: #0EA5E9;
-  /* Risk gradient */
-  --risk-low: #22C55E;
-  --risk-moderate: #EAB308;
-  --risk-high: #F97316;
-  --risk-critical: #DC2626;
-  /* Data source badges */
+  --border: #E5E7EB;
+  --shadow: 0 4px 20px rgba(11, 61, 145, 0.05);
+
+  /* Risk Level Colors */
+  --risk-low: #00E676;
+  --risk-moderate: #FFD600;
+  --risk-high: #FF9100;
+  --risk-critical: #FF1744;
+
+  /* Data Source Badges */
   --ds-imd: #0B3D91;
-  --ds-insat: #00A3A3;
+  --ds-insat: #008CFF;
   --ds-mosdac: #F9AB00;
   --ds-nrsc: #1E8E3E;
+
+  /* Ambient Particle Colors */
+  --shimmer-color: rgba(255, 107, 53, 0.02);
+}
+
+/* ─── DYNAMIC CLIMATE MOOD ENGINE THEMES ─── */
+
+/* Heatwave Theme */
+body.theme-heatwave {
+  --bg: #FFFDF9;
+  --surface: #FFFFFF;
+  --surface-alt: #FFF5E6;
+  --primary: #8F4F00;
+  --accent: #FF8A00;
+  --border: #FFE3CC;
+  --shadow: 0 4px 20px rgba(255, 107, 53, 0.08);
+}
+
+/* Rainfall Theme */
+body.theme-rainfall {
+  --bg: #F0F7F4;
+  --surface: #FFFFFF;
+  --surface-alt: #E2F0EA;
+  --primary: #0A6640;
+  --accent: #2ECC71;
+  --border: #CBE6DA;
+  --shadow: 0 4px 20px rgba(46, 204, 113, 0.08);
+}
+
+/* AQI Theme */
+body.theme-aqi {
+  --bg: #FAF9FC;
+  --surface: #FFFFFF;
+  --surface-alt: #F1EDF7;
+  --primary: #51368B;
+  --accent: #8E44AD;
+  --border: #E3D9F2;
+  --shadow: 0 4px 20px rgba(142, 68, 173, 0.08);
+}
+
+/* Water Stress Theme */
+body.theme-water {
+  --bg: #FAF6F0;
+  --surface: #FFFFFF;
+  --surface-alt: #F3ECE2;
+  --primary: #7A5C33;
+  --accent: #D4A373;
+  --border: #E8DFD3;
+  --shadow: 0 4px 20px rgba(212, 163, 115, 0.08);
+}
+
+/* ─── GLOBAL TRANSITIONS ─── */
+body, body *, .premium-card, button, input, select {
+  transition: background-color 400ms cubic-bezier(0.4, 0.0, 0.2, 1),
+              border-color 400ms cubic-bezier(0.4, 0.0, 0.2, 1),
+              color 400ms cubic-bezier(0.4, 0.0, 0.2, 1),
+              box-shadow 400ms cubic-bezier(0.4, 0.0, 0.2, 1),
+              text-shadow 400ms cubic-bezier(0.4, 0.0, 0.2, 1);
 }
 
 *, *::before, *::after {
@@ -44,63 +103,175 @@ body {
   background-color: var(--bg);
   color: var(--text);
   line-height: 1.6;
+  position: relative;
+  overflow-x: hidden;
 }
 
-/* ─── Scrollbar ─── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: var(--surface-dark); }
-::-webkit-scrollbar-thumb { background: var(--neutral-300); border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: var(--neutral-400); }
+/* ─── AMBIENT CLIMATE OVERLAYS ─── */
+.climate-ambient-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 600ms ease-in-out;
+}
 
-/* ─── Risk Level Badges ─── */
-.risk-low      { background: rgba(0, 255, 102, 0.1); color: #00ff66; border: 1px solid rgba(0, 255, 102, 0.3); }
-.risk-moderate { background: rgba(255, 204, 0, 0.1); color: #ffcc00; border: 1px solid rgba(255, 204, 0, 0.3); }
-.risk-high     { background: rgba(255, 102, 0, 0.1); color: #ff6600; border: 1px solid rgba(255, 102, 0, 0.3); }
-.risk-critical { background: rgba(255, 51, 51, 0.1); color: #ff3333; border: 1px solid rgba(255, 51, 51, 0.3); }
+/* Heatwave: Thermal Shimmer */
+.shimmer-active .climate-ambient-overlay.heatwave-overlay {
+  opacity: 1;
+  background: radial-gradient(circle, rgba(255, 138, 0, 0.03) 0%, transparent 70%);
+  animation: thermalShimmer 4s ease-in-out infinite alternate;
+}
+
+/* Rainfall: Soft Particles */
+.rainfall-active .climate-ambient-overlay.rainfall-overlay {
+  opacity: 1;
+  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cpath d='M10 0 L5 40 M30 0 L25 40 M50 0 L45 40 M70 0 L65 40' stroke='rgba(46, 204, 113, 0.1)' stroke-width='1.5'/%3E%3C/svg%3E") repeat;
+  animation: rainFall 1.5s linear infinite;
+}
+
+/* AQI: Atmospheric Haze & Particle Drift */
+.aqi-active .climate-ambient-overlay.aqi-overlay {
+  opacity: 1;
+  background: radial-gradient(ellipse at center, rgba(142, 68, 173, 0.02) 0%, rgba(142, 68, 173, 0.05) 100%);
+  filter: blur(10px);
+  animation: hazeDrift 10s ease-in-out infinite alternate;
+}
+
+/* Water Stress: Reservoir Depletion & Dry Accents */
+.water-active .climate-ambient-overlay.water-overlay {
+  opacity: 1;
+  background-image: radial-gradient(rgba(212, 163, 115, 0.04) 1px, transparent 0);
+  background-size: 24px 24px;
+  animation: dryPulse 6s ease-in-out infinite;
+}
+
+/* ─── KEYFRAME ANIMATIONS ─── */
+@keyframes thermalShimmer {
+  0%   { transform: scale(1) translate(0, 0); filter: brightness(1); }
+  100% { transform: scale(1.05) translate(10px, -10px); filter: brightness(1.02); }
+}
+
+@keyframes rainFall {
+  0%   { background-position: 0px 0px; }
+  100% { background-position: -40px 320px; }
+}
+
+@keyframes hazeDrift {
+  0%   { opacity: 0.7; transform: translateY(-5px) scale(1); }
+  100% { opacity: 1; transform: translateY(5px) scale(1.03); }
+}
+
+@keyframes dryPulse {
+  0%, 100% { opacity: 0.6; }
+  50%       { opacity: 1; }
+}
+
+@keyframes warningRedPulse {
+  0%, 100% { box-shadow: 0 0 0 0px rgba(217, 48, 37, 0.4); }
+  50%       { box-shadow: 0 0 0 10px rgba(217, 48, 37, 0); }
+}
+
+/* WOW Moment Screen Shake & Warning Pulse */
+.screen-alert-active {
+  animation: screenShake 0.4s ease-in-out, warningRedPulse 1.5s infinite;
+  border-color: var(--critical) !important;
+}
+
+@keyframes screenShake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+
+/* ─── Scrollbar (Clean Light) ─── */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--surface-alt);
+}
+::-webkit-scrollbar-thumb {
+  background: #D1D5DB;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9CA3AF;
+}
+
+/* ─── Premium Cards ─── */
+.premium-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: var(--shadow);
+  position: relative;
+  overflow: hidden;
+}
+.premium-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 24px rgba(11, 61, 145, 0.08);
+}
+
+/* ─── Risk Level Badges (Clean Light) ─── */
+.risk-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.risk-badge-low {
+  background: rgba(0, 230, 118, 0.15);
+  color: #1E8E3E;
+  border: 1px solid rgba(0, 230, 118, 0.4);
+}
+.risk-badge-moderate {
+  background: rgba(255, 214, 0, 0.15);
+  color: #B78103;
+  border: 1px solid rgba(255, 214, 0, 0.4);
+}
+.risk-badge-high {
+  background: rgba(255, 145, 0, 0.15);
+  color: #E65100;
+  border: 1px solid rgba(255, 145, 0, 0.4);
+}
+.risk-badge-critical {
+  background: rgba(255, 23, 68, 0.15);
+  color: #D50000;
+  border: 1px solid rgba(255, 23, 68, 0.4);
+}
 
 /* ─── Data Source Badges ─── */
 .data-badge {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 2px 8px;
+  padding: 3px 8px;
   border-radius: 4px;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
-  font-family: 'Noto Sans', monospace;
-}
-.data-badge-imd    { background: rgba(0, 240, 255, 0.1); color: #00f0ff; border: 1px solid rgba(0, 240, 255, 0.3); }
-.data-badge-insat  { background: rgba(255, 102, 0, 0.1); color: #ff6600; border: 1px solid rgba(255, 102, 0, 0.3); }
-.data-badge-mosdac { background: rgba(255, 204, 0, 0.1); color: #ffcc00; border: 1px solid rgba(255, 204, 0, 0.3); }
-.data-badge-nrsc   { background: rgba(0, 255, 102, 0.1); color: #00ff66; border: 1px solid rgba(0, 255, 102, 0.3); }
-
-/* ─── Gov Panel ─── */
-.gov-panel {
-  background: var(--surface);
+  font-family: 'Noto Sans', sans-serif;
+  background: var(--surface-alt);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  color: var(--text);
 }
-
-.gov-panel-header {
-  padding: 12px 16px;
-  border-bottom: 2px solid var(--gov-saffron);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(0,0,0,0.2);
-}
-
-/* ─── Live Counter ─── */
-@keyframes countUp {
-  from { opacity: 0; transform: translateY(4px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.counter-value {
-  animation: countUp 0.6s ease forwards;
-}
+.data-badge-imd { border-left: 3px solid var(--ds-imd); }
+.data-badge-insat { border-left: 3px solid var(--ds-insat); }
+.data-badge-mosdac { border-left: 3px solid var(--ds-mosdac); }
+.data-badge-nrsc { border-left: 3px solid var(--ds-nrsc); }
 
 /* ─── Status Pulse ─── */
 @keyframes statusPulse {
@@ -112,43 +283,40 @@ body {
 /* ─── Map Leaflet overrides ─── */
 .leaflet-container {
   font-family: 'Inter', sans-serif;
-  border-radius: 4px;
-  background: #03060f !important;
+  border-radius: 6px;
+  background: #F7F9FC !important;
 }
 .leaflet-control-attribution {
   font-size: 9px !important;
-  background: rgba(4, 8, 23, 0.85) !important;
-  color: #a5b8db !important;
+  background: rgba(255, 255, 255, 0.85) !important;
+  color: var(--muted) !important;
+  border-radius: 3px;
 }
 .leaflet-bar a {
   background-color: var(--surface) !important;
-  color: var(--text-primary) !important;
+  color: var(--text) !important;
   border-bottom: 1px solid var(--border) !important;
 }
 .leaflet-bar a:hover {
-  background-color: var(--neutral-300) !important;
+  background-color: var(--surface-alt) !important;
 }
 
 /* ─── Chart overrides ─── */
 .recharts-cartesian-axis-tick-value {
-  font-family: 'Noto Sans', monospace;
+  font-family: 'Inter', sans-serif;
   font-size: 11px;
-  fill: var(--text-muted);
+  fill: var(--muted);
 }
 .recharts-default-tooltip {
   background-color: var(--surface) !important;
   border: 1px solid var(--border) !important;
-  border-radius: 4px !important;
-  color: var(--text-primary) !important;
+  border-radius: 6px !important;
+  color: var(--text) !important;
+  box-shadow: var(--shadow) !important;
 }
 .recharts-legend-item-text {
-  color: var(--text-secondary) !important;
-}
-
-/* ─── Print styles ─── */
-@media print {
-  .sidebar, nav { display: none !important; }
-  body { background: white; color: black; }
+  color: var(--text) !important;
+  font-size: 11px;
 }
 
 /* ─── Spin Animation ─── */
@@ -158,4 +326,10 @@ body {
 }
 .animate-spin {
   animation: spin 1s linear infinite;
+}
+
+/* ─── Print styles ─── */
+@media print {
+  .sidebar, nav { display: none !important; }
+  body { background: white; color: black; }
 }

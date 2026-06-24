@@ -6,14 +6,97 @@ import CommandStatusStrip from '@/components/CommandStatusStrip';
 import ValidationCenter from '@/components/ValidationCenter';
 import AITransparencyPanel from '@/components/AITransparencyPanel';
 import { useClimateStore } from '@/store/store';
+import downloadExecutiveBrief from '@/lib/reportClient';
 import { ComposedChart, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, AreaChart, Area } from 'recharts';
-import { TrendingUp, Download, RefreshCw, AlertCircle } from 'lucide-react';
+import { TrendingUp, Download, RefreshCw, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 export default function ClimateIntelligenceHub() {
-  const { fetchRegions, selectedRegion, historicalTrends, fetchHistoricalTrends, generateForecast, latestForecast, fetchLatestForecast, isLoading, apiBase, forecastJobStatus } = useClimateStore();
+  const { 
+    fetchRegions, 
+    selectedRegion, 
+    historicalTrends, 
+    fetchHistoricalTrends, 
+    generateForecast, 
+    latestForecast, 
+    fetchLatestForecast, 
+    isLoading, 
+    apiBase, 
+    forecastJobStatus 
+  } = useClimateStore();
+  
   const [forecastHorizon, setForecastHorizon] = useState(30);
   const [activeTab, setActiveTab] = useState<'temperature' | 'rainfall'>('temperature');
   const [isChartLoading, setIsChartLoading] = useState(true);
+  const [pdfStatus, setPdfStatus] = useState<'idle' | 'generating' | 'ready' | 'error'>('idle');
+  const [pdfError, setPdfError] = useState<string | null>(null);
+  
+  // Hardened Forecast Export system states
+  const [exportStatus, setExportStatus] = useState<'idle' | 'exporting' | 'ready' | 'error'>('idle');
+  const [exportError, setExportError] = useState<string | null>(null);
+
+  const triggerForecastExport = () => {
+    console.log('[TELEMETRY] Forecast Export triggered', {
+      timestamp: new Date().toISOString(),
+      forecastId: latestForecast?.id,
+      dataPoints: forecastData.length
+    });
+
+    if (exportStatus === 'exporting') return;
+    setExportStatus('exporting');
+    setExportError(null);
+
+    setTimeout(() => {
+      try {
+        if (!forecastData || forecastData.length === 0) {
+          throw new Error('No forecast data available to export');
+        }
+
+        const dataStr = JSON.stringify({
+          region: selectedRegion?.name || 'Hyderabad Metropolitan Region',
+          exportedAt: new Date().toISOString(),
+          forecastId: latestForecast?.id || 'BT-FC-PLACEHOLDER',
+          horizonDays: forecastHorizon,
+          forecastSeries: forecastData
+        }, null, 2);
+
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        const exportFileDefaultName = `bharat_twin_forecast_${selectedRegion?.name?.toLowerCase().replace(/\s+/g, '_') || 'hyderabad'}.json`;
+
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
+
+        setExportStatus('ready');
+        setTimeout(() => setExportStatus('idle'), 1500);
+      } catch (err: any) {
+        console.error('Forecast export failed:', err);
+        setExportStatus('error');
+        setExportError(err.message || 'Export error');
+        setTimeout(() => setExportStatus('idle'), 3000);
+      }
+    }, 1000); // 1s simulation delay
+  };
+
+  const triggerDiagnosticsDownload = async () => {
+    console.log('[TELEMETRY] Export Diagnostics triggered', {
+      timestamp: new Date().toISOString(),
+      forecastId: latestForecast?.id
+    });
+    if (pdfStatus === 'generating' || !latestForecast) return;
+    setPdfStatus('generating');
+    setPdfError(null);
+    try {
+      await downloadExecutiveBrief({ forecastId: latestForecast.id });
+      setPdfStatus('ready');
+      setTimeout(() => setPdfStatus('idle'), 1500);
+    } catch (err: any) {
+      console.error('Diagnostics export failed:', err);
+      setPdfStatus('error');
+      setPdfError(err.message || 'Export error');
+      setTimeout(() => setPdfStatus('idle'), 3000);
+    }
+  };
 
   useEffect(() => {
     fetchRegions();
@@ -97,57 +180,103 @@ export default function ClimateIntelligenceHub() {
       })
     : placeholderForecastData;
 
-  const chartStyle = { backgroundColor: 'var(--surface-alt)', border: '1px solid var(--border)', borderRadius: '4px', fontSize: '11px', fontFamily: "monospace", color: 'var(--text-primary)' };
+  const chartStyle = { 
+    backgroundColor: 'var(--surface)', 
+    border: '1px solid var(--border)', 
+    borderRadius: '6px', 
+    fontSize: '11px', 
+    color: 'var(--text)' 
+  };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--neutral-50)', paddingLeft: '240px', fontFamily: "'Inter', sans-serif", color: 'var(--text-primary)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingLeft: '240px', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
       <Navbar />
       <main style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
         <CommandStatusStrip />
 
+        {/* Header */}
         <header style={{
-          height: '60px', background: 'var(--surface-alt)', borderBottom: '2px solid var(--border)',
+          height: '55px', background: 'var(--surface)', borderBottom: '1px solid var(--border)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '0 24px', flexShrink: 0,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <TrendingUp size={18} color="var(--gov-saffron)" />
-            <h2 style={{ fontWeight: 700, fontSize: '15px', color: 'white' }}>Climate Intelligence Hub</h2>
+            <TrendingUp size={18} color="var(--primary)" />
+            <h2 style={{ fontWeight: 800, fontSize: '15px', color: 'var(--primary)' }}>Climate Intelligence Hub</h2>
           </div>
           {latestForecast && (
-            <a href={`${apiBase}/report/download?forecast_id=${latestForecast.id}`}
-              style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '7px 14px', background: 'var(--gov-saffron)', color: 'white', borderRadius: '4px', textDecoration: 'none', fontSize: '12px', fontWeight: 700 }}>
-              <Download size={13} /> Export Diagnostics
-            </a>
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end' }}>
+              <button 
+                onClick={triggerDiagnosticsDownload} 
+                disabled={pdfStatus === 'generating'}
+                style={{ 
+                  display: 'flex', alignItems: 'center', gap: '6px', 
+                  padding: '7px 14px', background: pdfStatus === 'ready' ? 'var(--success)' : pdfStatus === 'error' ? 'var(--critical)' : 'var(--primary)', 
+                  color: '#FFFFFF', borderRadius: '4px', border: 'none',
+                  fontSize: '12px', fontWeight: 700, cursor: pdfStatus === 'generating' ? 'not-allowed' : 'pointer',
+                  boxShadow: 'var(--shadow)', transition: 'all 0.2s'
+                }}>
+                {pdfStatus === 'generating' ? (
+                  <>
+                    <div className="animate-spin" style={{ width: '12px', height: '12px', borderRadius: '50%', border: '2px solid white', borderTopColor: 'transparent' }} />
+                    Generating PDF...
+                  </>
+                ) : pdfStatus === 'ready' ? (
+                  <>
+                    <CheckCircle2 size={13} />
+                    Diagnostics Exported
+                  </>
+                ) : pdfStatus === 'error' ? (
+                  <>
+                    <AlertCircle size={13} />
+                    Failed
+                  </>
+                ) : (
+                  <>
+                    <Download size={13} /> Export Diagnostics
+                  </>
+                )}
+              </button>
+              {pdfError && <span style={{ fontSize: '8.5px', color: 'var(--critical)', marginTop: '2px' }}>{pdfError}</span>}
+            </div>
           )}
         </header>
 
-        <div style={{ flex: 1, padding: '20px', overflowY: 'auto' }}>
+        <div style={{ flex: 1, padding: '16px 20px', overflowY: 'auto' }}>
+          
           {forecastJobStatus && (
             <div style={{
-              padding: '12px 16px', background: 'rgba(0, 240, 255, 0.1)', border: '1px solid rgba(0, 240, 255, 0.3)',
-              borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '10px',
-              fontSize: '12px', color: 'var(--gov-cyan)', marginBottom: '20px'
+              padding: '10px 16px', background: 'rgba(0,140,255,0.08)', border: '1px solid rgba(0,140,255,0.2)',
+              borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '10px',
+              fontSize: '12px', color: 'var(--accent)', marginBottom: '14px'
             }}>
               <RefreshCw size={13} className="animate-spin" />
-              <span>Forecast model training in progress (Status: <strong>{forecastJobStatus.toUpperCase()}</strong>). Please wait...</span>
+              <span>Forecast model training in progress (Status: <strong>{forecastJobStatus.toUpperCase()}</strong>).</span>
             </div>
           )}
 
           {/* Forecast Control Panel */}
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderTop: '3px solid var(--gov-saffron)', borderRadius: '6px', padding: '20px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px' }}>
+          <div className="premium-card" style={{ 
+            borderTop: '3px solid var(--primary)', 
+            padding: '16px 20px', 
+            marginBottom: '14px', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'space-between', 
+            gap: '16px' 
+          }}>
             <div>
-              <h3 style={{ fontWeight: 600, fontSize: '14px', color: 'white', marginBottom: '3px' }}>XGBoost Ensemble Forecast Parameters</h3>
-              <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+              <h3 style={{ fontWeight: 800, fontSize: '14px', color: 'var(--primary)', marginBottom: '2px' }}>XGBoost Ensemble Forecast</h3>
+              <p style={{ fontSize: '11px', color: 'var(--muted)', lineHeight: 1.3 }}>
                 Recursive lag model trained on IMD gridded observations (2023–2025) with seasonal feature engineering.
               </p>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexShrink: 0 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <label style={{ fontSize: '12px', color: 'var(--text-muted)', fontWeight: 500 }}>Horizon:</label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <label style={{ fontSize: '11px', color: 'var(--muted)', fontWeight: 600 }}>Horizon:</label>
                 <select value={forecastHorizon} onChange={e => setForecastHorizon(parseInt(e.target.value))} style={{
                   padding: '6px 10px', border: '1px solid var(--border)', borderRadius: '4px',
-                  fontSize: '12px', color: 'white', background: 'var(--surface-dark)', fontFamily: "'Inter', sans-serif",
+                  fontSize: '11px', color: 'var(--text)', background: 'var(--surface-alt)', fontFamily: "'Inter', sans-serif",
                 }}>
                   <option value={7}>7-Day Outlook</option>
                   <option value={15}>15-Day Outlook</option>
@@ -156,83 +285,116 @@ export default function ClimateIntelligenceHub() {
               </div>
               <button onClick={() => generateForecast(forecastHorizon)} disabled={isLoading} style={{
                 display: 'flex', alignItems: 'center', gap: '6px',
-                padding: '8px 18px', background: isLoading ? 'var(--neutral-300)' : 'var(--gov-saffron)',
+                padding: '8px 16px', background: isLoading ? 'var(--border)' : 'var(--primary)',
                 color: 'white', border: 'none', borderRadius: '4px', fontSize: '12px',
                 fontWeight: 700, cursor: isLoading ? 'not-allowed' : 'pointer',
               }}>
-                <RefreshCw size={13} className={isLoading ? 'animate-spin' : ''} />
+                <RefreshCw size={12} className={isLoading ? 'animate-spin' : ''} />
                 {isLoading ? 'Computing Model...' : 'Execute Forecast Engine'}
+              </button>
+
+              <button 
+                onClick={triggerForecastExport} 
+                disabled={exportStatus === 'exporting'}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: '6px',
+                  padding: '8px 16px', background: exportStatus === 'ready' ? 'var(--success)' : exportStatus === 'error' ? 'var(--critical)' : 'var(--accent)',
+                  color: 'white', border: 'none', borderRadius: '4px', fontSize: '12px',
+                  fontWeight: 700, cursor: exportStatus === 'exporting' ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s'
+                }}
+              >
+                {exportStatus === 'exporting' ? (
+                  <>
+                    <div className="animate-spin" style={{ width: '12px', height: '12px', borderRadius: '50%', border: '2px solid white', borderTopColor: 'transparent' }} />
+                    Exporting JSON...
+                  </>
+                ) : exportStatus === 'ready' ? (
+                  <>
+                    <CheckCircle2 size={12} />
+                    Exported!
+                  </>
+                ) : exportStatus === 'error' ? (
+                  <>
+                    <AlertCircle size={12} />
+                    Failed
+                  </>
+                ) : (
+                  <>
+                    <Download size={12} /> Export Forecast Data
+                  </>
+                )}
               </button>
             </div>
           </div>
 
           {/* Tab Selector */}
-          <div style={{ display: 'flex', gap: '0', borderBottom: '2px solid var(--border)', marginBottom: '20px' }}>
+          <div style={{ display: 'flex', borderBottom: '1px solid var(--border)', marginBottom: '14px' }}>
             {[
               { key: 'temperature', label: 'Temperature Analysis' },
               { key: 'rainfall', label: 'Precipitation Analysis' },
             ].map(({ key, label }) => (
-              <button key={key} onClick={() => setActiveTab(key as 'temperature' | 'rainfall')} style={{
-                padding: '10px 20px', fontSize: '13px', fontWeight: activeTab === key ? 600 : 400,
-                borderBottom: `3px solid ${activeTab === key ? 'var(--gov-saffron)' : 'transparent'}`,
-                color: activeTab === key ? 'white' : 'var(--text-muted)',
-                background: 'transparent', border: 'none', cursor: 'pointer',
-                marginBottom: '-2px', transition: 'all 0.15s',
-              }}>{label}</button>
+              <button 
+                key={key} 
+                onClick={() => setActiveTab(key as 'temperature' | 'rainfall')} 
+                style={{
+                  padding: '10px 20px', fontSize: '13px', fontWeight: activeTab === key ? 700 : 500,
+                  borderBottom: `2px solid ${activeTab === key ? 'var(--primary)' : 'transparent'}`,
+                  color: activeTab === key ? 'var(--primary)' : 'var(--muted)',
+                  background: 'transparent', border: 'none', cursor: 'pointer',
+                  marginBottom: '-1px', transition: 'all 0.15s',
+                }}
+              >
+                {label}
+              </button>
             ))}
           </div>
 
           {/* Charts Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-            {/* Historical */}
-            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', padding: '20px', height: '380px', display: 'flex', flexDirection: 'column', position: 'relative' }}>
-              <div style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+            
+            {/* Historical Chart Card */}
+            <div className="premium-card" style={{ height: '350px', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
-                  <h4 style={{ fontSize: '12px', fontWeight: 600, color: 'white', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  <h4 style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
                     Historical Observations — Last 90 Days
                   </h4>
-                  <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>Source: IMD Gridded Daily Data (2023–2025)</p>
+                  <span style={{ fontSize: '9px', color: 'var(--muted)' }}>Source: IMD Gridded Daily Data (2023–2025)</span>
                 </div>
                 <div>
                   {hasLiveHistData ? (
-                    <span style={{ fontSize: '9px', background: 'rgba(0, 230, 118, 0.1)', color: '#00E676', padding: '2px 6px', borderRadius: '3px', border: '1px solid rgba(0, 230, 118, 0.2)', fontWeight: 600 }}>LIVE Telemetry</span>
+                    <span style={{ fontSize: '9px', background: 'rgba(30,142,62,0.1)', color: 'var(--success)', padding: '2px 6px', borderRadius: '3px', border: '1px solid rgba(30,142,62,0.2)', fontWeight: 700 }}>LIVE Telemetry</span>
                   ) : (
-                    <span style={{ fontSize: '9px', background: 'rgba(255, 145, 0, 0.1)', color: '#FF9100', padding: '2px 6px', borderRadius: '3px', border: '1px solid rgba(255, 145, 0, 0.2)', fontWeight: 600 }}>Fallback Baseline Mode</span>
+                    <span style={{ fontSize: '9px', background: 'var(--surface-alt)', color: 'var(--muted)', padding: '2px 6px', borderRadius: '3px', border: '1px solid var(--border)', fontWeight: 700 }}>Baseline Mode</span>
                   )}
                 </div>
               </div>
+              
               <div style={{ flex: 1, minHeight: 0 }}>
                 {isChartLoading ? (
-                  <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', gap: '12px', padding: '10px 0' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <div style={{ width: '80px', height: '10px', background: 'rgba(255,255,255,0.06)', borderRadius: '2px' }} />
-                      <div style={{ width: '40px', height: '10px', background: 'rgba(255,255,255,0.06)', borderRadius: '2px' }} />
-                    </div>
-                    <div style={{ flex: 1, background: 'linear-gradient(180deg, rgba(255,255,255,0.01) 0%, rgba(255,255,255,0.03) 100%)', borderRadius: '4px', border: '1px dashed rgba(255,255,255,0.05)', display: 'flex', alignItems: 'flex-end', gap: '4px', padding: '10px' }}>
-                      {Array.from({ length: 20 }).map((_, i) => (
-                        <div key={i} style={{ flex: 1, height: `${30 + (i % 5) * 15}%`, background: 'rgba(255,255,255,0.04)', borderRadius: '2px 2px 0 0' }} />
-                      ))}
-                    </div>
+                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div className="animate-spin" style={{ width: '24px', height: '24px', borderRadius: '50%', border: '2px solid var(--primary)', borderTopColor: 'transparent' }} />
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     {activeTab === 'temperature' ? (
                       <LineChart data={histData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                        <XAxis dataKey="name" stroke="var(--text-muted)" tick={{ fontSize: 9 }} interval={14} />
-                        <YAxis stroke="var(--text-muted)" tick={{ fontSize: 9 }} unit="°C" />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                        <XAxis dataKey="name" stroke="var(--muted)" tick={{ fontSize: 9 }} interval={14} />
+                        <YAxis stroke="var(--muted)" tick={{ fontSize: 9 }} unit="°C" />
                         <Tooltip contentStyle={chartStyle} />
                         <Legend wrapperStyle={{ fontSize: '11px' }} />
-                        <Line type="monotone" dataKey="maxTemp" name="Max Temp (°C)" stroke="#ff3333" strokeWidth={1.5} dot={false} />
-                        <Line type="monotone" dataKey="minTemp" name="Min Temp (°C)" stroke="#00f0ff" strokeWidth={1.5} dot={false} />
+                        <Line type="monotone" dataKey="maxTemp" name="Max Temp (°C)" stroke="var(--risk-high)" strokeWidth={2} dot={false} />
+                        <Line type="monotone" dataKey="minTemp" name="Min Temp (°C)" stroke="var(--accent)" strokeWidth={1.5} dot={false} />
                       </LineChart>
                     ) : (
                       <AreaChart data={histData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                        <XAxis dataKey="name" stroke="var(--text-muted)" tick={{ fontSize: 9 }} interval={14} />
-                        <YAxis stroke="var(--text-muted)" tick={{ fontSize: 9 }} unit=" mm" />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                        <XAxis dataKey="name" stroke="var(--muted)" tick={{ fontSize: 9 }} interval={14} />
+                        <YAxis stroke="var(--muted)" tick={{ fontSize: 9 }} unit=" mm" />
                         <Tooltip contentStyle={chartStyle} />
-                        <Area type="monotone" dataKey="rainfall" name="Rainfall (mm)" fill="#00ff66" fillOpacity={0.12} stroke="#00ff66" strokeWidth={1.5} />
+                        <Area type="monotone" dataKey="rainfall" name="Rainfall (mm)" fill="var(--success)" fillOpacity={0.1} stroke="var(--success)" strokeWidth={2} />
                       </AreaChart>
                     )}
                   </ResponsiveContainer>
@@ -240,85 +402,69 @@ export default function ClimateIntelligenceHub() {
               </div>
             </div>
 
-            {/* Forecast */}
-            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderTop: '3px solid var(--gov-saffron)', borderRadius: '6px', padding: '20px', height: '380px', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ marginBottom: '12px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+            {/* Forecast Chart Card */}
+            <div className="premium-card" style={{ borderTop: '3px solid var(--primary)', height: '350px', display: 'flex', flexDirection: 'column' }}>
+              <div style={{ marginBottom: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
-                  <h4 style={{ fontSize: '12px', fontWeight: 600, color: 'white', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-                    XGBoost Forecast Output — {latestForecast?.horizon_days ?? 30}-Day Horizon
+                  <h4 style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                    XGBoost Forecast Outlook
                   </h4>
-                  <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>Ensemble model — lag-7, lag-14, lag-30 features</p>
+                  <span style={{ fontSize: '9px', color: 'var(--muted)' }}>Ensemble model forecasting output.</span>
                 </div>
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
-                  <div>
-                    {hasLiveForecastData ? (
-                      <span style={{ fontSize: '9px', background: 'rgba(0, 230, 118, 0.1)', color: '#00E676', padding: '2px 6px', borderRadius: '3px', border: '1px solid rgba(0, 230, 118, 0.2)', fontWeight: 600 }}>LIVE Forecast</span>
-                    ) : (
-                      <span style={{ fontSize: '9px', background: 'rgba(255, 145, 0, 0.1)', color: '#FF9100', padding: '2px 6px', borderRadius: '3px', border: '1px solid rgba(255, 145, 0, 0.2)', fontWeight: 600 }}>Simulated Forecast Data</span>
-                    )}
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '9px', color: 'var(--gov-cyan)', background: 'rgba(0, 240, 255, 0.08)', padding: '1px 5px', borderRadius: '3px', border: '1px solid rgba(0, 240, 255, 0.15)' }}>
-                    <AlertCircle size={8} />
-                    <span>{activeTab === 'temperature' ? 'Confidence: ±1.4°C' : 'Confidence: ±2.8mm'}</span>
-                  </div>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
+                  {hasLiveForecastData ? (
+                    <span style={{ fontSize: '9px', background: 'rgba(30,142,62,0.1)', color: 'var(--success)', padding: '2px 6px', borderRadius: '3px', border: '1px solid rgba(30,142,62,0.2)', fontWeight: 700 }}>LIVE Forecast</span>
+                  ) : (
+                    <span style={{ fontSize: '9px', background: 'var(--surface-alt)', color: 'var(--muted)', padding: '2px 6px', borderRadius: '3px', border: '1px solid var(--border)', fontWeight: 700 }}>Simulated Data</span>
+                  )}
+                  <span style={{ fontSize: '8px', color: 'var(--muted)' }}>
+                    {activeTab === 'temperature' ? 'Confidence: ±1.4°C' : 'Confidence: ±2.8mm'}
+                  </span>
                 </div>
               </div>
+              
               <div style={{ flex: 1, minHeight: 0 }}>
                 {isChartLoading ? (
-                  <div style={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', gap: '12px', padding: '10px 0' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <div style={{ width: '80px', height: '10px', background: 'rgba(255,255,255,0.06)', borderRadius: '2px' }} />
-                      <div style={{ width: '40px', height: '10px', background: 'rgba(255,255,255,0.06)', borderRadius: '2px' }} />
-                    </div>
-                    <div style={{ flex: 1, background: 'linear-gradient(180deg, rgba(255,255,255,0.01) 0%, rgba(255,255,255,0.03) 100%)', borderRadius: '4px', border: '1px dashed rgba(255,255,255,0.05)', display: 'flex', alignItems: 'flex-end', gap: '4px', padding: '10px' }}>
-                      {Array.from({ length: 20 }).map((_, i) => (
-                        <div key={i} style={{ flex: 1, height: `${40 + (i % 3) * 20}%`, background: 'rgba(255,255,255,0.04)', borderRadius: '2px 2px 0 0' }} />
-                      ))}
-                    </div>
+                  <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div className="animate-spin" style={{ width: '24px', height: '24px', borderRadius: '50%', border: '2px solid var(--primary)', borderTopColor: 'transparent' }} />
                   </div>
                 ) : (
                   <ResponsiveContainer width="100%" height="100%">
                     {activeTab === 'temperature' ? (
                       <ComposedChart data={forecastData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                        <XAxis dataKey="name" stroke="var(--text-muted)" tick={{ fontSize: 9 }} interval={4} />
-                        <YAxis stroke="var(--text-muted)" tick={{ fontSize: 9 }} unit="°C" />
-                        <Tooltip contentStyle={chartStyle} formatter={(value, name) => {
-                          if (name === "Max Temp Forecast (°C)") return [`${value} ± 1.4 °C`, name];
-                          if (name === "Min Temp Forecast (°C)") return [`${value} ± 1.4 °C`, name];
-                          return [value, name];
-                        }} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                        <XAxis dataKey="name" stroke="var(--muted)" tick={{ fontSize: 9 }} interval={4} />
+                        <YAxis stroke="var(--muted)" tick={{ fontSize: 9 }} unit="°C" />
+                        <Tooltip contentStyle={chartStyle} />
                         <Legend wrapperStyle={{ fontSize: '11px' }} />
-                        <Line type="monotone" dataKey="maxTemp" name="Max Temp Forecast (°C)" stroke="#ff3333" strokeWidth={2} activeDot={{ r: 6 }} />
-                        <Line type="monotone" dataKey="maxTempUpper" name="Max Temp (Upper bound)" stroke="#ff3333" strokeDasharray="3 3" strokeWidth={1} dot={false} legendType="none" />
-                        <Line type="monotone" dataKey="maxTempLower" name="Max Temp (Lower bound)" stroke="#ff3333" strokeDasharray="3 3" strokeWidth={1} dot={false} legendType="none" />
-                        <Line type="monotone" dataKey="minTemp" name="Min Temp Forecast (°C)" stroke="#00f0ff" strokeWidth={1.5} />
-                        <Line type="monotone" dataKey="minTempUpper" name="Min Temp (Upper bound)" stroke="#00f0ff" strokeDasharray="3 3" strokeWidth={1} dot={false} legendType="none" />
-                        <Line type="monotone" dataKey="minTempLower" name="Min Temp (Lower bound)" stroke="#00f0ff" strokeDasharray="3 3" strokeWidth={1} dot={false} legendType="none" />
+                        <Line type="monotone" dataKey="maxTemp" name="Max Temp Forecast" stroke="var(--risk-high)" strokeWidth={2.5} activeDot={{ r: 5 }} />
+                        <Line type="monotone" dataKey="maxTempUpper" stroke="var(--risk-high)" strokeDasharray="3 3" strokeWidth={1} dot={false} legendType="none" />
+                        <Line type="monotone" dataKey="maxTempLower" stroke="var(--risk-high)" strokeDasharray="3 3" strokeWidth={1} dot={false} legendType="none" />
+                        <Line type="monotone" dataKey="minTemp" name="Min Temp Forecast" stroke="var(--accent)" strokeWidth={1.5} />
+                        <Line type="monotone" dataKey="minTempUpper" stroke="var(--accent)" strokeDasharray="3 3" strokeWidth={1} dot={false} legendType="none" />
+                        <Line type="monotone" dataKey="minTempLower" stroke="var(--accent)" strokeDasharray="3 3" strokeWidth={1} dot={false} legendType="none" />
                       </ComposedChart>
                     ) : (
                       <ComposedChart data={forecastData}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                        <XAxis dataKey="name" stroke="var(--text-muted)" tick={{ fontSize: 9 }} interval={4} />
-                        <YAxis stroke="var(--text-muted)" tick={{ fontSize: 9 }} unit=" mm" />
-                        <Tooltip contentStyle={chartStyle} formatter={(value, name) => {
-                          if (name === "Rainfall Forecast (mm)") return [`${value} ± 2.8 mm`, name];
-                          return [value, name];
-                        }} />
+                        <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                        <XAxis dataKey="name" stroke="var(--muted)" tick={{ fontSize: 9 }} interval={4} />
+                        <YAxis stroke="var(--muted)" tick={{ fontSize: 9 }} unit=" mm" />
+                        <Tooltip contentStyle={chartStyle} />
                         <Legend wrapperStyle={{ fontSize: '11px' }} />
-                        <Area type="monotone" dataKey="rainfall" name="Rainfall Forecast (mm)" fill="#ff6600" fillOpacity={0.12} stroke="#ff6600" strokeWidth={2} />
-                        <Line type="monotone" dataKey="rainfallUpper" name="Rainfall (Upper bound)" stroke="#ff6600" strokeDasharray="3 3" strokeWidth={1} dot={false} legendType="none" />
-                        <Line type="monotone" dataKey="rainfallLower" name="Rainfall (Lower bound)" stroke="#ff6600" strokeDasharray="3 3" strokeWidth={1} dot={false} legendType="none" />
+                        <Area type="monotone" dataKey="rainfall" name="Rainfall Forecast" fill="var(--success)" fillOpacity={0.1} stroke="var(--success)" strokeWidth={2} />
+                        <Line type="monotone" dataKey="rainfallUpper" stroke="var(--success)" strokeDasharray="3 3" strokeWidth={1} dot={false} legendType="none" />
+                        <Line type="monotone" dataKey="rainfallLower" stroke="var(--success)" strokeDasharray="3 3" strokeWidth={1} dot={false} legendType="none" />
                       </ComposedChart>
                     )}
                   </ResponsiveContainer>
                 )}
               </div>
             </div>
+
           </div>
 
           {/* Diagnostics Section */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '20px' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginTop: '14px' }}>
             <ValidationCenter />
             <AITransparencyPanel />
           </div>

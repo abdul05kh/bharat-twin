@@ -2,87 +2,185 @@
 
 import React from 'react';
 import Navbar from '@/components/Navbar';
-import Link from 'next/link';
+import CommandStatusStrip from '@/components/CommandStatusStrip';
+import { Info, Target, Cpu, ShieldAlert, Users, Database, Globe, Landmark } from 'lucide-react';
 
-// Team and roadmap were simplified into concise cards above; detailed arrays removed to avoid unused-vars lint errors.
-
-export default function MissionDirectoratePage() {
+export default function AboutPage() {
   return (
     <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingLeft: '240px', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
       <Navbar />
-      <main style={{ padding: '40px', maxWidth: '1100px', margin: '0 auto' }}>
-        <header style={{ marginBottom: '20px' }}>
-          <h1 style={{ fontSize: '32px', fontWeight: 800, marginBottom: '6px' }}>About BHARAT-TWIN</h1>
-          <div style={{ color: 'var(--muted)', fontSize: '14px' }}>Climate Scenario Sandbox for Decision Makers — executive summary, data provenance, and team.</div>
+      
+      <main style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+        <CommandStatusStrip />
+
+        {/* Header */}
+        <header style={{
+          height: '55px', background: 'var(--surface)', borderBottom: '1px solid var(--border)',
+          display: 'flex', alignItems: 'center', gap: '10px', padding: '0 24px', flexShrink: 0,
+        }}>
+          <Info size={18} color="var(--primary)" />
+          <h2 style={{ fontWeight: 800, fontSize: '15px', color: 'var(--primary)', letterSpacing: '-0.02em' }}>About BHARAT-TWIN</h2>
+          <span style={{ fontSize: '9px', background: 'rgba(11,61,145,0.08)', padding: '2px 8px', borderRadius: '4px', border: '1px solid var(--border)', fontWeight: 700, textTransform: 'uppercase' }}>
+            Scientific Provenance & Documentation
+          </span>
         </header>
 
-        <section style={{ display: 'grid', gridTemplateColumns: '1fr 360px', gap: '24px', marginBottom: '28px' }}>
-          <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: 20 }}>
-            <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: 8 }}>Mission</h2>
-            <p style={{ color: 'var(--muted)', lineHeight: 1.6 }}>Deliver a regional climate decision support platform enabling planners and emergency managers to simulate stress scenarios, assess impacts, and obtain clear recommended actions.</p>
+        {/* Scrollable Document Body */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', maxWidth: '1000px', width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+          
+          {/* Section 1: Vision and Platform Genesis */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '14px' }}>
+            
+            {/* Vision & Platform Genesis */}
+            <div className="premium-card" style={{ display: 'flex', flexDirection: 'column', gap: '12px', justifyContent: 'center' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                  <Target size={14} color="var(--primary)" />
+                  <strong style={{ fontSize: '9px', textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em' }}>Platform Mission & Vision</strong>
+                </div>
+                <p style={{ fontSize: '12px', lineHeight: 1.4, margin: 0 }}>
+                  To safeguard Indian lives, agricultural yields, and municipal infrastructure by transforming complex climate datasets into instantaneous, actionable emergency directives. BHARAT-TWIN stands as India's premier **Climate Scenario Sandbox**, empowering decision-makers to stress-test regional resilience before physical damage occurs.
+                </p>
+              </div>
 
-            <h3 style={{ fontSize: '16px', fontWeight: 700, marginTop: 16 }}>What BHARAT-TWIN Does</h3>
-            <ul style={{ color: 'var(--muted)', lineHeight: 1.6 }}>
-              <li>Fuse multi-source climate observations into a unified mesoscale grid.</li>
-              <li>Run rapid scenario perturbations and visualize operational impacts.</li>
-              <li>Produce executive briefs with recommended actions and confidence.</li>
-            </ul>
-
-            <h3 style={{ fontSize: '16px', fontWeight: 700, marginTop: 16 }}>Why It Matters</h3>
-            <p style={{ color: 'var(--muted)', lineHeight: 1.6 }}>Enables evidence-led, timely decisions for heatwaves, drought, water stress, and public health interventions within the pilot region.</p>
-
-            <h3 style={{ fontSize: '16px', fontWeight: 700, marginTop: 16 }}>Scientific Foundation</h3>
-            <p style={{ color: 'var(--muted)', lineHeight: 1.6 }}>Uses nearest-neighbor fusion, XGBoost recursive lag forecasting, and explainable LLM advisories. Not a numerical weather prediction system.</p>
-          </div>
-
-          <aside style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: 16 }}>
-              <div style={{ fontSize: '13px', fontWeight: 700, marginBottom: 8 }}>Data Sources</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6, color: 'var(--muted)' }}>
-                <div>• IMD (Indian Meteorological Department)</div>
-                <div>• INSAT (INSAT-3D LST satellite feeds)</div>
-                <div>• MOSDAC (ISRO meteorological products)</div>
-                <div>• NRSC (remote sensing derivatives)</div>
+              <div>
+                <strong style={{ fontSize: '9px', textTransform: 'uppercase', color: 'var(--muted)', display: 'block', marginBottom: '2px', letterSpacing: '0.08em' }}>Why BHARAT-TWIN Exists</strong>
+                <p style={{ fontSize: '12px', lineHeight: 1.4, margin: 0 }}>
+                  disaster managers and municipal executives operate in a data-rich but decision-poor environment. While raw weather feeds exist, translating a forecasted 42°C heatwave or a 40% rainfall deficit into specific, localized administrative actions (such as rationing reservoir drawdowns or establishing cooling centers) is traditionally manual and delayed. BHARAT-TWIN bridges this gap, translating physical stressors into policy directives instantly.
+                </p>
               </div>
             </div>
 
-            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: 16 }}>
-              <div style={{ fontSize: '13px', fontWeight: 700, marginBottom: 8 }}>Platform Limitations</div>
-              <ul style={{ color: 'var(--muted)', lineHeight: 1.5 }}>
-                <li>Regional pilot coverage (Hyderabad Metropolitan Region).</li>
-                <li>Forecast skill depends on historical observation density.</li>
-                <li>Scenario exploration is not operational numerical weather prediction.</li>
-                <li>Satellite sync relies on external agency availability.</li>
-              </ul>
+            {/* National Impact and Economic Resilience Narrative */}
+            <div className="premium-card" style={{ display: 'flex', flexDirection: 'column', gap: '12px', justifyContent: 'center', borderLeft: '4px solid var(--primary)' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                <Landmark size={14} color="var(--primary)" />
+                <strong style={{ fontSize: '9px', textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em' }}>National Impact & Economic Value</strong>
+              </div>
+              <p style={{ fontSize: '12px', lineHeight: 1.4, margin: 0 }}>
+                For a rapidly urbanizing India, climate anomalies represent severe financial and human risks. An unmitigated urban heat island surge or agricultural drought can severely impact regional GDP.
+              </p>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', fontSize: '11px', lineHeight: 1.3 }}>
+                <div>• <strong>Municipal Case:</strong> Load-balancing power grids prevents transformer explosion outages.</div>
+                <div>• <strong>Agricultural Case:</strong> Advancing irrigation frequency by 48 hours protects crop roots.</div>
+                <div>• <strong>Economic Case:</strong> Pre-positioning relief resources saves crores in emergency expenditures.</div>
+              </div>
             </div>
-          </aside>
-        </section>
 
-        <section style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: 8, padding: 20, marginBottom: 24 }}>
-          <h2 style={{ fontSize: '18px', fontWeight: 700, marginBottom: 12 }}>Team — Mission Directorate</h2>
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-            <div style={{ padding: 12, background: 'var(--surface-alt)', borderRadius: 8 }}>
-              <div style={{ fontWeight: 700 }}>Akshay</div>
-              <div style={{ color: 'var(--muted)' }}>Project Lead</div>
+          </div>
+
+          {/* Section 2: Visual System Pipeline Flowchart */}
+          <div className="premium-card" style={{ padding: '16px 20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '12px' }}>
+              <Cpu size={14} color="var(--primary)" />
+              <strong style={{ fontSize: '9px', textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em' }}>
+                Operational System Architecture Pipeline
+              </strong>
             </div>
-            <div style={{ padding: 12, background: 'var(--surface-alt)', borderRadius: 8 }}>
-              <div style={{ fontWeight: 700 }}>Abdul Kalam Hussain</div>
-              <div style={{ color: 'var(--muted)' }}>AI Systems Lead</div>
-            </div>
-            <div style={{ padding: 12, background: 'var(--surface-alt)', borderRadius: 8 }}>
-              <div style={{ fontWeight: 700 }}>Abhiram</div>
-              <div style={{ color: 'var(--muted)' }}>Geospatial Systems Lead</div>
-            </div>
-            <div style={{ padding: 12, background: 'var(--surface-alt)', borderRadius: 8 }}>
-              <div style={{ fontWeight: 700 }}>Bhavana</div>
-              <div style={{ color: 'var(--muted)' }}>Research & Validation Lead</div>
+            
+            {/* Horizontal Flowchart */}
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', gap: '8px', overflowX: 'auto' }}>
+              {[
+                { step: '01', name: 'IMD / INSAT Ingestion', desc: '0.25° weather cell feeds & LST frames' },
+                { step: '02', name: 'Database Decoupler', desc: 'Supabase PostgreSQL startup resilience' },
+                { step: '03', name: 'XGBoost ML Core', desc: 'Recursive lag-30 day predictions' },
+                { step: '04', name: 'Three.js 3D Twin', desc: 'Deccan Plateau terrain DEM mesh' },
+                { step: '05', name: 'ReportLab PDF Engine', desc: 'Unique McKinsey-grade PDF briefing' }
+              ].map((flow, i) => (
+                <React.Fragment key={i}>
+                  <div style={{
+                    background: 'var(--surface-alt)', border: '1px solid var(--border)', borderRadius: '6px',
+                    padding: '8px 12px', textAlign: 'center', minWidth: '155px'
+                  }}>
+                    <span style={{ fontSize: '8px', color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 700 }}>{flow.step}</span>
+                    <strong style={{ fontSize: '11px', color: 'var(--primary)', display: 'block', marginTop: '1px' }}>{flow.name}</strong>
+                    <span style={{ fontSize: '9px', color: 'var(--muted)', display: 'block', marginTop: '2px', lineHeight: 1.1 }}>{flow.desc}</span>
+                  </div>
+                  {i < 4 && <span style={{ color: 'var(--border)', fontSize: '14px', fontWeight: 'bold' }}>→</span>}
+                </React.Fragment>
+              ))}
             </div>
           </div>
-        </section>
 
-        <section style={{ marginTop: 12 }}>
-          <Link href="/briefing" style={{ padding: '10px 14px', background: 'var(--accent)', color: 'white', borderRadius: 8, textDecoration: 'none', fontWeight: 700 }}>View Executive Climate Brief</Link>
-        </section>
+          {/* Section 3: Scientific Data Sources */}
+          <div className="premium-card" style={{ padding: '18px 22px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+              <Database size={14} color="var(--primary)" />
+              <strong style={{ fontSize: '9px', textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em' }}>
+                Scientific Data Provenance Registry
+              </strong>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', fontSize: '11.5px', lineHeight: 1.4 }}>
+              <div>
+                <strong style={{ color: 'var(--primary)' }}>Indian Meteorological Department (IMD)</strong>
+                <p style={{ color: 'var(--muted)', fontSize: '11px', marginTop: '2px', marginBottom: '8px' }}>
+                  Supplies historical daily gridded precipitation records at 0.25° resolution and maximum/minimum temperature records at 1.0° resolution, forming the physical baselines.
+                </p>
+                
+                <strong style={{ color: 'var(--primary)' }}>INSAT-3D / 3DR Satellite Telemetry</strong>
+                <p style={{ color: 'var(--muted)', fontSize: '11px', marginTop: '2px', marginBottom: '8px' }}>
+                  Ingests Land Surface Temperature (LST) thermal bands mapped in real-time, correcting regional weather station interpolation errors across core urban zones.
+                </p>
+              </div>
+              <div>
+                <strong style={{ color: 'var(--primary)' }}>MOSDAC Weather Archival Portal</strong>
+                <p style={{ color: 'var(--muted)', fontSize: '11px', marginTop: '2px', marginBottom: '8px' }}>
+                  Provides space-applications gridded meteorological parameters and humidity indexes, validating model input vectors during monsoon periods.
+                </p>
+                
+                <strong style={{ color: 'var(--primary)' }}>NRSC Vegetation Greenness Index (NDVI)</strong>
+                <p style={{ color: 'var(--muted)', fontSize: '11px', marginTop: '2px' }}>
+                  Integrates satellite-derived canopy moisture and NDVI parameters from the National Remote Sensing Centre, defining baseline regional crop drought vulnerability.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Section 4: Mission Directorate Directory */}
+          <div className="premium-card" style={{ padding: '16px 20px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '10px' }}>
+              <Users size={14} color="var(--primary)" />
+              <strong style={{ fontSize: '9px', textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em' }}>
+                Mission Directorate & Technical Directory
+              </strong>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
+              {[
+                { name: 'Akshay', role: 'Project Lead', resp: 'Platform execution, NDMA policy alignment, government coordination, and operational validation.' },
+                { name: 'Abdul Kalam Hussain', role: 'AI Systems Lead', resp: 'FastAPI startup decoupler, database connection diagnostic suites, and XGBoost lag forecast training.' },
+                { name: 'Abhiram', role: 'Geospatial Systems Lead', resp: 'Three.js 3D Digital Earth terrain DEM mapping, Leaflet Wind-heatmap overlays, and WebGL shader code.' },
+                { name: 'Bhavana', role: 'Research & Validation Lead', resp: 'IMD data curation, INSAT LST calibration, agricultural stress indicators, and scorecard QA testing.' }
+              ].map((member, idx) => (
+                <div key={idx} style={{ background: 'var(--surface-alt)', border: '1px solid var(--border)', borderRadius: '6px', padding: '10px 12px' }}>
+                  <div style={{ fontWeight: 800, fontSize: '12px', color: 'var(--primary)', letterSpacing: '-0.01em' }}>{member.name}</div>
+                  <div style={{ fontSize: '8.5px', fontWeight: 700, color: 'var(--muted)', textTransform: 'uppercase', marginBottom: '4px', letterSpacing: '0.04em' }}>{member.role}</div>
+                  <p style={{ fontSize: '10.5px', color: 'var(--text)', lineHeight: 1.3, margin: 0 }}>{member.resp}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Section 5: Technical Limitations & Assumptions */}
+          <div className="premium-card" style={{ borderLeft: '4px solid var(--risk-high)', background: 'rgba(255,145,0,0.02)', padding: '14px 18px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+              <ShieldAlert size={14} color="var(--risk-high)" />
+              <strong style={{ fontSize: '9px', textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '0.06em' }}>
+                Scientific Assumptions & Model Transparency
+              </strong>
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', fontSize: '11px', lineHeight: 1.4 }}>
+              <div>
+                <strong>Scientific Limitations:</strong> Mesh resolution is mathematically bounded to the 0.25° regional pilot grids. Forecasting skill is bounded by historical station density. Simulated perturbations represent sensitivity analyses rather than physical numerical weather predictions.
+              </div>
+              <div>
+                <strong>Scientific Roadmap:</strong> 1. Scale spatial cell resolutions to state and national levels · 2. Pre-position emergency relief equipment using telemetry logs · 3. Integrate real-time INSAT active trigger decoders.
+              </div>
+            </div>
+          </div>
+
+        </div>
       </main>
     </div>
   );

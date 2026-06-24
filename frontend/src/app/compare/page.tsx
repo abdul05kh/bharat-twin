@@ -7,7 +7,7 @@ import CommandStatusStrip from '@/components/CommandStatusStrip';
 import PrimaryRiskHero from '@/components/PrimaryRiskHero';
 import { useClimateStore } from '@/store/store';
 import { useRouter } from 'next/navigation';
-import { BarChart2, TrendingDown, TrendingUp, BrainCircuit, ArrowRight, ArrowRightLeft } from 'lucide-react';
+import { BarChart2, TrendingDown, TrendingUp, BrainCircuit, ArrowRight, ArrowRightLeft, AlertTriangle } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import Link from 'next/link';
 
@@ -16,7 +16,9 @@ export default function ImpactAssessmentConsole() {
   const { comparison, activeSimulation, generateInsights, isLoading } = useClimateStore();
   const [deltaMode, setDeltaMode] = useState<'max_temp' | 'rainfall'>('max_temp');
   const [wowAnimating, setWowAnimating] = useState(false);
-  const [wowRiskScore, setWowRiskScore] = useState(45);
+  const [wowRiskScore, setWowRiskScore] = useState(42);
+  const [wowWaterStress, setWowWaterStress] = useState(28);
+  const [wowHealthStrain, setWowHealthStrain] = useState(34);
   const [wowProgress, setWowProgress] = useState(0);
 
   React.useEffect(() => {
@@ -24,35 +26,38 @@ export default function ImpactAssessmentConsole() {
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('wow') === 'true') {
         setWowAnimating(true);
-        // Start rapid risk index count up (completes in 1.4s)
-        let score = 45;
-        const interval = setInterval(() => {
-          score += 3;
-          if (score >= 88) {
-            setWowRiskScore(88);
-            clearInterval(interval);
-          } else {
-            setWowRiskScore(score);
-          }
-        }, 80);
         
-        // Progress bar simulation (completes in 1.8s)
-        let progress = 0;
-        const pInterval = setInterval(() => {
-          progress += 5;
-          if (progress >= 100) {
-            setWowProgress(100);
-            setWowAnimating(false);
-            clearInterval(pInterval);
-          } else {
-            setWowProgress(progress);
-          }
-        }, 90);
+        // Wow Moment #1: Animate Heatwave Stress Simulation over 1.5 seconds
+        const duration = 1500;
+        const intervalTime = 30;
+        const steps = duration / intervalTime;
+        let currentStep = 0;
 
-        return () => {
-          clearInterval(interval);
-          clearInterval(pInterval);
-        };
+        const riskStart = 42, riskEnd = 71;
+        const waterStart = 28, waterEnd = 63;
+        const healthStart = 34, healthEnd = 74;
+
+        const timer = setInterval(() => {
+          currentStep++;
+          const pct = currentStep / steps;
+
+          setWowProgress(Math.round(pct * 100));
+          setWowRiskScore(Math.round(riskStart + (riskEnd - riskStart) * pct));
+          setWowWaterStress(Math.round(waterStart + (waterEnd - waterStart) * pct));
+          setWowHealthStrain(Math.round(healthStart + (healthEnd - healthStart) * pct));
+
+          if (currentStep >= steps) {
+            clearInterval(timer);
+            setWowProgress(100);
+            setWowRiskScore(riskEnd);
+            setWowWaterStress(waterEnd);
+            setWowHealthStrain(healthEnd);
+            // End overlay animation smoothly shortly after
+            setTimeout(() => setWowAnimating(false), 800);
+          }
+        }, intervalTime);
+
+        return () => clearInterval(timer);
       }
     }
   }, []);
@@ -119,7 +124,13 @@ export default function ImpactAssessmentConsole() {
     max_temp_delta: c.max_temp_delta,
   }));
 
-  const chartStyle = { backgroundColor: 'var(--surface-alt)', border: '1px solid var(--border)', borderRadius: '4px', fontSize: '11px', color: 'var(--text-primary)' };
+  const chartStyle = { 
+    backgroundColor: 'var(--surface)', 
+    border: '1px solid var(--border)', 
+    borderRadius: '6px', 
+    fontSize: '11px', 
+    color: 'var(--text)' 
+  };
 
   // Consequence Layer calculation
   const tempDelta = activeComparison.max_temp_delta.delta;
@@ -129,310 +140,344 @@ export default function ImpactAssessmentConsole() {
 
   // 1. Environmental Impacts
   const lstImpact = `${(32.5 + tempDelta * 1.3).toFixed(1)}°C Mean LST hotspot`;
-  const ndviImpact = isDrought ? '-18.5% Canopy Moisture Deficit' : '-4.2% Canopy Moisture Deficit';
+  const ndviImpact = isDrought ? '-18.5% Canopy moisture deficit' : '-4.2% Canopy moisture deficit';
   const aqiImpact = tempDelta > 2 ? '142 AQI (Unhealthy for sensitive groups)' : '84 AQI (Moderate)';
-  const rainfallImpact = rainDelta < 0 ? `${Math.abs(rainDelta).toFixed(1)}mm Daily Precipitation Deficit` : `+${rainDelta.toFixed(1)}mm Daily Surplus`;
+  const rainfallImpact = rainDelta < 0 ? `${Math.abs(rainDelta).toFixed(1)}mm Daily precipitation deficit` : `+${rainDelta.toFixed(1)}mm Daily surplus`;
 
   // 2. Operational Impacts
-  const waterStress = isDrought ? 'CRITICAL (Municipal reservoirs at 38% capacity)' : 'MODERATE (Reservoirs normal)';
-  const cropRisk = (isHeatwave && isDrought) ? 'HIGH (Thermal wilting threshold breached for kharif crops)' : 'MODERATE (Normal evapotranspiration)';
-  const healthStrain = isHeatwave ? 'CRITICAL (Urban heat stroke risk index: Level Red)' : 'LOW (Minimal health advisory impact)';
-  const infraPressure = tempDelta > 1.5 ? 'HIGH (Grid load capacity peak +14.2% due to air conditioning load)' : 'STABLE (Standard distribution)';
+  const waterStress = isDrought ? 'CRITICAL (Reservoirs at 38% capacity)' : 'MODERATE (Reservoirs normal)';
+  const cropRisk = (isHeatwave && isDrought) ? 'HIGH (Thermal wilting threshold breached)' : 'MODERATE (Evapotranspiration normal)';
+  const healthStrain = isHeatwave ? 'CRITICAL (Heat stroke risk: Level Red)' : 'LOW (Minimal health warning)';
+  const infraPressure = tempDelta > 1.5 ? 'HIGH (Grid load peak +14.2%)' : 'STABLE (Standard load)';
 
   // 3. Administrative Impacts
-  const resourceDemand = isDrought ? 'EXTREME (Requires pre-positioning of 120 additional water tankers)' : 'STANDARD';
-  const alertEscalation = isHeatwave ? 'STAGE 3 ALERT (Activate municipal cooling shelters)' : 'STAGE 1 BRIEFING';
-  const serviceLoad = isHeatwave ? 'ELEVATED (+9.5% hospital ER admissions for dehydration/exhaustion)' : 'NOMINAL';
+  const resourceDemand = isDrought ? 'EXTREME (Requires pre-positioning water tankers)' : 'STANDARD';
+  const alertEscalation = isHeatwave ? 'STAGE 3 ALERT (Activate cooling shelters)' : 'STAGE 1 BRIEFING';
+  const serviceLoad = isHeatwave ? 'ELEVATED (+9.5% hospital ER admissions)' : 'NOMINAL';
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--neutral-50)', paddingLeft: '240px', fontFamily: "'Inter', sans-serif", color: 'var(--text-primary)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingLeft: '240px', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
       <Navbar />
       <main style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
         <CommandStatusStrip />
 
+        {/* Header */}
         <header style={{
-          height: '60px', background: 'var(--surface-alt)', borderBottom: '2px solid var(--border)',
+          height: '55px', background: 'var(--surface)', borderBottom: '1px solid var(--border)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '0 24px', flexShrink: 0,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <BarChart2 size={18} color="var(--gov-saffron)" />
-            <h2 style={{ fontWeight: 700, fontSize: '15px', color: 'white' }}>Impact Assessment Console</h2>
+            <BarChart2 size={18} color="var(--primary)" />
+            <h2 style={{ fontWeight: 800, fontSize: '15px', color: 'var(--primary)' }}>Impact Assessment Console</h2>
             {isFallbackMode && (
-              <span style={{ fontSize: '9px', background: 'rgba(255, 145, 0, 0.1)', color: '#FF9100', padding: '2px 8px', borderRadius: '3px', border: '1px solid rgba(255, 145, 0, 0.2)', fontWeight: 600, marginLeft: '10px' }}>
-                Simulated Scenario Template
+              <span style={{ fontSize: '9px', background: 'var(--surface-alt)', color: 'var(--muted)', padding: '2px 8px', borderRadius: '4px', border: '1px solid var(--border)', fontWeight: 600 }}>
+                Simulated Template Mode
               </span>
             )}
           </div>
-          <div style={{ display: 'flex', gap: '12px' }}>
-            <Link href="/time-machine" style={{
-              display: 'flex', alignItems: 'center', gap: '6px',
-              padding: '8px 16px', background: 'var(--neutral-100)',
-              color: 'white', border: '1px solid var(--border)', borderRadius: '4px', fontSize: '12px',
-              fontWeight: 700, textDecoration: 'none', cursor: 'pointer'
+          <div style={{ display: 'flex', gap: '10px' }}>
+            <Link href="/scenario-sandbox" style={{
+              display: 'flex', alignItems: 'center', gap: '4px',
+              padding: '7px 14px', background: 'var(--surface-alt)',
+              color: 'var(--text)', border: '1px solid var(--border)', borderRadius: '4px', fontSize: '12px',
+              fontWeight: 700, textDecoration: 'none'
             }}>
               Configure Scenario
             </Link>
             <button onClick={handleGenerateInsights} disabled={isLoading} style={{
               display: 'flex', alignItems: 'center', gap: '6px',
-              padding: '8px 16px', background: 'var(--gov-saffron)',
+              padding: '7px 14px', background: 'var(--primary)',
               color: 'white', border: 'none', borderRadius: '4px', fontSize: '12px',
               fontWeight: 700, cursor: isLoading ? 'not-allowed' : 'pointer',
             }}>
-              <BrainCircuit size={14} />
+              <BrainCircuit size={13} />
               {isLoading ? 'Generating Advisory...' : 'Generate Decision Support Brief'}
-              <ArrowRight size={13} />
+              <ArrowRight size={12} />
             </button>
           </div>
         </header>
 
         {activeComparison ? (
-          <div style={{ flex: 1, padding: '20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          <div style={{ flex: 1, padding: '16px 20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '14px' }}>
 
-            {/* Primary Risk Hero Header */}
+            {/* Primary Risk Hero */}
             <PrimaryRiskHero />
 
-            {/* 1. Metric Summary Cards */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
-              {/* Scenario Info */}
-              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderTop: '3px solid var(--gov-saffron)', borderRadius: '6px', padding: '16px' }}>
-                <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px', fontWeight: 600 }}>
-                  Active Scenario
-                </div>
-                <h3 style={{ fontSize: '14px', fontWeight: 700, color: 'white', marginBottom: '4px' }}>
+            {/* Metric Summary Cards */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
+              
+              {/* Active Scenario */}
+              <div className="premium-card" style={{ borderTop: '3px solid var(--primary)', padding: '14px' }}>
+                <span style={{ fontSize: '9px', color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 700 }}>
+                  Active Scenario Mode
+                </span>
+                <h3 style={{ fontSize: '13px', fontWeight: 800, color: 'var(--primary)', marginTop: '4px', marginBottom: '2px' }}>
                   {activeComparison.scenario_name}
                 </h3>
-                <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>Simulation window: {activeComparison.duration_days} days</span>
+                <span style={{ fontSize: '10px', color: 'var(--muted)' }}>Simulation window: {activeComparison.duration_days} days</span>
               </div>
 
               {/* Temperature Delta */}
-              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderTop: `3px solid ${activeComparison.max_temp_delta.delta > 0 ? '#ff3333' : '#00f0ff'}`, borderRadius: '6px', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div className="premium-card" style={{ borderTop: '3px solid var(--risk-high)', padding: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, marginBottom: '6px' }}>
+                  <span style={{ fontSize: '9px', color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 700 }}>
                     Temperature Anomaly
-                  </div>
-                  <div style={{ fontSize: '20px', fontWeight: 700, color: 'white', fontFamily: "monospace" }}>
+                  </span>
+                  <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text)', fontFamily: 'monospace', marginTop: '4px' }}>
                     {activeComparison.max_temp_delta.simulated_mean.toFixed(1)}°C
                   </div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                    vs. {activeComparison.max_temp_delta.baseline_mean.toFixed(1)}°C baseline
-                  </div>
+                  <span style={{ fontSize: '10px', color: 'var(--muted)' }}>vs. {activeComparison.max_temp_delta.baseline_mean.toFixed(1)}°C baseline</span>
                 </div>
                 <div style={{
-                  padding: '10px', borderRadius: '6px',
-                  background: activeComparison.max_temp_delta.delta > 0 ? 'rgba(255, 51, 51, 0.1)' : 'rgba(0, 240, 255, 0.1)',
-                  color: activeComparison.max_temp_delta.delta > 0 ? '#ff3333' : '#00f0ff',
-                  textAlign: 'center', border: `1px solid ${activeComparison.max_temp_delta.delta > 0 ? 'rgba(255, 51, 51, 0.3)' : 'rgba(0, 240, 255, 0.3)'}`
+                  padding: '8px 10px', borderRadius: '4px',
+                  background: 'rgba(255,145,0,0.1)', color: 'var(--risk-high)',
+                  textAlign: 'center', border: '1px solid rgba(255,145,0,0.2)', fontSize: '11px', fontWeight: 700, fontFamily: 'monospace'
                 }}>
-                  {activeComparison.max_temp_delta.delta > 0 ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
-                  <div style={{ fontSize: '11px', fontWeight: 700, marginTop: '2px', fontFamily: "monospace" }}>
-                    {activeComparison.max_temp_delta.delta > 0 ? '+' : ''}{activeComparison.max_temp_delta.delta.toFixed(1)}°C
-                  </div>
+                  <TrendingUp size={14} style={{ marginBottom: '2px' }} />
+                  <div>+{activeComparison.max_temp_delta.delta.toFixed(1)}°C</div>
                 </div>
               </div>
 
               {/* Rainfall Delta */}
-              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderTop: `3px solid ${activeComparison.rainfall_delta.delta > 0 ? '#00ff66' : '#ff6600'}`, borderRadius: '6px', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div className="premium-card" style={{ borderTop: '3px solid var(--accent)', padding: '14px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
-                  <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 600, marginBottom: '6px' }}>
+                  <span style={{ fontSize: '9px', color: 'var(--muted)', textTransform: 'uppercase', fontWeight: 700 }}>
                     Precipitation Deviation
-                  </div>
-                  <div style={{ fontSize: '20px', fontWeight: 700, color: 'white', fontFamily: "monospace" }}>
+                  </span>
+                  <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--text)', fontFamily: 'monospace', marginTop: '4px' }}>
                     {activeComparison.rainfall_delta.simulated_mean.toFixed(2)} mm
                   </div>
-                  <div style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                    vs. {activeComparison.rainfall_delta.baseline_mean.toFixed(2)} mm baseline
-                  </div>
+                  <span style={{ fontSize: '10px', color: 'var(--muted)' }}>vs. {activeComparison.rainfall_delta.baseline_mean.toFixed(2)} mm baseline</span>
                 </div>
                 <div style={{
-                  padding: '10px', borderRadius: '6px',
-                  background: activeComparison.rainfall_delta.delta > 0 ? 'rgba(0, 255, 102, 0.1)' : 'rgba(255, 102, 0, 0.1)',
-                  color: activeComparison.rainfall_delta.delta > 0 ? '#00ff66' : '#ff6600',
-                  textAlign: 'center', border: `1px solid ${activeComparison.rainfall_delta.delta > 0 ? 'rgba(0, 255, 102, 0.3)' : 'rgba(255, 102, 0, 0.3)'}`
+                  padding: '8px 10px', borderRadius: '4px',
+                  background: 'rgba(0,140,255,0.1)', color: 'var(--accent)',
+                  textAlign: 'center', border: '1px solid rgba(0,140,255,0.2)', fontSize: '11px', fontWeight: 700, fontFamily: 'monospace'
                 }}>
-                  {activeComparison.rainfall_delta.delta > 0 ? <TrendingUp size={18} /> : <TrendingDown size={18} />}
-                  <div style={{ fontSize: '11px', fontWeight: 700, marginTop: '2px', fontFamily: "monospace" }}>
-                    {activeComparison.rainfall_delta.percentage_change > 0 ? '+' : ''}{activeComparison.rainfall_delta.percentage_change}%
-                  </div>
+                  <TrendingDown size={14} style={{ marginBottom: '2px' }} />
+                  <div>{activeComparison.rainfall_delta.percentage_change}%</div>
                 </div>
               </div>
+
             </div>
 
             {/* Decision Consequence Matrix */}
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
+              
               {/* Environmental Impacts */}
-              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderTop: '3px solid var(--gov-cyan)', borderRadius: '6px', padding: '16px' }}>
-                <h4 style={{ fontSize: '11px', fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--gov-cyan)' }} />
+              <div className="premium-card" style={{ borderTop: '3px solid var(--accent)', padding: '14px' }}>
+                <h4 style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent)' }} />
                   Environmental Impact Layer
                 </h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '11.5px' }}>
                   <div>
-                    <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase' }}>Land Surface Temp (LST)</span>
-                    <span style={{ fontSize: '12px', color: 'white', fontWeight: 600 }}>{lstImpact}</span>
+                    <span style={{ fontSize: '8.5px', color: 'var(--muted)', display: 'block', textTransform: 'uppercase' }}>Land Surface Temp</span>
+                    <strong>{lstImpact}</strong>
                   </div>
                   <div>
-                    <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase' }}>Vegetation Health (NDVI)</span>
-                    <span style={{ fontSize: '12px', color: 'white', fontWeight: 600 }}>{ndviImpact}</span>
+                    <span style={{ fontSize: '8.5px', color: 'var(--muted)', display: 'block', textTransform: 'uppercase' }}>Canopy Health (NDVI)</span>
+                    <strong>{ndviImpact}</strong>
                   </div>
                   <div>
-                    <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase' }}>Air Quality Index (AQI)</span>
-                    <span style={{ fontSize: '12px', color: 'white', fontWeight: 600 }}>{aqiImpact}</span>
-                  </div>
-                  <div>
-                    <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase' }}>Precipitation Deviation</span>
-                    <span style={{ fontSize: '12px', color: 'white', fontWeight: 600 }}>{rainfallImpact}</span>
+                    <span style={{ fontSize: '8.5px', color: 'var(--muted)', display: 'block', textTransform: 'uppercase' }}>Air Quality Index (AQI)</span>
+                    <strong>{aqiImpact}</strong>
                   </div>
                 </div>
               </div>
 
               {/* Operational Impacts */}
-              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderTop: '3px solid var(--gov-saffron)', borderRadius: '6px', padding: '16px' }}>
-                <h4 style={{ fontSize: '11px', fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--gov-saffron)' }} />
+              <div className="premium-card" style={{ borderTop: '3px solid var(--risk-high)', padding: '14px' }}>
+                <h4 style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--risk-high)' }} />
                   Operational Impact Assessment
                 </h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '11.5px' }}>
                   <div>
-                    <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase' }}>Water Stress Index</span>
-                    <span style={{ fontSize: '12px', color: 'white', fontWeight: 600 }}>{waterStress}</span>
+                    <span style={{ fontSize: '8.5px', color: 'var(--muted)', display: 'block', textTransform: 'uppercase' }}>Water Stress Index</span>
+                    <strong>{waterStress}</strong>
                   </div>
                   <div>
-                    <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase' }}>Agricultural Crop Risk</span>
-                    <span style={{ fontSize: '12px', color: 'white', fontWeight: 600 }}>{cropRisk}</span>
+                    <span style={{ fontSize: '8.5px', color: 'var(--muted)', display: 'block', textTransform: 'uppercase' }}>Crop Anomaly Risk</span>
+                    <strong>{cropRisk}</strong>
                   </div>
                   <div>
-                    <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase' }}>Public Health Strain</span>
-                    <span style={{ fontSize: '12px', color: 'white', fontWeight: 600 }}>{healthStrain}</span>
-                  </div>
-                  <div>
-                    <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase' }}>Grid & Infrastructure Load</span>
-                    <span style={{ fontSize: '12px', color: 'white', fontWeight: 600 }}>{infraPressure}</span>
+                    <span style={{ fontSize: '8.5px', color: 'var(--muted)', display: 'block', textTransform: 'uppercase' }}>Public Health Strain</span>
+                    <strong>{healthStrain}</strong>
                   </div>
                 </div>
               </div>
 
               {/* Administrative Impacts */}
-              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderTop: '3px solid var(--risk-critical)', borderRadius: '6px', padding: '16px' }}>
-                <h4 style={{ fontSize: '11px', fontWeight: 700, color: 'white', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <div className="premium-card" style={{ borderTop: '3px solid var(--risk-critical)', padding: '14px' }}>
+                <h4 style={{ fontSize: '10.5px', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '6px' }}>
                   <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--risk-critical)' }} />
                   Administrative Directives
                 </h4>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '11.5px' }}>
                   <div>
-                    <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase' }}>Emergency Resource Demand</span>
-                    <span style={{ fontSize: '12px', color: 'white', fontWeight: 600 }}>{resourceDemand}</span>
+                    <span style={{ fontSize: '8.5px', color: 'var(--muted)', display: 'block', textTransform: 'uppercase' }}>Emergency Resource Demand</span>
+                    <strong>{resourceDemand}</strong>
                   </div>
                   <div>
-                    <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase' }}>NDMA Alert Escalation level</span>
-                    <span style={{ fontSize: '12px', color: 'white', fontWeight: 600 }}>{alertEscalation}</span>
+                    <span style={{ fontSize: '8.5px', color: 'var(--muted)', display: 'block', textTransform: 'uppercase' }}>NDMA Alert Level</span>
+                    <strong>{alertEscalation}</strong>
                   </div>
                   <div>
-                    <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase' }}>Municipal Service Load</span>
-                    <span style={{ fontSize: '12px', color: 'white', fontWeight: 600 }}>{serviceLoad}</span>
+                    <span style={{ fontSize: '8.5px', color: 'var(--muted)', display: 'block', textTransform: 'uppercase' }}>Municipal Service Load</span>
+                    <strong>{serviceLoad}</strong>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* 2. Spatial Delta Map */}
-            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', padding: '16px', height: '400px', display: 'flex', flexDirection: 'column' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            {/* DECISION-FIRST RECOMMENDED ACTION CARD (Phase 11) */}
+            <div className="premium-card" style={{ 
+              borderLeft: '5px solid var(--risk-critical)', 
+              background: 'rgba(217,48,37,0.02)',
+              padding: '16px 20px'
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
+                <AlertTriangle size={15} color="var(--risk-critical)" />
+                <span style={{ fontSize: '11px', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase' }}>
+                  Recommended Action Directives
+                </span>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '20px', fontSize: '11.5px' }}>
                 <div>
-                  <h4 style={{ fontWeight: 600, fontSize: '13px', color: 'white' }}>Spatial Deviation Model</h4>
-                  <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginTop: '2px' }}>
-                    Grid-cell deviation map across the 0.25° IMD spatial footprint
-                  </p>
+                  <strong>Status: Heatwave Anomaly Detected</strong>
+                  <div style={{ color: 'var(--muted)', fontSize: '10px', marginTop: '2px' }}>Operational thresholds breached across grid.</div>
                 </div>
-                <div style={{ display: 'flex', gap: '6px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  <span>• 🌡️ <strong>Open cooling centers</strong> immediately.</span>
+                  <span>• 🚰 <strong>Scale municipal water tankers</strong> to water-stressed coordinates.</span>
+                  <span>• 📢 <strong>Issue district health stroke warnings</strong> via public alerts.</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Spatial Delta Map */}
+            <div className="premium-card" style={{ height: '360px', display: 'flex', flexDirection: 'column', padding: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                <div>
+                  <h4 style={{ fontWeight: 800, fontSize: '13px', color: 'var(--primary)' }}>Spatial Deviation Model</h4>
+                  <span style={{ fontSize: '9px', color: 'var(--muted)' }}>
+                    Grid-cell deviation map across the 0.25° spatial footprint.
+                  </span>
+                </div>
+                <div style={{ display: 'flex', gap: '4px' }}>
                   {[
-                    { key: 'max_temp', label: 'Temperature Δ', color: '#ff3333' },
-                    { key: 'rainfall', label: 'Rainfall Δ', color: '#00ff66' },
+                    { key: 'max_temp', label: 'Temperature Δ', color: 'var(--risk-high)' },
+                    { key: 'rainfall', label: 'Rainfall Δ', color: 'var(--success)' },
                   ].map(({ key, label, color }) => (
-                    <button key={key} onClick={() => setDeltaMode(key as 'max_temp' | 'rainfall')} style={{
-                      padding: '5px 12px', fontSize: '11px', borderRadius: '4px',
-                      background: deltaMode === key ? color : 'var(--neutral-100)',
-                      color: 'white',
-                      border: `1px solid ${deltaMode === key ? color : 'var(--border)'}`,
-                      cursor: 'pointer', fontWeight: deltaMode === key ? 600 : 400,
-                    }}>{label}</button>
+                    <button 
+                      key={key} 
+                      onClick={() => setDeltaMode(key as 'max_temp' | 'rainfall')} 
+                      style={{
+                        padding: '4px 10px', fontSize: '10px', borderRadius: '4px',
+                        background: deltaMode === key ? color : 'var(--surface-alt)',
+                        color: deltaMode === key ? 'white' : 'var(--text)',
+                        border: `1px solid ${deltaMode === key ? color : 'var(--border)'}`,
+                        cursor: 'pointer', fontWeight: deltaMode === key ? 700 : 500,
+                      }}
+                    >
+                      {label}
+                    </button>
                   ))}
                 </div>
               </div>
-              <div style={{ flex: 1, borderRadius: '4px', overflow: 'hidden', border: '1px solid var(--border)', background: 'var(--surface-dark)' }}>
+              <div style={{ flex: 1, borderRadius: '6px', overflow: 'hidden', border: '1px solid var(--border)' }}>
                 <MapContainer cells={mapCells} activeLayer="delta" deltaMode={deltaMode} viewMode="2d" />
               </div>
             </div>
 
-            {/* 3. Daily Timeseries */}
-            <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', padding: '20px', height: '340px', display: 'flex', flexDirection: 'column' }}>
-              <h4 style={{ fontWeight: 600, fontSize: '13px', color: 'white', marginBottom: '4px' }}>
+            {/* Daily Timeseries */}
+            <div className="premium-card" style={{ height: '280px', display: 'flex', flexDirection: 'column', padding: '16px' }}>
+              <h4 style={{ fontWeight: 800, fontSize: '13px', color: 'var(--primary)', marginBottom: '2px' }}>
                 Daily Baseline vs. Scenario Comparison
               </h4>
-              <p style={{ fontSize: '10px', color: 'var(--text-muted)', marginBottom: '12px' }}>
-                Temporal deviation of simulated parameters against unperturbed baseline forecast
-              </p>
+              <span style={{ fontSize: '9px', color: 'var(--muted)', marginBottom: '8px' }}>
+                Temporal deviation of simulated parameters against baseline forecast.
+              </span>
               <div style={{ flex: 1 }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={activeComparison.daily_comparison}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                    <XAxis dataKey="date" stroke="var(--text-muted)" tick={{ fontSize: 9 }} />
-                    <YAxis stroke="var(--text-muted)" tick={{ fontSize: 9 }} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" />
+                    <XAxis dataKey="date" stroke="var(--muted)" tick={{ fontSize: 9 }} />
+                    <YAxis stroke="var(--muted)" tick={{ fontSize: 9 }} />
                     <Tooltip contentStyle={chartStyle} />
                     <Legend wrapperStyle={{ fontSize: '11px' }} />
-                    <Line type="monotone" dataKey="baseline_max_temp" name="Baseline Max Temp (°C)" stroke="var(--text-muted)" strokeDasharray="5 5" strokeWidth={1.5} dot={false} />
-                    <Line type="monotone" dataKey="simulated_max_temp" name="Scenario Max Temp (°C)" stroke="#ff3333" strokeWidth={2} dot={false} />
-                    <Line type="monotone" dataKey="baseline_rainfall" name="Baseline Rainfall (mm)" stroke="var(--text-light)" strokeDasharray="5 5" strokeWidth={1} dot={false} />
-                    <Line type="monotone" dataKey="simulated_rainfall" name="Scenario Rainfall (mm)" stroke="#00ff66" strokeWidth={1.5} dot={false} />
+                    <Line type="monotone" dataKey="baseline_max_temp" name="Baseline Temp (°C)" stroke="var(--muted)" strokeDasharray="5 5" strokeWidth={1.5} dot={false} />
+                    <Line type="monotone" dataKey="simulated_max_temp" name="Scenario Temp (°C)" stroke="var(--risk-high)" strokeWidth={2} dot={false} />
+                    <Line type="monotone" dataKey="baseline_rainfall" name="Baseline Rainfall (mm)" stroke="var(--accent)" strokeDasharray="5 5" strokeWidth={1.5} dot={false} />
+                    <Line type="monotone" dataKey="simulated_rainfall" name="Scenario Rainfall (mm)" stroke="var(--success)" strokeWidth={2} dot={false} />
                   </LineChart>
                 </ResponsiveContainer>
               </div>
             </div>
+
           </div>
         ) : (
           <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <div style={{ textAlign: 'center', maxWidth: '420px', padding: '24px', color: 'var(--text-muted)' }}>
-              <ArrowRightLeft size={40} color="var(--neutral-300)" style={{ margin: '0 auto 12px' }} />
-              <h4 style={{ fontWeight: 600, fontSize: '16px', color: 'white', marginBottom: '6px' }}>
+            <div style={{ textAlign: 'center', maxWidth: '400px', padding: '24px', color: 'var(--muted)' }}>
+              <ArrowRightLeft size={36} color="var(--border)" style={{ margin: '0 auto 12px' }} />
+              <h4 style={{ fontWeight: 800, fontSize: '15px', color: 'var(--primary)', marginBottom: '4px' }}>
                 No Scenario Simulation Data
               </h4>
-              <p style={{ fontSize: '13px', marginBottom: '20px', lineHeight: 1.7, color: 'var(--text-secondary)' }}>
-                Configure and execute a climate scenario in the <Link href="/time-machine" style={{ color: 'var(--gov-cyan)', fontWeight: 600 }}>Climate Scenario Laboratory</Link> to generate the impact assessment comparison.
+              <p style={{ fontSize: '12px', marginBottom: '16px', lineHeight: 1.5 }}>
+                Configure and execute a climate scenario in the Scenario Sandbox to generate this impact assessment report.
               </p>
-              <Link href="/time-machine" style={{
-                padding: '10px 20px', background: 'var(--gov-saffron)',
+              <Link href="/scenario-sandbox" style={{
+                padding: '8px 16px', background: 'var(--primary)',
                 color: 'white', border: 'none', borderRadius: '4px',
-                fontSize: '13px', fontWeight: 700, cursor: 'pointer', textDecoration: 'none'
+                fontSize: '12px', fontWeight: 700, cursor: 'pointer', textDecoration: 'none'
               }}>
-                Open Climate Scenario Laboratory
+                Open Scenario Sandbox
               </Link>
             </div>
           </div>
         )}
       </main>
 
+      {/* Wow Moment #1 Animation Overlay */}
       {wowAnimating && (
         <div style={{
           position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-          background: 'rgba(5, 12, 30, 0.95)', zIndex: 9999,
+          background: 'rgba(247, 249, 252, 0.95)', zIndex: 9999,
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           backdropFilter: 'blur(8px)', fontFamily: "'Inter', sans-serif"
         }}>
-          <div style={{ width: '420px', display: 'flex', flexDirection: 'column', gap: '16px', textAlign: 'center', padding: '24px', background: 'var(--surface-alt)', border: '1px solid var(--border)', borderRadius: '8px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)' }}>
-            <h3 style={{ color: 'var(--gov-saffron)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 800, fontSize: '15px' }}>
-              ⚡ Apply Stress Preset Overlays
+          <div style={{ 
+            width: '400px', display: 'flex', flexDirection: 'column', gap: '14px', 
+            textAlign: 'center', padding: '24px', background: '#FFFFFF', 
+            border: '1px solid var(--border)', borderRadius: '8px', 
+            boxShadow: '0 8px 32px rgba(11,61,145,0.08)' 
+          }}>
+            <h3 style={{ color: 'var(--primary)', margin: 0, textTransform: 'uppercase', letterSpacing: '0.08em', fontWeight: 800, fontSize: '14px' }}>
+              ⚡ Running Climate Stress Simulation
             </h3>
-            <p style={{ margin: 0, fontSize: '12px', color: 'var(--text-secondary)' }}>
-              Calculating regional risk index shift and spatial deviation...
+            <p style={{ margin: 0, fontSize: '11px', color: 'var(--muted)' }}>
+              Calculating regional risk index shift, water stress, and health strain...
             </p>
             
-            <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.05)', borderRadius: '3px', overflow: 'hidden', margin: '8px 0' }}>
-              <div style={{ width: `${wowProgress}%`, height: '100%', background: 'var(--gov-saffron)', transition: 'width 0.08s linear' }} />
+            <div style={{ width: '100%', height: '6px', background: 'var(--surface-alt)', borderRadius: '3px', overflow: 'hidden', margin: '4px 0' }}>
+              <div style={{ width: `${wowProgress}%`, height: '100%', background: 'var(--primary)', transition: 'width 0.05s linear' }} />
             </div>
 
-            <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'monospace' }}>
-              <span>Risk Index Shift: {wowRiskScore} / 100</span>
-              <span>STRESS INDICATORS: {wowRiskScore > 75 ? 'CRITICAL' : 'HIGH'}</span>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginTop: '4px', fontSize: '11px', fontFamily: 'monospace' }}>
+              <div>
+                <span style={{ color: 'var(--muted)', display: 'block', fontSize: '8px' }}>RISK INDEX</span>
+                <strong style={{ color: 'var(--primary)', fontSize: '14px' }}>{wowRiskScore}%</strong>
+              </div>
+              <div>
+                <span style={{ color: 'var(--muted)', display: 'block', fontSize: '8px' }}>WATER STRESS</span>
+                <strong style={{ color: 'var(--accent)', fontSize: '14px' }}>{wowWaterStress}%</strong>
+              </div>
+              <div>
+                <span style={{ color: 'var(--muted)', display: 'block', fontSize: '8px' }}>HEALTH STRAIN</span>
+                <strong style={{ color: 'var(--risk-critical)', fontSize: '14px' }}>{wowHealthStrain}%</strong>
+              </div>
             </div>
           </div>
         </div>

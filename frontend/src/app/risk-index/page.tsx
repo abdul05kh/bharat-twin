@@ -29,17 +29,17 @@ interface RiskData {
 }
 
 const RISK_META = [
-  { key: 'heat_risk', label: 'Heat Risk', desc: 'Temperature vs. IMD heatwave thresholds', color: '#ff3333', bg: 'rgba(255, 51, 51, 0.1)', border: 'rgba(255, 51, 51, 0.3)' },
-  { key: 'rainfall_risk', label: 'Rainfall Risk', desc: 'Precipitation deficit/excess vs. climatological normal', color: '#00f0ff', bg: 'rgba(0, 240, 255, 0.1)', border: 'rgba(0, 240, 255, 0.3)' },
-  { key: 'drought_risk', label: 'Drought Risk', desc: 'SPI-proxy moisture deficit index', color: '#ff6600', bg: 'rgba(255, 102, 0, 0.1)', border: 'rgba(255, 102, 0, 0.3)' },
-  { key: 'climate_stress', label: 'Climate Stress Index', desc: 'Combined thermal + moisture physiological stress', color: '#00ff66', bg: 'rgba(0, 255, 102, 0.1)', border: 'rgba(0, 255, 102, 0.3)' },
+  { key: 'heat_risk', label: 'Heat Risk', desc: 'Temperature vs. IMD heatwave thresholds', color: '#D93025', bg: 'rgba(217, 48, 37, 0.06)', border: 'rgba(217, 48, 37, 0.2)' },
+  { key: 'rainfall_risk', label: 'Rainfall Risk', desc: 'Precipitation deficit/excess vs. climatological normal', color: '#0B3D91', bg: 'rgba(11, 61, 145, 0.06)', border: 'rgba(11, 61, 145, 0.2)' },
+  { key: 'drought_risk', label: 'Drought Risk', desc: 'SPI-proxy moisture deficit index', color: '#E65100', bg: 'rgba(230, 81, 0, 0.06)', border: 'rgba(230, 81, 0, 0.2)' },
+  { key: 'climate_stress', label: 'Climate Stress Index', desc: 'Combined thermal + moisture physiological stress', color: '#1E8E3E', bg: 'rgba(30, 142, 62, 0.06)', border: 'rgba(30, 142, 62, 0.2)' },
 ];
 
 const LEVEL_COLORS: Record<string, { bg: string; text: string; border: string }> = {
-  Low: { bg: 'rgba(0, 255, 102, 0.1)', text: '#00ff66', border: 'rgba(0, 255, 102, 0.3)' },
-  Moderate: { bg: 'rgba(255, 204, 0, 0.1)', text: '#ffcc00', border: 'rgba(255, 204, 0, 0.3)' },
-  High: { bg: 'rgba(255, 102, 0, 0.1)', text: '#ff6600', border: 'rgba(255, 102, 0, 0.3)' },
-  Critical: { bg: 'rgba(255, 51, 51, 0.1)', text: '#ff3333', border: 'rgba(255, 51, 51, 0.3)' },
+  Low: { bg: 'rgba(30, 142, 62, 0.08)', text: '#1E8E3E', border: 'rgba(30, 142, 62, 0.25)' },
+  Moderate: { bg: 'rgba(183, 129, 3, 0.08)', text: '#B78103', border: 'rgba(183, 129, 3, 0.25)' },
+  High: { bg: 'rgba(255, 145, 0, 0.08)', text: '#E65100', border: 'rgba(255, 145, 0, 0.25)' },
+  Critical: { bg: 'rgba(217, 48, 37, 0.08)', text: '#D93025', border: 'rgba(217, 48, 37, 0.25)' },
 };
 
 function RiskGauge({ score, color }: { score: number; color: string }) {
@@ -48,7 +48,7 @@ function RiskGauge({ score, color }: { score: number; color: string }) {
     <div style={{ position: 'relative', width: '80px', height: '44px', overflow: 'hidden' }}>
       <svg viewBox="0 0 80 44" width="80" height="44">
         {/* Background arc */}
-        <path d="M 4 40 A 36 36 0 0 1 76 40" fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="8" strokeLinecap="round" />
+        <path d="M 4 40 A 36 36 0 0 1 76 40" fill="none" stroke="rgba(0,0,0,0.08)" strokeWidth="8" strokeLinecap="round" />
         {/* Colored arc */}
         <path
           d="M 4 40 A 36 36 0 0 1 76 40"
@@ -63,11 +63,11 @@ function RiskGauge({ score, color }: { score: number; color: string }) {
           x1="40" y1="40"
           x2={40 + 28 * Math.cos((angle * Math.PI) / 180)}
           y2={40 + 28 * Math.sin((angle * Math.PI) / 180)}
-          stroke="white"
+          stroke="#111827"
           strokeWidth="2"
           strokeLinecap="round"
         />
-        <circle cx="40" cy="40" r="3" fill="white" />
+        <circle cx="40" cy="40" r="3" fill="#111827" />
       </svg>
       <div style={{ position: 'absolute', bottom: '-2px', width: '100%', textAlign: 'center', fontFamily: "monospace", fontWeight: 700, fontSize: '14px', color }}>
         {score}
@@ -110,26 +110,26 @@ export default function ClimateRiskObservatory() {
   };
 
   return (
-    <div style={{ minHeight: '100vh', background: 'var(--neutral-50)', paddingLeft: '240px', fontFamily: "'Inter', sans-serif", color: 'var(--text-primary)' }}>
+    <div style={{ minHeight: '100vh', background: 'var(--bg)', paddingLeft: '240px', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
       <Navbar />
       <main style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
         <CommandStatusStrip />
 
         <header style={{
-          height: '60px', background: 'var(--surface-alt)', borderBottom: '2px solid var(--border)',
+          height: '55px', background: 'var(--surface)', borderBottom: '1px solid var(--border)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
           padding: '0 24px', flexShrink: 0,
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-            <Gauge size={18} color="var(--gov-saffron)" />
-            <h2 style={{ fontWeight: 700, fontSize: '15px', color: 'white' }}>Climate Risk Observatory</h2>
-            <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '3px', background: 'rgba(0, 240, 255, 0.1)', color: 'var(--gov-cyan)', border: '1px solid rgba(0, 240, 255, 0.2)', letterSpacing: '0.04em' }}>
+            <Gauge size={18} color="var(--primary)" />
+            <h2 style={{ fontWeight: 800, fontSize: '15px', color: 'var(--primary)', letterSpacing: '-0.02em' }}>Climate Risk Observatory</h2>
+            <span style={{ fontSize: '9px', padding: '2px 8px', borderRadius: '4px', background: 'rgba(11,61,145,0.08)', color: 'var(--primary)', border: '1px solid var(--border)', fontWeight: 700, textTransform: 'uppercase' }}>
               NDMA · WMO · IMD Thresholds
             </span>
           </div>
           <button onClick={fetchRiskIndex} disabled={loading} style={{
             display: 'flex', alignItems: 'center', gap: '6px',
-            padding: '7px 14px', background: 'var(--gov-saffron)', color: 'white',
+            padding: '7px 14px', background: 'var(--primary)', color: 'white',
             border: 'none', borderRadius: '4px', fontSize: '12px', fontWeight: 700, cursor: 'pointer',
           }}>
             <RefreshCw size={12} style={loading ? { animation: 'spin 1s linear infinite' } : {}} />
@@ -161,23 +161,23 @@ export default function ClimateRiskObservatory() {
                   display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '20px',
                 }}>
                   <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: '10px', fontWeight: 700, color: LEVEL_COLORS[composite.level]?.text ?? '#00ff66', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>
+                    <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: '6px' }}>
                       Composite Climate Risk — Hyderabad Metropolitan Region
                     </div>
-                    <p style={{ fontSize: '13px', color: 'white', lineHeight: 1.7 }}>
+                    <p style={{ fontSize: '13px', color: 'var(--text)', lineHeight: 1.7 }}>
                       {composite.impact_summary}
                     </p>
-                    <div style={{ marginTop: '8px', fontSize: '10px', color: 'var(--text-muted)', opacity: 0.7 }}>
+                    <div style={{ marginTop: '8px', fontSize: '10px', color: 'var(--muted)', opacity: 0.7 }}>
                       Computed at: {new Date(riskData.computed_at).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })} IST
                       · Based on {riskData.data_sources.observations_used.toLocaleString('en-IN')} IMD observations
                     </div>
                   </div>
                   <div style={{ textAlign: 'center', flexShrink: 0 }}>
-                    <RiskGauge score={composite.score} color={LEVEL_COLORS[composite.level]?.text ?? '#00ff66'} />
+                    <RiskGauge score={composite.score} color={LEVEL_COLORS[composite.level]?.text ?? '#1E8E3E'} />
                     <div style={{
                       marginTop: '8px', padding: '4px 14px', borderRadius: '4px',
-                      background: 'var(--surface-dark)', border: `2px solid ${LEVEL_COLORS[composite.level]?.border ?? 'rgba(0, 255, 102, 0.3)'}`,
-                      fontWeight: 700, fontSize: '12px', color: LEVEL_COLORS[composite.level]?.text ?? '#00ff66',
+                      background: 'var(--surface-alt)', border: `2px solid ${LEVEL_COLORS[composite.level]?.border ?? 'rgba(30, 142, 62, 0.3)'}`,
+                      fontWeight: 700, fontSize: '12px', color: LEVEL_COLORS[composite.level]?.text ?? '#1E8E3E',
                     }}>
                       {composite.level}
                     </div>
@@ -186,7 +186,7 @@ export default function ClimateRiskObservatory() {
               )}
 
               {/* Individual Risk Cards */}
-              <h3 style={{ fontWeight: 700, fontSize: '13px', color: 'white', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '14px' }}>
+              <h3 style={{ fontWeight: 800, fontSize: '12px', color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '14px' }}>
                 Risk Category Breakdown
               </h3>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
@@ -198,11 +198,12 @@ export default function ClimateRiskObservatory() {
                     <div key={key} style={{
                       background: 'var(--surface)', border: '1px solid var(--border)',
                       borderTop: `3px solid ${color}`, borderRadius: '6px', padding: '18px',
+                      boxShadow: 'var(--shadow)'
                     }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '12px' }}>
                         <div>
-                          <h4 style={{ fontWeight: 700, fontSize: '13px', color: 'white', marginBottom: '2px' }}>{label}</h4>
-                          <p style={{ fontSize: '10px', color: 'var(--text-muted)' }}>{desc}</p>
+                          <h4 style={{ fontWeight: 700, fontSize: '13px', color: 'var(--text)', marginBottom: '2px' }}>{label}</h4>
+                          <p style={{ fontSize: '10px', color: 'var(--muted)' }}>{desc}</p>
                         </div>
                         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
                           <span style={{
@@ -231,7 +232,7 @@ export default function ClimateRiskObservatory() {
                         </div>
                       </div>
 
-                      <p style={{ fontSize: '12px', color: 'var(--text-secondary)', lineHeight: 1.7, marginBottom: '8px' }}>
+                      <p style={{ fontSize: '12px', color: 'var(--text)', lineHeight: 1.7, marginBottom: '8px' }}>
                         {idx.impact_summary}
                       </p>
                       <div style={{ padding: '6px 8px', background: bg, border: `1px solid ${border}`, borderRadius: '4px', display: 'flex', alignItems: 'flex-start', gap: '5px' }}>
@@ -244,8 +245,8 @@ export default function ClimateRiskObservatory() {
               </div>
 
               {/* Legend */}
-              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', padding: '16px', display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
-                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Risk Scale:</span>
+              <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', padding: '16px', display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap', boxShadow: 'var(--shadow)' }}>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>Risk Scale:</span>
                 {[
                   { label: 'Low (0–25)', ...LEVEL_COLORS.Low },
                   { label: 'Moderate (26–50)', ...LEVEL_COLORS.Moderate },
@@ -257,7 +258,7 @@ export default function ClimateRiskObservatory() {
                     background: bg, color: text, border: `1px solid ${border}`,
                   }}>{label}</span>
                 ))}
-                <span style={{ fontSize: '10px', color: 'var(--text-muted)', marginLeft: 'auto' }}>
+                <span style={{ fontSize: '10px', color: 'var(--muted)', marginLeft: 'auto' }}>
                   Sources: NDMA, WMO, IMD, SPI methodology
                 </span>
               </div>
@@ -265,9 +266,9 @@ export default function ClimateRiskObservatory() {
           )}
 
           {!riskData && !loading && !error && (
-            <div style={{ textAlign: 'center', padding: '60px 24px', color: 'var(--text-muted)' }}>
-              <Gauge size={48} color="var(--neutral-300)" style={{ margin: '0 auto 12px' }} />
-              <h4 style={{ fontWeight: 600, fontSize: '15px', color: 'white', marginBottom: '6px' }}>
+            <div style={{ textAlign: 'center', padding: '60px 24px', color: 'var(--muted)' }}>
+              <Gauge size={48} color="var(--border)" style={{ margin: '0 auto 12px' }} />
+              <h4 style={{ fontWeight: 600, fontSize: '15px', color: 'var(--primary)', marginBottom: '6px' }}>
                 Risk Index Not Yet Computed
               </h4>
               <p style={{ fontSize: '13px', maxWidth: '360px', margin: '0 auto 16px' }}>

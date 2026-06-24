@@ -168,7 +168,8 @@ class ClimateReportGenerator:
         forecast_data: list,
         scenario_info: dict = None,
         simulation_data: list = None,
-        ai_insights: dict = None
+        ai_insights: dict = None,
+        simulation_id: str = None
     ) -> bytes:
         """Generates a dynamic, executive-grade McKinsey-style PDF briefing."""
         buffer = BytesIO()
@@ -219,25 +220,25 @@ class ClimateReportGenerator:
         
         # Minimalistic Top Branding Bar
         branding_data = [
-            [Paragraph("<b>BHARAT-TWIN</b>", ParagraphStyle('BrandText', fontName='Helvetica-Bold', fontSize=10, textColor=self.color_primary)),
-             Paragraph("GOVERNMENT DECISION INTELLIGENCE DIRECTIVE", ParagraphStyle('SubBrandText', fontName='Helvetica', fontSize=8, textColor=self.color_text_muted, alignment=2))]
+            [Paragraph("<b>BHARAT-TWIN DECISION SUPPORT SYSTEM</b>", ParagraphStyle('BrandText', fontName='Helvetica-Bold', fontSize=10, textColor=self.color_primary)),
+             Paragraph("GOVERNMENT OF INDIA • NATIONAL CLIMATE DIGITAL TWIN", ParagraphStyle('SubBrandText', fontName='Helvetica-Bold', fontSize=8, textColor=self.color_text_muted, alignment=2))]
         ]
         t_brand = Table(branding_data, colWidths=[3.5*inch, 3.5*inch])
         t_brand.setStyle(TableStyle([
             ('BOTTOMPADDING', (0,0), (-1,-1), 4),
-            ('LINEBELOW', (0,0), (-1,-1), 1, self.color_primary),
+            ('LINEBELOW', (0,0), (-1,-1), 1.5, self.color_primary),
         ]))
         story.append(t_brand)
-        story.append(Spacer(1, 80))
+        story.append(Spacer(1, 40))
         
         # Main Document Title
-        story.append(Paragraph("CLIMATE SCENARIO BRIEFING", self.title_style))
-        story.append(Paragraph(f"Integrated Mesoscale Risk and Vulnerability Impact Assessment: {region_name}", self.subtitle_style))
-        story.append(Spacer(1, 40))
+        story.append(Paragraph("Government Climate Decision Brief", self.title_style))
+        story.append(Paragraph("<b>CONFIDENTIAL • EXECUTIVE DECISION SUPPORT DIRECTIVE</b>", ParagraphStyle('SubTitleConf', parent=self.subtitle_style, fontSize=11, fontName='Helvetica-Bold', textColor=self.color_risk_high, spaceAfter=20)))
+        story.append(Spacer(1, 10))
         
         # Cover Risk Highlight Panel
         risk_box_text = (
-            f"<b>AGGREGATE RISK INDEX: <font color='{risk_color.hexval()}'>{risk_val}% ({risk_label})</font></b><br/>"
+            f"<b>AGGREGATE DIGITAL RISK INDEX: <font color='{risk_color.hexval()}'>{risk_val} / 100 ({risk_label})</font></b><br/>"
             f"This directive encapsulates physical hazards, resource strain, and socio-economic vulnerability metrics "
             f"simulated for {region_name} under custom climate stressors."
         )
@@ -247,14 +248,17 @@ class ClimateReportGenerator:
             ('BOX', (0,0), (-1,-1), 1.5, risk_color),
             ('LEFTPADDING', (0,0), (-1,-1), 15),
             ('RIGHTPADDING', (0,0), (-1,-1), 15),
-            ('TOPPADDING', (0,0), (-1,-1), 15),
-            ('BOTTOMPADDING', (0,0), (-1,-1), 15),
+            ('TOPPADDING', (0,0), (-1,-1), 12),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 12),
         ]))
         story.append(t_risk_box)
-        story.append(Spacer(1, 80))
+        story.append(Spacer(1, 40))
         
         # Metadata Block & Dynamic QR Code
-        qr_url = f"https://bharat-twin.web.app/briefing?region={region_name.replace(' ', '_')}&risk={risk_val}&temp={scenario_info.get('temperature_adjustment', 0.0) if scenario_info else 0.0}&rain={scenario_info.get('rainfall_adjustment', 0.0) if scenario_info else 0.0}"
+        if simulation_id:
+            qr_url = f"https://bharat-twin.web.app/briefing?simulation_id={simulation_id}"
+        else:
+            qr_url = f"https://bharat-twin.web.app/briefing?region={region_name.replace(' ', '_')}&risk={risk_val}&temp={scenario_info.get('temperature_adjustment', 0.0) if scenario_info else 0.0}&rain={scenario_info.get('rainfall_adjustment', 0.0) if scenario_info else 0.0}"
         qr = QrCodeWidget(qr_url)
         qr.barWidth = 64
         qr.barHeight = 64
@@ -262,18 +266,25 @@ class ClimateReportGenerator:
         d_qr.add(qr)
         
         meta_table_data = [
-            [Paragraph("<b>Date of Issue:</b>", self.body_style), Paragraph(datetime.now().strftime("%B %d, %Y - %H:%M:%S IST"), self.body_style),
-             Paragraph("<b>Scenario Code:</b>", self.body_style), Paragraph(f"BT-SIM-{risk_val:03d}", self.body_style), d_qr],
-            [Paragraph("<b>Authority:</b>", self.body_style), Paragraph("National Disaster Management Cell", self.body_style),
-             Paragraph("<b>Security Class:</b>", self.body_style), Paragraph("Official / Executive Use Only", self.body_style), None]
+            [Paragraph("<b>Generated:</b>", self.body_style), Paragraph(datetime.now().strftime("%Y-%m-%d %H:%M:%S IST"), self.body_style),
+             Paragraph("<b>Risk Classification:</b>", self.body_style), Paragraph(f"<b><font color='{risk_color.hexval()}'>{risk_label}</font></b>", self.body_style), d_qr],
+            [Paragraph("<b>District:</b>", self.body_style), Paragraph(region_name, self.body_style),
+             Paragraph("<b>Prepared For:</b>", self.body_style), Paragraph("Decision Makers & District Collectors", self.body_style), None],
+            [Paragraph("<b>Scenario:</b>", self.body_style), Paragraph(scenario_info.get("name", "Custom Climate Perturbation") if scenario_info else "Baseline Climatology", self.body_style),
+             Paragraph("<b>Agency:</b>", self.body_style), Paragraph("National Climate Management Cell (NDMA)", self.body_style), None]
         ]
         t_meta = Table(meta_table_data, colWidths=[1.3*inch, 2.3*inch, 1.3*inch, 1.3*inch, 0.8*inch])
         t_meta.setStyle(TableStyle([
             ('ALIGN', (0,0), (-1,-1), 'LEFT'),
             ('VALIGN', (0,0), (-1,-1), 'MIDDLE'),
-            ('SPAN', (4,0), (4,1)),
-            ('BOTTOMPADDING', (0,0), (-1,-1), 4),
-            ('TOPPADDING', (0,0), (-1,-1), 4),
+            ('SPAN', (4,0), (4,2)),
+            ('BOTTOMPADDING', (0,0), (-1,-1), 5),
+            ('TOPPADDING', (0,0), (-1,-1), 5),
+            ('BOX', (0,0), (-2,-1), 1, self.color_primary),
+            ('INNERGRID', (0,0), (-2,-1), 0.5, colors.HexColor("#E5E7EB")),
+            ('BACKGROUND', (0,0), (-2,-1), self.color_bg_light),
+            ('LEFTPADDING', (0,0), (-1,-1), 8),
+            ('RIGHTPADDING', (0,0), (-1,-1), 8),
         ]))
         story.append(t_meta)
         

@@ -46,4 +46,7 @@ raw_data/
 # Firebase cache
 .firebase/
 
+# Scratch and documentation containing secrets
+Implementing Bharat Climate Twin.md
+
 

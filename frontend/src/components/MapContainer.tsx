@@ -19,6 +19,7 @@ interface MapContainerProps {
   deltaMode?: 'max_temp' | 'rainfall';
   viewMode?: '2d' | '3d';
   showBoundaries?: boolean;
+  isSimulating?: boolean;
 }
 
 // Dynamically load ClimateMap with SSR disabled
@@ -47,7 +48,7 @@ const ClimateTwin3D = dynamic(() => import('./ClimateTwin3D'), {
   )
 });
 
-export default function MapContainer({ cells, activeLayer, deltaMode, viewMode = '2d', showBoundaries = true }: MapContainerProps) {
+export default function MapContainer({ cells, activeLayer, deltaMode, viewMode = '2d', showBoundaries = true, isSimulating = false }: MapContainerProps) {
   if (viewMode === '3d') {
     // Map dashboard or console layer tags to matches expected by Three.js Twin
     let mappedLayer: 'temperature' | 'rainfall' | 'aqi' | 'stress' = 'temperature';
@@ -55,7 +56,7 @@ export default function MapContainer({ cells, activeLayer, deltaMode, viewMode =
     else if (activeLayer === 'aqi') mappedLayer = 'aqi';
     else if (activeLayer === 'stress') mappedLayer = 'stress';
     
-    return <ClimateTwin3D cells={cells} activeLayer={mappedLayer} showBoundaries={showBoundaries} />;
+    return <ClimateTwin3D cells={cells} activeLayer={mappedLayer} showBoundaries={showBoundaries} isSimulating={isSimulating} />;
   }
   
   // 2D Leaflet Map

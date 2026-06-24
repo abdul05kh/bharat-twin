@@ -717,6 +717,77 @@ def run_simulation(req: schemas.SimulationRequest, db: Session = Depends(get_db)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/simulations/registry")
+def get_simulations_registry(db: Session = Depends(get_db)):
+    """
+    Get all past simulations in the registry with metadata, risk score, AI summary, PDF URL, and QR URL.
+    """
+    sims = db.query(models.Simulation).order_by(models.Simulation.created_at.desc()).all()
+    registry = []
+    for sim in sims:
+        scenario = sim.scenario
+        forecast = sim.forecast
+        region = forecast.region if forecast else None
+        region_name = region.name if region else "Hyderabad Metropolitan Region"
+        
+        # Calculate risk score
+        temp_adj = scenario.temperature_adjustment if scenario else 0.0
+        rain_adj = scenario.rainfall_adjustment if scenario else 0.0
+        base_risk = 42
+        if temp_adj > 0:
+            base_risk += int(temp_adj * 8.5)
+        if rain_adj < 0:
+            base_risk += int(abs(rain_adj) * 0.5)
+        risk_score = min(99, max(1, base_risk))
+        
+        # Determine severity
+        if risk_score >= 70:
+            severity = "Critical"
+        elif risk_score >= 55:
+            severity = "High"
+        elif risk_score >= 45:
+            severity = "Moderate"
+        else:
+            severity = "Low"
+            
+        # Get AI Summary
+        insight = db.query(models.ClimateInsight).filter(models.ClimateInsight.simulation_id == sim.id).first()
+        ai_summary = ""
+        if insight:
+            ai_summary = insight.insight_text
+            if not ai_summary and insight.summary:
+                ai_summary = insight.summary.get("scientific_brief", "")
+        
+        if not ai_summary:
+            # Fallback summary
+            ai_summary = (
+                f"Under the {scenario.name if scenario else 'Custom'} scenario in {region_name}, "
+                f"temperature changes of {temp_adj:+.1f}°C and rainfall adjustments of {rain_adj:+.1f}% "
+                f"lead to a simulated aggregate risk score of {risk_score}%. "
+                f"Recommended action is to monitor municipal water reserves and active cooling systems."
+            )
+            
+        # PDF URL
+        pdf_url = f"https://bharat-twin.onrender.com/report/download?simulation_id={sim.id}"
+        
+        # QR URL - URL to generate QR code using a standard public service
+        # It opens the briefing page on the frontend for this specific simulation
+        briefing_url = f"https://bharat-twin.web.app/briefing?simulation_id={sim.id}"
+        qr_url = f"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={briefing_url}"
+        
+        registry.append({
+            "simulation_id": str(sim.id),
+            "timestamp": sim.created_at.isoformat() if sim.created_at else datetime.utcnow().isoformat(),
+            "district": region_name,
+            "stressors": scenario.name if scenario else "Custom Stressor",
+            "severity": severity,
+            "risk_score": risk_score,
+            "ai_summary": ai_summary,
+            "pdf_url": pdf_url,
+            "qr_url": qr_url
+        })
+    return registry
+
 @app.get("/simulations/{id}", response_model=schemas.SimulationResponse)
 def get_simulation(id: UUID, db: Session = Depends(get_db)):
     sim = db.query(models.Simulation).filter(models.Simulation.id == id).first()
@@ -936,7 +1007,8 @@ def download_report(
         forecast_data=forecast.forecast_data,
         scenario_info=scenario_info,
         simulation_data=simulation.simulation_data if simulation else None,
-        ai_insights=ai_insights
+        ai_insights=ai_insights,
+        simulation_id=str(simulation_id) if simulation_id else None
     )
     
     return Response(

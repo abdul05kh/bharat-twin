@@ -162,22 +162,60 @@ export default function AboutPage() {
             </div>
           </div>
 
-          {/* Section 5: Technical Limitations & Assumptions */}
-          <div className="premium-card" style={{ borderLeft: '4px solid var(--risk-high)', background: 'rgba(255,145,0,0.02)', padding: '14px 18px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
-              <ShieldAlert size={14} color="var(--risk-high)" />
-              <strong style={{ fontSize: '9px', textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '0.06em' }}>
-                Scientific Assumptions & Model Transparency
-              </strong>
-            </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', fontSize: '11px', lineHeight: 1.4 }}>
-              <div>
-                <strong>Scientific Limitations:</strong> Mesh resolution is mathematically bounded to the 0.25° regional pilot grids. Forecasting skill is bounded by historical station density. Simulated perturbations represent sensitivity analyses rather than physical numerical weather predictions.
+          {/* Section 5: National Climate Readiness Timeline & Scientific Assumptions */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '14px', paddingBottom: '20px' }}>
+            
+            {/* National Climate Readiness Timeline */}
+            <div className="premium-card" style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '4px' }}>
+                <Globe size={14} color="var(--primary)" />
+                <strong style={{ fontSize: '9px', textTransform: 'uppercase', color: 'var(--muted)', letterSpacing: '0.08em' }}>
+                  National Climate Readiness Timeline
+                </strong>
               </div>
-              <div>
-                <strong>Scientific Roadmap:</strong> 1. Scale spatial cell resolutions to state and national levels · 2. Pre-position emergency relief equipment using telemetry logs · 3. Integrate real-time INSAT active trigger decoders.
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', position: 'relative', paddingLeft: '16px', borderLeft: '2px solid rgba(11,61,145,0.12)' }}>
+                {[
+                  { year: '2026', title: 'Urban Heatwave Planning', desc: 'Deploying mesoscale micro-climate sensors and cooling coordinates across pilot zones.' },
+                  { year: '2027', title: 'Multi-District Risk Intelligence', desc: 'Scaling spatial cell resolution overlays to Telangana districts using INSAT-3D correction feeds.' },
+                  { year: '2028', title: 'National Climate Operating System', desc: 'Deploying unified API-driven emergency command interfaces for State Disaster Management Authorities.' },
+                  { year: '2030', title: 'Digital Climate Twin of India', desc: 'Integrating a country-scale country-mesh 3D simulation twin with sub-kilometer forecasting envelopes.' }
+                ].map((item, index) => (
+                  <div key={index} style={{ position: 'relative', marginBottom: index === 3 ? 0 : '4px' }}>
+                    {/* Circle badge */}
+                    <div style={{
+                      position: 'absolute', left: '-23px', top: '2px', width: '12px', height: '12px',
+                      borderRadius: '50%', background: 'var(--surface)', border: '2.5px solid var(--primary)',
+                      boxShadow: '0 0 0 3px rgba(11,61,145,0.06)'
+                    }} />
+                    <div style={{ display: 'flex', alignItems: 'baseline', gap: '8px' }}>
+                      <span style={{ fontSize: '11px', fontWeight: 900, color: 'var(--primary)', fontFamily: 'monospace' }}>{item.year}</span>
+                      <strong style={{ fontSize: '11.5px', color: 'var(--text)' }}>{item.title}</strong>
+                    </div>
+                    <p style={{ fontSize: '10.5px', color: 'var(--muted)', margin: '2px 0 0 0', lineHeight: 1.3 }}>{item.desc}</p>
+                  </div>
+                ))}
               </div>
             </div>
+
+            {/* Scientific Assumptions & Transparency */}
+            <div className="premium-card" style={{ borderLeft: '4px solid var(--risk-high)', background: 'rgba(255,145,0,0.02)', padding: '18px 22px', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                <ShieldAlert size={14} color="var(--risk-high)" />
+                <strong style={{ fontSize: '9px', textTransform: 'uppercase', color: 'var(--primary)', letterSpacing: '0.06em' }}>
+                  Scientific Assumptions & Model Transparency
+                </strong>
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', fontSize: '11px', lineHeight: 1.4 }}>
+                <div>
+                  <strong>Scientific Limitations:</strong> Mesh resolution is mathematically bounded to the 0.25° regional pilot grids. Forecasting skill is bounded by historical station density. Simulated perturbations represent sensitivity analyses rather than physical numerical weather predictions.
+                </div>
+                <div style={{ borderTop: '1px solid var(--border)', paddingTop: '8px' }}>
+                  <strong>Vulnerability Calibration:</strong> Composite risk index represents land cover susceptibility, concrete absorption indices, and socioeconomic exposure factors, aligned with NDMA Framework v2.0 guidelines.
+                </div>
+              </div>
+            </div>
+
           </div>
 
         </div>

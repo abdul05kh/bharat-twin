@@ -2,47 +2,24 @@
 
 import React, { useEffect, useState } from 'react';
 import { useClimateStore } from '@/store/store';
-import { Activity, Database, Satellite } from 'lucide-react';
+import { Activity, Database, Satellite, Brain, Clock } from 'lucide-react';
 
 export default function CommandStatusStrip() {
-  const { selectedRegion, apiBase } = useClimateStore();
-  const [dbStatus, setDbStatus] = useState<'ONLINE' | 'OFFLINE'>('ONLINE');
-  const [obsCount, setObsCount] = useState<number>(17536);
-  const [aiStatus, setAiStatus] = useState<'ONLINE' | 'DEGRADED' | 'OFFLINE'>('ONLINE');
-  const [satelliteStatus, setSatelliteStatus] = useState<'ONLINE' | 'DELAYED'>('ONLINE');
-  const [forecastStatus, setForecastStatus] = useState<'ONLINE' | 'FAILED'>('ONLINE');
+  const { selectedRegion } = useClimateStore();
+  const [liveTime, setLiveTime] = useState('');
 
+  // Live IST Clock
   useEffect(() => {
-    if (selectedRegion) {
-      fetch(`${apiBase}/climate/metadata/${selectedRegion.id}`)
-        .then(res => {
-          if (!res.ok) throw new Error("Metadata request failed");
-          return res.json();
-        })
-        .then(data => {
-          setDbStatus('ONLINE');
-          setObsCount(data.observation_count || 17536);
-          if (data.confidence_metrics) {
-            setAiStatus(data.confidence_metrics.forecast_confidence > 0 ? 'ONLINE' : 'DEGRADED');
-          }
-        })
-        .catch(err => {
-          console.error("Status strip fetch failed", err);
-          setDbStatus('OFFLINE');
-          setAiStatus('OFFLINE');
-          setSatelliteStatus('DELAYED');
-          setForecastStatus('FAILED');
-        });
-    }
-  }, [selectedRegion, apiBase]);
-
-  // System Uptime Calculation
-  const [uptimePercent, setUptimePercent] = useState('99.98%');
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const noise = (99.95 + Math.random() * 0.04).toFixed(2);
-      setUptimePercent(`${noise}%`);
-    }, 15000);
+    const tick = () => {
+      setLiveTime(new Date().toLocaleString('en-IN', {
+        timeZone: 'Asia/Kolkata',
+        hour12: false,
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit', second: '2-digit'
+      }) + ' IST');
+    };
+    tick();
+    const interval = setInterval(tick, 1000);
     return () => clearInterval(interval);
   }, []);
 
@@ -50,7 +27,7 @@ export default function CommandStatusStrip() {
     <div style={{
       background: 'var(--surface-alt)',
       borderBottom: '1px solid var(--border)',
-      padding: '6px 20px',
+      padding: '8px 20px',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -60,91 +37,99 @@ export default function CommandStatusStrip() {
       flexShrink: 0,
       width: '100%',
       gap: '12px',
+      zIndex: 10,
+      boxShadow: '0 1px 3px rgba(0,0,0,0.02)'
     }}>
-      {/* Left side: System status & Region info */}
+      {/* Left side: Data Sources Online */}
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-          <Activity size={12} color="var(--primary)" />
-          <span style={{ fontWeight: 700, color: 'var(--primary)' }}>SYSTEM STATUS:</span>
-          <span style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '4px',
-            color: dbStatus === 'ONLINE' ? 'var(--success)' : 'var(--critical)',
-            fontWeight: 700
-          }}>
-            <span style={{
-              width: '6px',
-              height: '6px',
-              borderRadius: '50%',
-              background: dbStatus === 'ONLINE' ? 'var(--success)' : 'var(--critical)',
-              display: 'inline-block'
-            }} className={dbStatus === 'ONLINE' ? 'status-live' : ''} />
-            {dbStatus}
-          </span>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <Database size={11} color="var(--accent)" />
-          <span>Ingested Grids:</span>
-          <span style={{ color: 'var(--primary)', fontWeight: 700 }}>{obsCount.toLocaleString('en-IN')}</span>
-        </div>
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-          <Satellite size={11} color="var(--primary)" />
-          <span>Active Orbit:</span>
-          <span style={{ color: 'var(--primary)', fontWeight: 700 }}>INSAT-3D LST</span>
+          <Database size={12} color="var(--primary)" />
+          <span style={{ fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase' }}>TELEMETRY SOURES:</span>
+          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+            {['IMD', 'INSAT-3D', 'MOSDAC', 'NRSC'].map(src => (
+              <span key={src} style={{
+                padding: '1px 6px',
+                borderRadius: '4px',
+                fontSize: '8.5px',
+                fontWeight: 900,
+                background: 'rgba(30,142,62,0.08)',
+                color: 'var(--success)',
+                border: '1px solid rgba(30,142,62,0.2)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '4px'
+              }}>
+                <span style={{ width: '4px', height: '4px', borderRadius: '50%', background: 'var(--success)', display: 'inline-block' }} />
+                {src}
+              </span>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Right side: Operational status indicators */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <span style={{ color: 'var(--muted)', fontWeight: 700 }}>STATE:</span>
-          
+      {/* Middle/Right side: Operational Engines and Live Time */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+        
+        {/* Forecast Engine */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <Activity size={12} color="var(--accent)" />
+          <span>Forecast Engine:</span>
           <span style={{
             padding: '1px 5px',
             borderRadius: '3px',
             fontSize: '9px',
-            fontWeight: 700,
-            background: aiStatus === 'ONLINE' ? 'rgba(30,142,62,0.08)' : 'rgba(249,171,0,0.08)',
-            color: aiStatus === 'ONLINE' ? 'var(--success)' : 'var(--warning)',
-            border: `1px solid ${aiStatus === 'ONLINE' ? 'rgba(30,142,62,0.2)' : 'rgba(249,171,0,0.2)'}`
+            fontWeight: 800,
+            background: 'rgba(0,140,255,0.08)',
+            color: 'var(--accent)',
+            border: '1px solid rgba(0,140,255,0.2)'
           }}>
-            AI: {aiStatus}
-          </span>
-
-          <span style={{
-            padding: '1px 5px',
-            borderRadius: '3px',
-            fontSize: '9px',
-            fontWeight: 700,
-            background: satelliteStatus === 'ONLINE' ? 'rgba(0,140,255,0.08)' : 'rgba(249,171,0,0.08)',
-            color: satelliteStatus === 'ONLINE' ? 'var(--accent)' : 'var(--warning)',
-            border: `1px solid ${satelliteStatus === 'ONLINE' ? 'rgba(0,140,255,0.2)' : 'rgba(249,171,0,0.2)'}`
-          }}>
-            SAT: {satelliteStatus}
-          </span>
-
-          <span style={{
-            padding: '1px 5px',
-            borderRadius: '3px',
-            fontSize: '9px',
-            fontWeight: 700,
-            background: forecastStatus === 'ONLINE' ? 'rgba(30,142,62,0.08)' : 'rgba(217,48,37,0.08)',
-            color: forecastStatus === 'ONLINE' ? 'var(--success)' : 'var(--critical)',
-            border: `1px solid ${forecastStatus === 'ONLINE' ? 'rgba(30,142,62,0.2)' : 'rgba(217,48,37,0.2)'}`
-          }}>
-            FORECAST: {forecastStatus}
+            ACTIVE
           </span>
         </div>
 
-        <div style={{ height: '10px', width: '1px', background: 'var(--border)' }} />
-
-        <div>
-          <span>Uptime: </span>
-          <span style={{ color: 'var(--primary)', fontWeight: 700 }}>{uptimePercent}</span>
+        {/* AI Reasoning */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <Brain size={12} color="var(--primary)" />
+          <span>AI Reasoning:</span>
+          <span style={{
+            padding: '1px 5px',
+            borderRadius: '3px',
+            fontSize: '9px',
+            fontWeight: 800,
+            background: 'rgba(11,61,145,0.08)',
+            color: 'var(--primary)',
+            border: '1px solid rgba(11,61,145,0.2)'
+          }}>
+            ACTIVE
+          </span>
         </div>
+
+        {/* Simulation State */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>
+          <Satellite size={12} color="var(--success)" />
+          <span>Simulation State:</span>
+          <span style={{
+            padding: '1px 5px',
+            borderRadius: '3px',
+            fontSize: '9px',
+            fontWeight: 800,
+            background: 'rgba(30,142,62,0.08)',
+            color: 'var(--success)',
+            border: '1px solid rgba(30,142,62,0.2)'
+          }}>
+            READY
+          </span>
+        </div>
+
+        <div style={{ height: '12px', width: '1px', background: 'var(--border)' }} />
+
+        {/* Live Update Clock */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--muted)' }}>
+          <Clock size={11} />
+          <span>Last Update: </span>
+          <strong style={{ color: 'var(--text)', fontWeight: 700 }}>{liveTime}</strong>
+        </div>
+
       </div>
     </div>
   );

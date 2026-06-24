@@ -4,30 +4,58 @@ import React, { useEffect, useState, useRef } from 'react';
 import Navbar from '@/components/Navbar';
 import CommandStatusStrip from '@/components/CommandStatusStrip';
 import { useClimateStore } from '@/store/store';
-import { Play, Pause, ChevronRight, ShieldCheck, Cpu, AlertTriangle } from 'lucide-react';
+import { 
+  Play, 
+  Pause, 
+  ChevronRight, 
+  ShieldCheck, 
+  Cpu, 
+  AlertTriangle,
+  Globe,
+  Database,
+  Activity,
+  Award,
+  Terminal,
+  FileDown,
+  QrCode,
+  Sparkles
+} from 'lucide-react';
 import Link from 'next/link';
 
 export default function JudgeModePage() {
   const { fetchRegions } = useClimateStore();
 
-  // Demo Sequencer States
+  // Demo Sequencer States (6 Steps)
   const [currentStep, setCurrentStep] = useState(1);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [timeLeft, setTimeLeft] = useState(15); // 15 seconds per step (total ~90s)
+  const [timeLeft, setTimeLeft] = useState(12); // 12 seconds per step (total 72s)
   const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Resilience states
-  const [apiState, setApiState] = useState<'ONLINE' | 'DEGRADED' | 'OFFLINE'>('ONLINE');
+  // Dynamic T-timeline calculation (T+00:00 to T+20:00)
+  const getTimelineClock = () => {
+    if (currentStep === 6 && timeLeft <= 1) return 'T+20:00';
+    
+    // Each step is 12 seconds, representing 4 minutes (240 T-seconds) of simulated timeline progression
+    // 1 real second = 20 T-seconds
+    const realSecondsElapsed = 12 - timeLeft;
+    const totalTSeconds = (currentStep - 1) * 240 + realSecondsElapsed * 20;
+    
+    const minutes = Math.floor(totalTSeconds / 60);
+    const seconds = totalTSeconds % 60;
+    
+    return `T+${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+  };
 
   // Evidence Engine Active Tab
   const [activeTab, setActiveTab] = useState<'sci' | 'sec' | 'fus' | 'build' | 'deploy' | 'ready'>('sci');
 
   const steps = [
-    { num: 1, name: 'DATA INGESTION VERIFIED', desc: 'Verify NetCDF/GRD files and INSAT-3D LST satellite transit logs' },
-    { num: 2, name: 'SPATIAL FUSION COMPLETE', desc: 'Compute Euclidean nearest-neighbor grid co-locations' },
-    { num: 3, name: 'FORECAST GENERATED', desc: 'Execute recursive lag forecast with confidence boundaries' },
-    { num: 4, name: 'AI ADVISORY READY', desc: 'Verify Groq Llama-3.3-70b failover to Gemini 1.5 Pro' },
-    { num: 5, name: 'DECISION BRIEF GENERATED', desc: 'Review administrative directives and regional situation room briefing' }
+    { num: 1, name: 'SATELLITE SWEEP', desc: 'INSAT-3D telemetry & orbital Land Surface Temperature (LST) transit sweep' },
+    { num: 2, name: 'CLIMATE SIMULATION', desc: 'Stressor injection of +4.0°C Heatwave & -60% Monsoon deficit' },
+    { num: 3, name: 'PREDICTIVE FORECAST', desc: 'XGBoost multi-step recursive lag forecast & hazard propagation mapping' },
+    { num: 4, name: 'COGNITIVE AI REASONING', desc: 'Multi-tier LLM cognitive synthesis & confidence boundary validation' },
+    { num: 5, name: 'NDMA EMERGENCY RESPONSE', desc: 'Pre-approved administrative response directives & policy matching' },
+    { num: 6, name: 'EXECUTIVE BRIEF SYNC', desc: 'Scenario registry persistence, QR code generation, and PDF packaging' }
   ];
 
   // Auto advance logic
@@ -36,8 +64,8 @@ export default function JudgeModePage() {
       timerRef.current = setInterval(() => {
         setTimeLeft(prev => {
           if (prev <= 1) {
-            setCurrentStep(current => (current === 5 ? 1 : current + 1));
-            return 15;
+            setCurrentStep(current => (current === 6 ? 1 : current + 1));
+            return 12;
           }
           return prev - 1;
         });
@@ -57,7 +85,7 @@ export default function JudgeModePage() {
 
   const handleStepSelect = (stepNum: number) => {
     setCurrentStep(stepNum);
-    setTimeLeft(15);
+    setTimeLeft(12);
   };
 
   const handleTogglePlay = () => {
@@ -123,43 +151,97 @@ Verification confirms zero null coordinates or averaged grid collapses.`
         <header style={{
           height: '55px', background: 'var(--surface)', borderBottom: '1px solid var(--border)',
           display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0 24px', flexShrink: 0,
+          padding: '0 24px', flexShrink: 0, zIndex: 10
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
             <Cpu size={18} color="var(--primary)" />
-            <h2 style={{ fontWeight: 800, fontSize: '15px', color: 'var(--primary)' }}>Hackathon Judge Control Panel</h2>
-            <span style={{ fontSize: '10px', padding: '2px 8px', borderRadius: '4px', background: 'rgba(11,61,145,0.1)', color: 'var(--primary)', fontWeight: 700 }}>
-              90s Auto-Playback Demonstration
+            <h2 style={{ fontWeight: 800, fontSize: '15px', color: 'var(--primary)', letterSpacing: '-0.02em' }}>
+              Hands-free Cinematic Playback
+            </h2>
+            <span style={{ fontSize: '9px', padding: '2px 8px', borderRadius: '4px', background: 'rgba(11,61,145,0.08)', color: 'var(--primary)', fontWeight: 700, textTransform: 'uppercase' }}>
+              Observe → Simulate → Predict → Act
             </span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            {/* API Resilience Status */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', background: 'var(--surface)', padding: '4px 10px', borderRadius: '4px', border: '1px solid var(--border)' }}>
-              <span style={{ color: 'var(--muted)' }}>DEMO STATE:</span>
-              <span style={{
-                color: apiState === 'ONLINE' ? 'var(--success)' : 'var(--risk-high)',
-                fontWeight: 700
-              }}>{apiState}</span>
+              <span style={{ color: 'var(--muted)' }}>DEMO SYSTEM:</span>
+              <span style={{ color: 'var(--success)', fontWeight: 700 }}>VERIFIED ONLINE</span>
             </div>
-            <button onClick={() => setApiState(prev => prev === 'ONLINE' ? 'DEGRADED' : 'ONLINE')} style={{
-              fontSize: '11px', background: 'var(--surface-alt)', border: '1px solid var(--border)', padding: '5px 10px', borderRadius: '4px', color: 'var(--text)', cursor: 'pointer', fontWeight: 600
+            <Link href="/dashboard" style={{
+              fontSize: '11px', background: 'var(--primary)', border: 'none', padding: '6px 12px', borderRadius: '4px', color: 'white', cursor: 'pointer', fontWeight: 700, textDecoration: 'none'
             }}>
-              Simulate Quota Limit
-            </button>
+              Manual Control Room
+            </Link>
           </div>
         </header>
 
-        {/* Content grid: left playback sequencer / right live visualizations */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '14px', minHeight: 0 }}>
+        {/* Glowing Operations Timeline Ribbon */}
+        <div style={{
+          background: '#0F172A',
+          color: '#E2E8F0',
+          padding: '8px 24px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          borderBottom: '1px solid #1E293B',
+          fontSize: '11.5px',
+          fontFamily: 'monospace',
+          zIndex: 9,
+          flexShrink: 0
+        }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#10B981', display: 'inline-block', boxShadow: '0 0 8px #10B981' }} className="animate-pulse" />
+            <span style={{ fontWeight: 800, color: '#38BDF8', letterSpacing: '0.04em' }}>MISSION TIMELINE:</span>
+            <span style={{ color: '#F1F5F9', fontWeight: 900, fontSize: '13px', background: '#1E293B', padding: '2px 10px', borderRadius: '4px', border: '1px solid #334155', boxShadow: '0 0 10px rgba(56, 189, 248, 0.2)' }}>
+              {getTimelineClock()}
+            </span>
+          </div>
           
-          {/* Left panel: Timeline progress & Evidence tabs */}
+          {/* Timeline progress tracker dots */}
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flex: 1, justifyContent: 'center', maxWidth: '500px' }}>
+            {[
+              { t: 'T+00', name: 'Transit Ingest' },
+              { t: 'T+04', name: 'Stressor Injection' },
+              { t: 'T+08', name: 'Forecast Run' },
+              { t: 'T+12', name: 'Cognitive Sync' },
+              { t: 'T+16', name: 'NDMA Match' },
+              { t: 'T+20', name: 'Brief Sync' }
+            ].map((node, idx) => {
+              const active = currentStep === (idx + 1);
+              const done = currentStep > (idx + 1);
+              return (
+                <div key={idx} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  <div style={{
+                    fontSize: '9.5px', fontWeight: 900, padding: '2px 6px', borderRadius: '3px',
+                    background: active ? '#38BDF8' : done ? '#10B981' : '#334155',
+                    color: active || done ? '#0F172A' : '#94A3B8',
+                    transition: 'all 0.3s ease'
+                  }}>
+                    {node.t}
+                  </div>
+                  {idx < 5 && <div style={{ width: '24px', height: '2px', background: done ? '#10B981' : '#334155' }} />}
+                </div>
+              );
+            })}
+          </div>
+
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <span>SEQUENCER: <strong style={{ color: isPlaying ? '#38BDF8' : '#F43F5E' }}>{isPlaying ? 'AUTOMATIC PLAY' : 'PAUSED'}</strong></span>
+            <span>GRID TELEMETRY: <strong style={{ color: '#10B981' }}>SECURED</strong></span>
+          </div>
+        </div>
+
+        {/* Cinematic Layout: 2 Columns */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'grid', gridTemplateColumns: '32% 68%', gap: '14px', minHeight: 0 }}>
+          
+          {/* LEFT COLUMN: Autoplay Sequencer */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
             
-            {/* Autoplay Sequencer */}
+            {/* Auto Sequencer Panel */}
             <div className="premium-card" style={{ padding: '16px 20px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                 <h3 style={{ fontSize: '12px', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>
-                  Demo Playback Sequencer
+                  Cinematic Autoplay
                 </h3>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <button onClick={handleTogglePlay} style={{
@@ -167,13 +249,13 @@ Verification confirms zero null coordinates or averaged grid collapses.`
                   }}>
                     {isPlaying ? <Pause size={13} fill="currentColor" /> : <Play size={13} fill="currentColor" />}
                   </button>
-                  <span style={{ fontSize: '11px', fontFamily: 'monospace', color: 'var(--risk-high)', fontWeight: 700 }}>
-                    Step {currentStep}/5 ({timeLeft}s)
+                  <span style={{ fontSize: '11px', fontFamily: 'monospace', color: 'var(--accent)', fontWeight: 700 }}>
+                    Step {currentStep}/6 ({timeLeft}s)
                   </span>
                 </div>
               </div>
 
-              {/* Progress steps list */}
+              {/* Steps list */}
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {steps.map((step) => {
                   const active = currentStep === step.num;
@@ -181,56 +263,40 @@ Verification confirms zero null coordinates or averaged grid collapses.`
                   return (
                     <button key={step.num} onClick={() => handleStepSelect(step.num)} style={{
                       display: 'flex', flexDirection: 'column', gap: '4px', padding: '8px 12px', borderRadius: '6px',
-                      background: active ? 'rgba(0, 140, 255, 0.08)' : completed ? 'rgba(30, 142, 62, 0.06)' : 'var(--surface)',
-                      border: `1px solid ${active ? 'var(--accent)' : completed ? 'var(--success)' : 'var(--border)'}`,
+                      background: active ? 'rgba(11, 61, 145, 0.04)' : completed ? 'rgba(30, 142, 62, 0.04)' : 'var(--surface)',
+                      border: `1px solid ${active ? 'var(--primary)' : completed ? 'var(--success)' : 'var(--border)'}`,
                       textAlign: 'left', cursor: 'pointer', transition: 'all 0.15s',
                       width: '100%'
                     }}>
                       <div style={{ display: 'flex', gap: '12px', alignItems: 'center', width: '100%' }}>
                         <div style={{
                           width: '20px', height: '20px', borderRadius: '50%',
-                          background: completed ? 'var(--success)' : active ? 'var(--accent)' : 'var(--surface-alt)',
+                          background: completed ? 'var(--success)' : active ? 'var(--primary)' : 'var(--surface-alt)',
                           color: completed || active ? '#FFFFFF' : 'var(--muted)',
                           display: 'flex', alignItems: 'center', justifyContent: 'center',
                           fontSize: '10px', fontWeight: 800, flexShrink: 0
                         }}>
                           {completed ? '✓' : step.num}
                         </div>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ fontSize: '11.5px', fontWeight: 700, color: active ? 'var(--primary)' : completed ? 'var(--success)' : 'var(--text)', letterSpacing: '0.02em' }}>
-                            {step.name} {completed && '— VERIFIED'}
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <div style={{ fontSize: '11px', fontWeight: 750, color: active ? 'var(--primary)' : completed ? 'var(--success)' : 'var(--text)', letterSpacing: '0.02em', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {step.name}
                           </div>
-                          <div style={{ fontSize: '9.5px', color: 'var(--muted)', marginTop: '2px' }}>
+                          <div style={{ fontSize: '9px', color: 'var(--muted)', marginTop: '1px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                             {step.desc}
                           </div>
                         </div>
                       </div>
                       
                       {active && (
-                        <div style={{ width: '100%', height: '3px', background: 'rgba(0,140,255,0.2)', borderRadius: '2px', marginTop: '6px', overflow: 'hidden' }}>
-                          <div style={{ width: `${((15 - timeLeft) / 15) * 100}%`, height: '100%', background: 'var(--accent)', transition: 'width 1s linear' }} />
+                        <div style={{ width: '100%', height: '3px', background: 'rgba(11,61,145,0.1)', borderRadius: '2px', marginTop: '6px', overflow: 'hidden' }}>
+                          <div style={{ width: `${((12 - timeLeft) / 12) * 100}%`, height: '100%', background: 'var(--primary)', transition: 'width 1s linear' }} />
                         </div>
                       )}
                     </button>
                   );
                 })}
               </div>
-
-              {currentStep === 5 && timeLeft <= 3 && (
-                <div style={{
-                  background: 'rgba(30,142,62,0.08)',
-                  border: '1px solid rgba(30,142,62,0.2)',
-                  color: 'var(--success)',
-                  padding: '10px',
-                  borderRadius: '6px',
-                  fontSize: '11px',
-                  marginTop: '10px',
-                  fontWeight: 700,
-                  textAlign: 'center'
-                }}>
-                  ✓ CLIMATE DECISION INTELLIGENCE PROCESSES VERIFIED
-                </div>
-              )}
             </div>
 
             {/* Evidence Engine Panel */}
@@ -242,7 +308,6 @@ Verification confirms zero null coordinates or averaged grid collapses.`
                 </h3>
               </div>
 
-              {/* Tabs selector */}
               <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '10px' }}>
                 {[
                   { key: 'sci', label: 'Science' },
@@ -253,7 +318,7 @@ Verification confirms zero null coordinates or averaged grid collapses.`
                   { key: 'ready', label: 'Defense' }
                 ].map((tab) => (
                   <button key={tab.key} onClick={() => setActiveTab(tab.key as 'sci' | 'sec' | 'fus' | 'build' | 'deploy' | 'ready')} style={{
-                    padding: '3px 6px', fontSize: '10px', borderRadius: '3px', cursor: 'pointer',
+                    padding: '3px 6px', fontSize: '9.5px', borderRadius: '3px', cursor: 'pointer',
                     background: activeTab === tab.key ? 'var(--primary)' : 'var(--surface-alt)',
                     color: activeTab === tab.key ? 'white' : 'var(--text)',
                     border: `1px solid ${activeTab === tab.key ? 'var(--primary)' : 'var(--border)'}`,
@@ -262,11 +327,10 @@ Verification confirms zero null coordinates or averaged grid collapses.`
                 ))}
               </div>
 
-              {/* Report display content */}
               <div style={{
                 background: 'var(--surface-alt)', border: '1px solid var(--border)', borderRadius: '6px', padding: '10px 12px',
-                fontFamily: 'monospace', fontSize: '10.5px', color: 'var(--text)', lineHeight: 1.5,
-                maxHeight: '130px', overflowY: 'auto'
+                fontFamily: 'monospace', fontSize: '10px', color: 'var(--text)', lineHeight: 1.4,
+                maxHeight: '110px', overflowY: 'auto'
               }}>
                 <div style={{ fontWeight: 700, color: 'var(--primary)', borderBottom: '1px solid var(--border)', paddingBottom: '4px', marginBottom: '6px' }}>
                   {reports[activeTab].title}
@@ -279,103 +343,250 @@ Verification confirms zero null coordinates or averaged grid collapses.`
 
           </div>
 
-          {/* Right panel: Step dynamic mock visualizations */}
-          <div className="premium-card" style={{ display: 'flex', flexDirection: 'column' }}>
-            <h3 style={{ fontSize: '13px', fontWeight: 700, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '10px', borderBottom: '1px solid var(--border)', paddingBottom: '6px' }}>
-              Step {currentStep} Active Monitor: {steps[currentStep - 1].name}
-            </h3>
-
-            <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-              {currentStep === 1 && (
-                <div style={{ fontSize: '11.5px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <p style={{ color: 'var(--muted)', margin: 0 }}>Ingesting gridded observations from source agencies:</p>
-                  <div style={{ background: 'var(--surface-alt)', padding: '12px', border: '1px solid var(--border)', borderRadius: '6px', fontFamily: 'monospace', lineHeight: 1.4 }}>
-                    <div>[source] IMD daily rainfall netCDF checksum: e99a182feb3e4e9b99</div>
-                    <div>[source] IMD daily temperature binary checksum: f20980cf282d8c36</div>
-                    <div>[source] INSAT-3D LST orbital sweeping coordinates: Latitude 17.10°N – 17.65°N bounds (HMR study)</div>
-                    <div style={{ color: 'var(--success)', marginTop: '6px', fontWeight: 700 }}>Status: INGESTION PIPELINE VERIFIED (PASS)</div>
-                  </div>
-                </div>
-              )}
-
-              {currentStep === 2 && (
-                <div style={{ fontSize: '11.5px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <p style={{ color: 'var(--muted)', margin: 0 }}>Nearest-Neighbor Spatial distance matching (resolves IMD 0.25° vs 1.0° resolution mismatch):</p>
-                  <div style={{ background: 'var(--surface-alt)', padding: '12px', border: '1px solid var(--border)', borderRadius: '6px', fontFamily: 'monospace', lineHeight: 1.4 }}>
-                    <div>d = sqrt((lat_rain - lat_temp)^2 + (lon_rain - lon_temp)^2)</div>
-                    <div style={{ color: 'var(--primary)', marginTop: '6px' }}>• Rain Grid Point: 17.25°N, 78.25°E -- Rainfall: 11.89mm</div>
-                    <div style={{ color: 'var(--primary)' }}>• Fused nearest Temperature Point: 17.25°N, 78.25°E -- Max Temp: 31.49°C</div>
-                    <div style={{ color: 'var(--success)', marginTop: '6px', fontWeight: 700 }}>Status: FUSION MATRIX INTEGRITY VERIFIED (PASS)</div>
-                  </div>
-                </div>
-              )}
-
-              {currentStep === 3 && (
-                <div style={{ fontSize: '11.5px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <p style={{ color: 'var(--muted)', margin: 0 }}>XGBoost Ensemble Recursive Lag Forecast (trained on seasonal history):</p>
-                  <div style={{ background: 'var(--surface-alt)', padding: '12px', border: '1px solid var(--border)', borderRadius: '6px', fontFamily: 'monospace', lineHeight: 1.4 }}>
-                    <div>Forecast horizon: 30-Day predictive cycle</div>
-                    <div>Confidence Boundary offsets: Temperature ±1.4°C / Rainfall ±2.8mm</div>
-                    <div style={{ color: 'var(--primary)', marginTop: '6px' }}>• D+1 temperature predicted: 35.6°C (Range: 34.2°C – 37.0°C)</div>
-                    <div style={{ color: 'var(--primary)' }}>• D+1 rainfall predicted: 12.4mm (Range: 9.6mm – 15.2mm)</div>
-                    <div style={{ color: 'var(--success)', marginTop: '6px', fontWeight: 700 }}>Status: PREDICTIVE OUTPUTS VALIDATED (R² = 0.88 temp)</div>
-                  </div>
-                </div>
-              )}
-
-              {currentStep === 4 && (
-                <div style={{ fontSize: '11.5px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <p style={{ color: 'var(--muted)', margin: 0 }}>Multi-tier AI Advisory Generation (Groq failover isolation layer):</p>
-                  {apiState === 'DEGRADED' ? (
-                    <div style={{ background: 'rgba(255, 145, 0, 0.06)', border: '1px solid rgba(255, 145, 0, 0.2)', padding: '12px', borderRadius: '6px', fontFamily: 'monospace' }}>
-                      <div style={{ color: 'var(--risk-high)', fontWeight: 700 }}>[WARN] Groq API quota reached. Triggering failover...</div>
-                      <div>Fallback model selected: Gemini 1.5 Pro</div>
-                      <div style={{ color: 'var(--success)', fontWeight: 700, marginTop: '4px' }}>Status: RESILIENCE ACTIVE (Advisory successfully compiled)</div>
-                    </div>
-                  ) : (
-                    <div style={{ background: 'var(--surface-alt)', padding: '12px', border: '1px solid var(--border)', borderRadius: '6px', fontFamily: 'monospace', lineHeight: 1.4 }}>
-                      <div>Primary model: Llama-3.3-70b (Groq API client)</div>
-                      <div>Token count: 1,452 input / 384 output (1,836 total)</div>
-                      <div style={{ color: 'var(--success)', marginTop: '6px', fontWeight: 700 }}>Status: AI INSIGHT ADVISORY GENERATED (PASS)</div>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {currentStep === 5 && (
-                <div style={{ fontSize: '11.5px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <p style={{ color: 'var(--muted)', margin: 0 }}>Decision support directives and situation room briefing:</p>
-                  <div style={{ background: 'var(--surface-alt)', padding: '10px 12px', border: '1px solid var(--border)', borderRadius: '6px', marginBottom: '4px' }}>
-                    <div style={{ fontSize: '9px', color: 'var(--primary)', fontWeight: 700, textTransform: 'uppercase', marginBottom: '2px' }}>Situation Room Summary</div>
-                    <p style={{ fontSize: '11px', color: 'var(--text)', lineHeight: 1.4, margin: 0 }}>
-                      Composite Alert Level: <strong>Medium Risk</strong>. Vulnerability hotspot detected at Hyderabad metropolitan core (17.36°N, 78.48°E) due to urban heat island anomalies.
-                    </p>
-                  </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <div style={{ padding: '6px 10px', background: 'var(--surface-alt)', borderLeft: '3px solid var(--risk-high)', borderRadius: '4px' }}>
-                      <strong style={{ color: 'var(--primary)', fontSize: '11px' }}>District Administration / SDMA alert</strong>
-                      <div style={{ fontSize: '10px', color: 'var(--text)', marginTop: '2px' }}>Pre-position drinking water tankers and medical heat kits.</div>
-                    </div>
-                    <div style={{ padding: '6px 10px', background: 'var(--surface-alt)', borderLeft: '3px solid var(--accent)', borderRadius: '4px' }}>
-                      <strong style={{ color: 'var(--primary)', fontSize: '11px' }}>Municipal Corporation directive</strong>
-                      <div style={{ fontSize: '10px', color: 'var(--text)', marginTop: '2px' }}>Activate local street misting sprays and adjust public garden irrigation.</div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Playback Controls Footer */}
-            <div style={{ borderTop: '1px solid var(--border)', paddingTop: '10px', marginTop: 'auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ fontSize: '11px', color: 'var(--muted)' }}>
-                Demo progress: <strong>{Math.round((currentStep / 5) * 100)}% complete</strong>
+          {/* RIGHT COLUMN: Active Cinematic Monitor */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+            
+            {/* Monitor Window */}
+            <div className="premium-card" style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '20px', minHeight: '340px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border)', paddingBottom: '10px', marginBottom: '14px' }}>
+                <span style={{ fontSize: '12px', fontWeight: 800, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                  <Activity size={14} /> LIVE CINEMATIC FEED — STEP {currentStep}
+                </span>
+                <span style={{ fontSize: '9.5px', background: 'rgba(11,61,145,0.08)', color: 'var(--primary)', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                  {steps[currentStep - 1].name}
+                </span>
               </div>
-              <Link href="/dashboard" style={{
-                fontSize: '12px', color: 'var(--primary)', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '2px', textDecoration: 'none'
-              }}>
-                Launch Operations Centre <ChevronRight size={13} />
-              </Link>
+
+              {/* Step Visualizations */}
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                
+                {currentStep === 1 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center', textAlign: 'center' }}>
+                    <Globe size={48} color="var(--primary)" className="animate-pulse" />
+                    <div>
+                      <h4 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--primary)', margin: '0 0 6px' }}>INSAT-3D Telemetry Sweeping</h4>
+                      <p style={{ fontSize: '12px', color: 'var(--muted)', maxWidth: '480px', margin: '0 auto', lineHeight: 1.4 }}>
+                        Accessing daily Land Surface Temperature (LST) and cloud motion vector matrices for Hyderabad coordinates [17.10°N – 17.65°N, 78.10°E – 78.80°E].
+                      </p>
+                    </div>
+                    <div style={{ background: '#0F172A', color: '#38BDF8', fontFamily: 'monospace', fontSize: '10.5px', padding: '12px', borderRadius: '6px', width: '90%', textAlign: 'left', boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.5)' }}>
+                      <div>[SYSTEM] Ingesting INSAT-3D cloud channels: Band 3 & Band 5...</div>
+                      <div>[SYSTEM] IMD daily weather grid checksum verified: e99a182feb3e4e9b99 (PASS)</div>
+                      <div style={{ color: '#4ADE80' }}>[STATUS] Spacecraft transit alignment secured. Telemetry synced.</div>
+                    </div>
+                  </div>
+                )}
+
+                {currentStep === 2 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--risk-critical)' }}>
+                      <AlertTriangle size={24} />
+                      <h4 style={{ fontSize: '15px', fontWeight: 850, margin: 0 }}>Stressor Perturbation Injection</h4>
+                    </div>
+                    <p style={{ fontSize: '12px', color: 'var(--text)', lineHeight: 1.4, margin: 0 }}>
+                      Injecting severe anomalies in the Mission Control cockpit to stress-test regional resilience margins.
+                    </p>
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+                      <div style={{ background: 'rgba(255, 23, 68, 0.04)', border: '1px solid rgba(255, 23, 68, 0.12)', padding: '12px', borderRadius: '6px' }}>
+                        <strong style={{ fontSize: '11px', color: '#FF1744', display: 'block' }}>Thermal stressor</strong>
+                        <span style={{ fontSize: '20px', fontWeight: 900, fontFamily: 'monospace' }}>+4.0°C Anomaly</span>
+                        <span style={{ fontSize: '9px', color: 'var(--muted)', display: 'block', marginTop: '3px' }}>Extreme Heat Dome effect</span>
+                      </div>
+                      <div style={{ background: 'rgba(0, 140, 255, 0.04)', border: '1px solid rgba(0, 140, 255, 0.12)', padding: '12px', borderRadius: '6px' }}>
+                        <strong style={{ fontSize: '11px', color: 'var(--accent)', display: 'block' }}>Hydrological stressor</strong>
+                        <span style={{ fontSize: '20px', fontWeight: 900, fontFamily: 'monospace' }}>-60% Monsoon</span>
+                        <span style={{ fontSize: '9px', color: 'var(--muted)', display: 'block', marginTop: '3px' }}>Severe soil moisture depletion</span>
+                      </div>
+                    </div>
+                    <div style={{ height: '5px', background: 'var(--border)', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div className="bg-primary animate-pulse" style={{ height: '100%', width: '70%' }} />
+                    </div>
+                  </div>
+                )}
+
+                {currentStep === 3 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <h4 style={{ fontSize: '14px', fontWeight: 800, color: 'var(--primary)', margin: 0 }}>
+                      XGBoost Recursive Lag Forecast Models
+                    </h4>
+                    <p style={{ fontSize: '12px', color: 'var(--muted)', margin: 0, lineHeight: 1.4 }}>
+                      Predicting spatial-temporal risk propagation and climatic shifts over a 30-day forecast horizon.
+                    </p>
+                    {/* Simulated vector chart */}
+                    <div style={{
+                      background: 'var(--surface-alt)', border: '1px solid var(--border)', borderRadius: '8px',
+                      height: '140px', display: 'flex', alignItems: 'flex-end', padding: '10px 20px', gap: '10px',
+                      position: 'relative'
+                    }}>
+                      <span style={{ position: 'absolute', top: '10px', left: '15px', fontSize: '8.5px', color: 'var(--muted)' }}>Maximum Temp (°C)</span>
+                      {[32, 33, 35, 38, 41.5, 42.8, 43.1, 41.9, 40.5, 39.2].map((val, idx) => {
+                        const h = (val / 50) * 110;
+                        return (
+                          <div key={idx} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                            <div style={{
+                              width: '100%', height: `${h}px`,
+                              background: val >= 40 ? 'var(--risk-critical)' : val >= 35 ? 'var(--risk-high)' : 'var(--primary)',
+                              borderRadius: '2px 2px 0 0', transition: 'height 0.8s ease'
+                            }} />
+                            <span style={{ fontSize: '8px', fontFamily: 'monospace' }}>D+{(idx * 3)}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9.5px', color: 'var(--muted)' }}>
+                      <span>Model R² accuracy: <strong>0.88 (Verified)</strong></span>
+                      <span>Confidence bound: <strong>±1.4°C / ±2.8mm</strong></span>
+                    </div>
+                  </div>
+                )}
+
+                {currentStep === 4 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--primary)' }}>
+                      <Sparkles size={16} />
+                      <h4 style={{ fontSize: '14px', fontWeight: 800, margin: 0 }}>Multi-Tier LLM Cognitive Synthesis</h4>
+                    </div>
+                    <p style={{ fontSize: '12px', color: 'var(--muted)', margin: 0, lineHeight: 1.4 }}>
+                      Primary reasoning engine (Groq Llama-3.3-70b) seamlessly failing over to Gemini 1.5 Pro to synthesize scientific briefs under API rate limits.
+                    </p>
+                    <div style={{
+                      background: 'var(--surface-alt)', border: '1px solid var(--border)', borderRadius: '6px',
+                      padding: '12px 14px', fontFamily: 'monospace', fontSize: '10.5px', lineHeight: 1.5
+                    }}>
+                      <div style={{ color: 'var(--primary)', fontWeight: 700 }}>[COGNITIVE INSIGHT SUMMARY]</div>
+                      <div style={{ color: 'var(--text)', marginTop: '4px' }}>
+                        "Severe mesoscale thermal loading predicted for Hyderabad Urban Core. Urban Heat Island (UHI) concrete absorption will pronouncedly escalate concrete heat domes, raising local temperatures by 3.5°C to 4.2°C above agricultural baselines. Grid transformer failure risk is Critical."
+                      </div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border)', marginTop: '8px', paddingTop: '6px', fontSize: '9px', color: 'var(--muted)' }}>
+                        <span>Tokens: 1,452 In / 384 Out</span>
+                        <span>Provider: <strong>Gemini Pro (Active)</strong></span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {currentStep === 5 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    <h4 style={{ fontSize: '14px', fontWeight: 800, color: 'var(--primary)', margin: 0 }}>
+                      NDMA-Aligned Response Directives
+                    </h4>
+                    <p style={{ fontSize: '12px', color: 'var(--muted)', margin: 0, lineHeight: 1.4 }}>
+                      Matching regional physical vulnerability parameters with pre-approved disaster guidelines.
+                    </p>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                      <div style={{ padding: '8px 12px', background: 'rgba(255, 23, 68, 0.04)', borderLeft: '4px solid var(--risk-critical)', borderRadius: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <strong style={{ fontSize: '11px', color: 'var(--primary)' }}>🌡️ Activating Urban Cooling Domes</strong>
+                          <span style={{ fontSize: '9.5px', color: 'var(--muted)', display: 'block' }}>Establish cooled shelter reserves and mobile hydration points.</span>
+                        </div>
+                        <span style={{ fontSize: '9px', background: 'var(--risk-critical)', color: 'white', padding: '1px 6px', borderRadius: '3px', fontWeight: 700 }}>ACTIVE</span>
+                      </div>
+                      <div style={{ padding: '8px 12px', background: 'rgba(255, 145, 0, 0.04)', borderLeft: '4px solid var(--risk-high)', borderRadius: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <strong style={{ fontSize: '11px', color: 'var(--primary)' }}>🚰 Rationing Municipal Reservoirs</strong>
+                          <span style={{ fontSize: '9.5px', color: 'var(--muted)', display: 'block' }}>Pre-position drinking water tankers and balance irrigation draws.</span>
+                        </div>
+                        <span style={{ fontSize: '9px', background: 'var(--risk-high)', color: 'white', padding: '1px 6px', borderRadius: '3px', fontWeight: 700 }}>ACTIVE</span>
+                      </div>
+                      <div style={{ padding: '8px 12px', background: 'rgba(0, 140, 255, 0.04)', borderLeft: '4px solid var(--accent)', borderRadius: '4px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <strong style={{ fontSize: '11px', color: 'var(--primary)' }}>🔌 Enforcing Power Grid Balancing</strong>
+                          <span style={{ fontSize: '9.5px', color: 'var(--muted)', display: 'block' }}>Load-balance commercial cooling zones to prevent grid blackouts.</span>
+                        </div>
+                        <span style={{ fontSize: '9px', background: 'var(--accent)', color: 'white', padding: '1px 6px', borderRadius: '3px', fontWeight: 700 }}>VERIFIED</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {currentStep === 6 && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center', textAlign: 'center' }}>
+                    <Award size={36} color="var(--success)" className="animate-bounce" />
+                    <div>
+                      <h4 style={{ fontSize: '15px', fontWeight: 800, color: 'var(--primary)', margin: '0 0 4px' }}>
+                        Executive Brief Packaging & Sync
+                      </h4>
+                      <p style={{ fontSize: '11.5px', color: 'var(--muted)', maxWidth: '420px', margin: '0 auto', lineHeight: 1.4 }}>
+                        Simulation runs are securely persisted in the Scenario Registry. Synthesis of McKinsey-grade PDF briefing package complete.
+                      </p>
+                    </div>
+                    
+                    {/* Mock PDF Card */}
+                    <div style={{
+                      background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '8px',
+                      padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '18px', width: '80%',
+                      boxShadow: 'var(--shadow)'
+                    }}>
+                      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
+                        <QrCode size={40} color="var(--primary)" />
+                        <span style={{ fontSize: '8px', color: 'var(--muted)' }}>BT-SIM-071</span>
+                      </div>
+                      <div style={{ textAlign: 'left', flex: 1 }}>
+                        <strong style={{ fontSize: '12px', color: 'var(--primary)', display: 'block' }}>Executive Briefing: Hyderabad</strong>
+                        <span style={{ fontSize: '9.5px', color: 'var(--muted)' }}>Aggregate Risk: <strong>71% (Critical)</strong></span>
+                      </div>
+                      <button style={{
+                        border: 'none', background: 'var(--primary)', color: 'white', padding: '6px 12px',
+                        borderRadius: '4px', fontSize: '10.5px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'
+                      }}>
+                        <FileDown size={11} /> Download PDF
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+              </div>
             </div>
+
+            {/* THREE-QUESTION DECISION SUPPORT HUD (Answering What/Why/Do) */}
+            <div className="premium-card" style={{
+              background: 'rgba(11, 61, 145, 0.02)',
+              border: '1px solid rgba(11, 61, 145, 0.06)',
+              padding: '14px 18px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px'
+            }}>
+              <strong style={{ fontSize: '10.5px', color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Climate Decision Support Panel
+              </strong>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '11px', lineHeight: 1.4 }}>
+                <div>
+                  <strong>WHAT IS HAPPENING?</strong>
+                  <span style={{ color: 'var(--text)', marginLeft: '6px' }}>
+                    {currentStep === 1 && 'INSAT satellite sweeps are recording surface LST baselines.'}
+                    {currentStep === 2 && 'Cockpit is injecting custom +4.0°C and -60% stressor parameters.'}
+                    {currentStep === 3 && 'XGBoost forecast is projecting a 30-day thermal anomaly dome.'}
+                    {currentStep === 4 && 'Cognitive synthesis models are evaluating risk R² and grid loads.'}
+                    {currentStep === 5 && 'NDMA policies are matching vulnerability metrics to responses.'}
+                    {currentStep === 6 && 'Scenario data is persisted with unique QR code report access.'}
+                  </span>
+                </div>
+                <div>
+                  <strong>WHY DOES IT MATTER?</strong>
+                  <span style={{ color: 'var(--text)', marginLeft: '6px' }}>
+                    {currentStep === 1 && 'Identifies high-resolution physical heat island risks before spreads.'}
+                    {currentStep === 2 && 'Allows decision makers to predict severe capacity thresholds.'}
+                    {currentStep === 3 && 'Visualizes the geographic spread of heat waves and drought risks.'}
+                    {currentStep === 4 && 'Guarantees reliable, un-biased scientific reasoning for interventions.'}
+                    {currentStep === 5 && 'Translates abstract data points into immediate lives-saving policies.'}
+                    {currentStep === 6 && 'Ensures 100% auditable provenance and scenario recall for audits.'}
+                  </span>
+                </div>
+                <div>
+                  <strong>WHAT SHOULD I DO?</strong>
+                  <span style={{ color: 'var(--primary)', fontWeight: 700, marginLeft: '6px' }}>
+                    {currentStep === 1 && 'Maintain normal telemetry sync and audit sensor alignments.'}
+                    {currentStep === 2 && 'Execute simulation to compile vulnerability threshold indices.'}
+                    {currentStep === 3 && 'Identify exposed districts and prepare reservoir capacities.'}
+                    {currentStep === 4 && 'Verify prompt tokens and establish backup LLM failover ports.'}
+                    {currentStep === 5 && 'Activate municipal cooling networks and load-offset power grids.'}
+                    {currentStep === 6 && 'Download executive PDF and distribute to cabinet departments.'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
           </div>
 
         </div>

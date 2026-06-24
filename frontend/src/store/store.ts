@@ -143,8 +143,10 @@ interface ClimateStore {
   isLoading: boolean;
   forecastJobStatus: string | null;
   riskIndex: Record<string, unknown> | null;
+  activeStressor: 'Heatwave' | 'Delayed Monsoon' | 'Drought' | 'AQI Surge' | 'Water Scarcity' | 'Baseline';
   
   // Actions
+  setActiveStressor: (stressor: 'Heatwave' | 'Delayed Monsoon' | 'Drought' | 'AQI Surge' | 'Water Scarcity' | 'Baseline') => void;
   fetchRiskIndex: () => Promise<void>;
   fetchRegions: () => Promise<void>;
   selectRegion: (region: Region) => void;
@@ -178,6 +180,24 @@ export const useClimateStore = create<ClimateStore>((set, get) => ({
   isLoading: false,
   forecastJobStatus: null,
   riskIndex: null,
+  activeStressor: 'Baseline',
+
+  setActiveStressor: (stressor) => {
+    set({ activeStressor: stressor });
+    if (typeof document !== 'undefined') {
+      document.body.classList.remove(
+        'theme-heatwave', 'theme-rainfall', 'theme-aqi', 'theme-water',
+        'shimmer-active', 'rainfall-active', 'aqi-active', 'water-active'
+      );
+      if (stressor === 'Heatwave') {
+        document.body.classList.add('theme-heatwave', 'shimmer-active');
+      } else if (stressor === 'Delayed Monsoon' || stressor === 'Drought' || stressor === 'Water Scarcity') {
+        document.body.classList.add('theme-water', 'water-active');
+      } else if (stressor === 'AQI Surge') {
+        document.body.classList.add('theme-aqi', 'aqi-active');
+      }
+    }
+  },
 
   setLoading: (loading: boolean) => set({ isLoading: loading }),
 

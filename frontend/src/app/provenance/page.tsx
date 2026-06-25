@@ -28,7 +28,7 @@ export default function DataProvenancePage() {
   return (
     <div className="page-root" style={{ background: 'var(--bg)' }}>
       <Navbar />
-      <main className="main-content-with-topbar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      <main className="page-layout-main main-content-with-topbar">
         <CommandStatusStrip />
 
         {/* Header */}
@@ -47,7 +47,7 @@ export default function DataProvenancePage() {
         </header>
 
         {/* Content */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '24px', maxWidth: '1000px', width: '100%', margin: '0 auto' }}>
+        <div className="page-body-container-wide" style={{ flex: 1, overflowY: 'auto' }}>
           
           <div style={{ marginBottom: '24px' }}>
             <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'white', marginBottom: '4px' }}>Scientific Data Provenance</h3>

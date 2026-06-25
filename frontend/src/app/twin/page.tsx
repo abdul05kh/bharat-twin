@@ -53,7 +53,7 @@ export default function DigitalTwinConsole() {
     <div className="page-root" style={{ background: 'var(--bg)', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
       <Navbar />
       
-      <main className="main-content-with-topbar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      <main className="page-layout-main main-content-with-topbar">
         <CommandStatusStrip />
 
         {/* Header */}
@@ -87,7 +87,7 @@ export default function DigitalTwinConsole() {
             
             <PrimaryRiskHero />
 
-            <div style={{ 
+            <div className="map-wrapper" style={{ 
               flex: 1, position: 'relative', 
               border: '1px solid var(--border)', borderRadius: '8px', 
               overflow: 'hidden', background: '#FFFFFF',

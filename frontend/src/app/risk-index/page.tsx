@@ -112,7 +112,7 @@ export default function ClimateRiskObservatory() {
   return (
     <div className="page-root" style={{ background: 'var(--bg)', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
       <Navbar />
-      <main className="main-content-with-topbar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      <main className="page-layout-main main-content-with-topbar">
         <CommandStatusStrip />
 
         <header style={{
@@ -137,7 +137,7 @@ export default function ClimateRiskObservatory() {
           </button>
         </header>
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
+        <div className="page-body-container" style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
           {error && (
             <div style={{ padding: '12px 16px', border: '1px solid rgba(255, 51, 51, 0.3)', background: 'rgba(255, 51, 51, 0.1)', borderRadius: '6px', color: '#ff3333', fontSize: '12px', marginBottom: '20px' }}>
               {error}

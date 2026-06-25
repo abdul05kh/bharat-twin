@@ -61,7 +61,7 @@ export default function PlatformArchitecturePage() {
   return (
     <div className="page-root" style={{ background: 'var(--bg)' }}>
       <Navbar />
-      <main className="main-content-with-topbar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      <main className="page-layout-main main-content-with-topbar">
         <CommandStatusStrip />
 
         {/* Header */}
@@ -80,7 +80,7 @@ export default function PlatformArchitecturePage() {
         </header>
 
         {/* Content */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '24px', maxWidth: '800px', width: '100%', margin: '0 auto' }}>
+        <div className="page-body-container-wide" style={{ flex: 1, overflowY: 'auto' }}>
           
           <div style={{ marginBottom: '28px', textAlign: 'center' }}>
             <h3 style={{ fontSize: '20px', fontWeight: 800, color: 'white', marginBottom: '6px' }}>7-Layer System Architecture</h3>

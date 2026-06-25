@@ -151,7 +151,7 @@ export default function DecisionIntelligenceEngine() {
   return (
     <div className="page-root" style={{ background: 'var(--bg)', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
       <Navbar />
-      <main className="main-content-with-topbar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      <main className="page-layout-main main-content-with-topbar">
         <CommandStatusStrip />
 
         {/* Header */}
@@ -202,7 +202,7 @@ export default function DecisionIntelligenceEngine() {
         </header>
 
         {/* AI Command Centre Workspace */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', maxWidth: '960px', width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <div className="page-body-container" style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '14px' }}>
           
           {/* AI Diagnostic Mission Control Widget Panel (Phase 7) */}
           <div className="grid-4col" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px', flexShrink: 0 }}>
@@ -259,7 +259,7 @@ export default function DecisionIntelligenceEngine() {
                 <h3 style={{ fontWeight: 800, fontSize: '11px', color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '14px', borderBottom: '1px solid var(--border)', paddingBottom: '6px' }}>
                   Explainable AI Causal Influence Pathway
                 </h3>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', overflowX: 'auto', padding: '6px 0', gap: '8px' }}>
+                <div className="about-flow-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', overflowX: 'auto', padding: '6px 0', gap: '8px' }}>
                   
                   {/* Step 1: Stressor */}
                   <div style={{ background: 'rgba(217,48,37,0.06)', border: '1px solid rgba(217,48,37,0.25)', borderRadius: '6px', padding: '8px 12px', textAlign: 'center', minWidth: '150px' }}>
@@ -267,9 +267,9 @@ export default function DecisionIntelligenceEngine() {
                     <strong style={{ fontSize: '11px', color: 'var(--critical)', display: 'block', marginTop: '2px' }}>Temp Anomaly +2.1°C</strong>
                   </div>
                   
-                  <div style={{ color: 'var(--muted)', display: 'flex', alignItems: 'center' }}>
+                  <span className="flow-arrow" style={{ color: 'var(--muted)', display: 'flex', alignItems: 'center' }}>
                     <ArrowRight size={14} />
-                  </div>
+                  </span>
                   
                   {/* Step 2: Physical Evaporation */}
                   <div style={{ background: 'rgba(255,145,0,0.06)', border: '1px solid rgba(255,145,0,0.25)', borderRadius: '6px', padding: '8px 12px', textAlign: 'center', minWidth: '150px' }}>
@@ -277,9 +277,9 @@ export default function DecisionIntelligenceEngine() {
                     <strong style={{ fontSize: '11px', color: 'var(--risk-high)', display: 'block', marginTop: '2px' }}>Evaporation Surge +18%</strong>
                   </div>
                   
-                  <div style={{ color: 'var(--muted)', display: 'flex', alignItems: 'center' }}>
+                  <span className="flow-arrow" style={{ color: 'var(--muted)', display: 'flex', alignItems: 'center' }}>
                     <ArrowRight size={14} />
-                  </div>
+                  </span>
                   
                   {/* Step 3: Resource Deficit */}
                   <div style={{ background: 'rgba(0,140,255,0.06)', border: '1px solid rgba(0,140,255,0.25)', borderRadius: '6px', padding: '8px 12px', textAlign: 'center', minWidth: '150px' }}>
@@ -287,9 +287,9 @@ export default function DecisionIntelligenceEngine() {
                     <strong style={{ fontSize: '11px', color: 'var(--accent)', display: 'block', marginTop: '2px' }}>Osman Sagar Deficit +11%</strong>
                   </div>
                   
-                  <div style={{ color: 'var(--muted)', display: 'flex', alignItems: 'center' }}>
+                  <span className="flow-arrow" style={{ color: 'var(--muted)', display: 'flex', alignItems: 'center' }}>
                     <ArrowRight size={14} />
-                  </div>
+                  </span>
                   
                   {/* Step 4: Crisis */}
                   <div style={{ background: 'rgba(217,48,37,0.1)', border: '1px solid rgba(217,48,37,0.4)', borderRadius: '6px', padding: '8px 12px', textAlign: 'center', minWidth: '150px' }}>

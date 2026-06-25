@@ -43,7 +43,7 @@ export default function InnovationPage() {
   return (
     <div className="page-root" style={{ background: 'var(--bg)' }}>
       <Navbar />
-      <main className="main-content-with-topbar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      <main className="page-layout-main main-content-with-topbar">
         <CommandStatusStrip />
 
         {/* Header */}
@@ -62,7 +62,7 @@ export default function InnovationPage() {
         </header>
 
         {/* Content */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '24px', maxWidth: '900px', width: '100%', margin: '0 auto' }}>
+        <div className="page-body-container-wide" style={{ flex: 1, overflowY: 'auto' }}>
           
           <div style={{ marginBottom: '24px' }}>
             <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'white', marginBottom: '4px' }}>What Makes BHARAT-TWIN Different?</h3>
@@ -100,7 +100,7 @@ export default function InnovationPage() {
             </div>
 
             {/* CTA */}
-            <div style={{ background: 'rgba(0, 240, 255, 0.05)', border: '1px solid rgba(0, 240, 255, 0.2)', borderRadius: '6px', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div className="flex-row-to-col" style={{ background: 'rgba(0, 240, 255, 0.05)', border: '1px solid rgba(0, 240, 255, 0.2)', borderRadius: '6px', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                 <Zap size={16} color="var(--gov-cyan)" />
                 <span style={{ fontSize: '12.5px', color: 'white', fontWeight: 600 }}>Ready to explore the operations dashboard?</span>

@@ -6,13 +6,13 @@ import CommandStatusStrip from '@/components/CommandStatusStrip';
 import MapContainer from '@/components/MapContainer';
 import { useClimateStore } from '@/store/store';
 import downloadExecutiveBrief from '@/lib/reportClient';
-import { 
-  Settings2, 
-  MapPin, 
-  Play, 
-  CheckCircle2, 
-  AlertTriangle, 
-  FileDown, 
+import {
+  Settings2,
+  MapPin,
+  Play,
+  CheckCircle2,
+  AlertTriangle,
+  FileDown,
   Terminal,
   Activity,
   AlertCircle,
@@ -39,24 +39,24 @@ interface SimLog {
 }
 
 export default function ScenarioSandbox() {
-  const { 
-    fetchRegions, 
-    selectedRegion, 
-    latestForecast, 
-    fetchLatestForecast, 
-    createScenario, 
-    runSimulation, 
+  const {
+    fetchRegions,
+    selectedRegion,
+    latestForecast,
+    fetchLatestForecast,
+    createScenario,
+    runSimulation,
     activeSimulation,
     setActiveStressor,
     digitalTwin,
     fetchDigitalTwin
   } = useClimateStore();
-  
+
   // Form State
   const [severity, setSeverity] = useState<Severity>('High');
   const [duration, setDuration] = useState<Duration>('2 Weeks');
   const [activeStressors, setActiveStressors] = useState<Stressor[]>(['Heatwave']);
-  
+
   // Simulation State
   const [isSimulating, setIsSimulating] = useState(false);
   const [simulationComplete, setSimulationComplete] = useState(false);
@@ -190,7 +190,7 @@ export default function ScenarioSandbox() {
 
     // Interactive timeline steps
     const logSteps = [
-      { t: 0, msg: 'Initializing ISRO/NASA-aligned Mesoscale Grid Matrix...', stat: 'info' as const },
+      { t: 0, msg: 'Initializing ISRO-aligned Mesoscale Grid Matrix...', stat: 'info' as const },
       { t: 300, msg: 'Syncing INSAT-3D Land Surface Temperature (LST) raster bands...', stat: 'process' as const },
       { t: 600, msg: 'Loading IMD historical observations (1951-2025) for baseline calibration...', stat: 'info' as const },
       { t: 900, msg: `Applying Climatic Stressors: ${activeStressors.join(', ')} (${severity} Anomaly)...`, stat: 'warn' as const },
@@ -217,9 +217,9 @@ export default function ScenarioSandbox() {
       const tempAdj = isHeatwave ? 4.0 : severity === 'Critical' ? 3.0 : severity === 'High' ? 2.0 : 0.8;
       const rainAdj = isDrought ? -40 : isMonsoon ? -60 : -10;
       createScenario(
-        `Sandbox: ${activeStressors.join(' & ')} (${severity})`, 
-        rainAdj, 
-        tempAdj, 
+        `Sandbox: ${activeStressors.join(' & ')} (${severity})`,
+        rainAdj,
+        tempAdj,
         duration === '3 Days' ? 3 : duration === '1 Week' ? 7 : duration === '2 Weeks' ? 14 : 30
       ).then(sc => {
         runSimulation(sc.id, latestForecast.id).catch(err => console.warn(err));
@@ -247,13 +247,13 @@ export default function ScenarioSandbox() {
         setCropRisk(cropEnd);
         setHealthStrain(healthEnd);
         setResourceDepletion(resourceEnd);
-        
+
         // Let user see 100% complete briefly, then trigger the Wow Moment fullscreen transition
         setTimeout(() => {
           setIsSimulating(false);
           setSimulationComplete(true);
           setShowWowMoment(true); // Trigger the Wow Moment
-          
+
           if (isHeatwave && (severity === 'High' || severity === 'Critical')) {
             setScreenAlert(true);
             setTimeout(() => setScreenAlert(false), 2000);
@@ -297,19 +297,19 @@ export default function ScenarioSandbox() {
     try {
       // Pass the actual active simulation id to guarantee a scenario-specific PDF with QR code
       await downloadExecutiveBrief({ simulationId: activeSimulation?.id || undefined });
-      
+
       setTimeout(() => {
         setBriefingStep('ready');
-        
+
         setTimeout(() => {
           setBriefingStep('qr');
-          
+
           setTimeout(() => {
             setBriefingStep('link');
-            
+
             setTimeout(() => {
               setBriefingStep('complete');
-              
+
               setTimeout(() => {
                 setBriefingStep('idle');
               }, 2000); // end of timeline
@@ -353,7 +353,7 @@ export default function ScenarioSandbox() {
   const popExposedVal = severity === 'Critical' ? '482,000' : severity === 'High' ? '310,000' : severity === 'Moderate' ? '210,000' : '62,000';
   const econLossVal = severity === 'Critical' ? '₹38.6 Cr' : severity === 'High' ? '₹22.4 Cr' : severity === 'Moderate' ? '₹14.5 Cr' : '₹4.8 Cr';
   const recoveryTimeVal = severity === 'Critical' ? '18 Days' : severity === 'High' ? '14 Days' : severity === 'Moderate' ? '10 Days' : '4 Days';
-  
+
   // NDMA Mitigated values
   const ndmaEconLossVal = severity === 'Critical' ? '₹7.8 Cr' : severity === 'High' ? '₹4.9 Cr' : severity === 'Moderate' ? '₹3.2 Cr' : '₹1.1 Cr';
   const ndmaPopExposedVal = severity === 'Critical' ? '115,000' : severity === 'High' ? '62,000' : severity === 'Moderate' ? '45,000' : '15,000';
@@ -370,18 +370,18 @@ export default function ScenarioSandbox() {
       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '4px' }}>
         <svg width="60" height="60" viewBox="0 0 60 60">
           <circle cx="30" cy="30" r={radius} stroke="var(--border)" strokeWidth="4" fill="transparent" />
-          <circle 
-            cx="30" 
-            cy="30" 
-            r={radius} 
-            stroke={color} 
-            strokeWidth="4" 
+          <circle
+            cx="30"
+            cy="30"
+            r={radius}
+            stroke={color}
+            strokeWidth="4"
             fill="transparent"
-            strokeDasharray={circumference} 
+            strokeDasharray={circumference}
             strokeDashoffset={strokeDashoffset}
             strokeLinecap="round"
-            transform="rotate(-90 30 30)" 
-            style={{ transition: 'stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1)' }} 
+            transform="rotate(-90 30 30)"
+            style={{ transition: 'stroke-dashoffset 0.8s cubic-bezier(0.4, 0, 0.2, 1)' }}
           />
           <text x="30" y="34" textAnchor="middle" fontSize="10" fontWeight="800" fill="var(--text)" fontFamily="monospace">
             {value}%
@@ -397,8 +397,8 @@ export default function ScenarioSandbox() {
   return (
     <div className="page-root" style={{ background: 'var(--bg)', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
       <Navbar />
-      
-      <main className="main-content-with-topbar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+
+      <main className="page-layout-main main-content-with-topbar">
         <CommandStatusStrip />
 
         {/* Cockpit Title Bar */}
@@ -423,20 +423,20 @@ export default function ScenarioSandbox() {
 
         {/* Map-First Command Center Split Layout */}
         <div className="grid-split-70-30" style={{ flex: 1, display: 'grid', gridTemplateColumns: '70% 30%', overflow: 'hidden', zIndex: 2 }}>
-          
+
           {/* LEFT COLUMN: 3D Digital Earth Map Hero (70% width) */}
           <div style={{ display: 'flex', flexDirection: 'column', padding: '16px', gap: '12px', overflow: 'hidden', height: '100%', position: 'relative' }}>
-            <div style={{ 
-              flex: 1, position: 'relative', 
-              border: '1px solid var(--border)', borderRadius: '8px', 
+            <div className="map-wrapper" style={{
+              flex: 1, position: 'relative',
+              border: '1px solid var(--border)', borderRadius: '8px',
               overflow: 'hidden', background: '#FFFFFF',
               boxShadow: 'var(--shadow)'
             }}>
               {digitalTwin && digitalTwin.length > 0 ? (
-                <MapContainer 
-                  cells={digitalTwin} 
-                  activeLayer={getActiveLayerFromStressors(activeStressors)} 
-                  viewMode="3d" 
+                <MapContainer
+                  cells={digitalTwin}
+                  activeLayer={getActiveLayerFromStressors(activeStressors)}
+                  viewMode="3d"
                   isSimulating={isSimulating}
                 />
               ) : (
@@ -451,16 +451,16 @@ export default function ScenarioSandbox() {
           </div>
 
           {/* RIGHT COLUMN: Parameters Console & Simulated Intelligence HUD (30% width, scrollable) */}
-          <div className="sandbox-right-panel" style={{ 
-            background: 'var(--surface)', 
-            borderLeft: '1px solid var(--border)', 
-            display: 'flex', 
-            flexDirection: 'column', 
+          <div className="sandbox-right-panel" style={{
+            background: 'var(--surface)',
+            borderLeft: '1px solid var(--border)',
+            display: 'flex',
+            flexDirection: 'column',
             overflowY: 'auto',
             padding: '20px',
             gap: '16px'
           }}>
-            
+
             {/* STRESS PARAMETERS COCKPIT */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px', borderBottom: '1px solid var(--border)', paddingBottom: '16px' }}>
               <div>
@@ -477,9 +477,9 @@ export default function ScenarioSandbox() {
                 <label style={{ fontSize: '8.5px', fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
                   01 / TARGET GRID ZONE
                 </label>
-                <div style={{ 
-                  display: 'flex', alignItems: 'center', gap: '8px', 
-                  padding: '8px 10px', background: 'var(--surface-alt)', 
+                <div style={{
+                  display: 'flex', alignItems: 'center', gap: '8px',
+                  padding: '8px 10px', background: 'var(--surface-alt)',
                   border: '1px solid var(--border)', borderRadius: '6px'
                 }}>
                   <MapPin size={12} color="var(--primary)" />
@@ -500,7 +500,7 @@ export default function ScenarioSandbox() {
                     const active = severity === sev;
                     const color = getRiskColor(sev === 'Critical' ? 75 : sev === 'High' ? 60 : sev === 'Moderate' ? 50 : 20);
                     return (
-                      <button 
+                      <button
                         key={sev}
                         onClick={() => setSeverity(sev)}
                         style={{
@@ -531,7 +531,7 @@ export default function ScenarioSandbox() {
                   {(['3 Days', '1 Week', '2 Weeks', '1 Month'] as Duration[]).map(dur => {
                     const active = duration === dur;
                     return (
-                      <button 
+                      <button
                         key={dur}
                         onClick={() => setDuration(dur)}
                         style={{
@@ -630,7 +630,7 @@ export default function ScenarioSandbox() {
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                
+
                 {/* 🎯 WHY THIS MATTERS CARD (Highest Priority Decision Summary) */}
                 <div className="premium-card" style={{
                   background: 'linear-gradient(135deg, rgba(11, 61, 145, 0.04) 0%, rgba(0, 140, 255, 0.04) 100%)',
@@ -647,7 +647,7 @@ export default function ScenarioSandbox() {
                       🎯 WHY THIS MATTERS FOR THIS SCENARIO
                     </span>
                   </div>
-                  
+
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                     <div style={{ background: 'rgba(217, 48, 37, 0.03)', border: '1px solid rgba(217, 48, 37, 0.12)', borderRadius: '6px', padding: '10px 12px' }}>
                       <span style={{ fontSize: '9px', fontWeight: 900, color: 'var(--critical)', textTransform: 'uppercase', display: 'block', marginBottom: '4px' }}>
@@ -659,7 +659,7 @@ export default function ScenarioSandbox() {
                         <span>Timeline: <strong style={{ color: 'var(--text)' }}>{recoveryTimeVal}</strong></span>
                       </div>
                     </div>
-                    
+
                     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', margin: '-4px 0', color: 'var(--primary)', fontWeight: 900 }}>
                       ↓
                     </div>
@@ -740,7 +740,7 @@ export default function ScenarioSandbox() {
                       Decision Support HUD
                     </span>
                   </div>
-                  
+
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {/* Q1 */}
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
@@ -793,7 +793,7 @@ export default function ScenarioSandbox() {
 
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     {briefingStep === 'idle' ? (
-                      <button 
+                      <button
                         onClick={triggerPdfDownload}
                         style={{
                           display: 'flex', alignItems: 'center', gap: '6px',
@@ -834,10 +834,10 @@ export default function ScenarioSandbox() {
                         {briefingStep === 'qr' && (
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', padding: '6px' }}>
                             <div style={{ padding: '4px', background: 'white', border: '2px solid var(--success)', borderRadius: '6px', boxShadow: '0 0 10px rgba(30,142,62,0.15)' }}>
-                              <img 
-                                src={activeSimulation ? ((activeSimulation as any).qr_url || `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${typeof window !== 'undefined' ? window.location.origin : ''}/briefing?simulation_id=${activeSimulation.id}`) : "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://bharat-twin.web.app"} 
-                                alt="Briefing QR" 
-                                style={{ width: '64px', height: '64px' }} 
+                              <img
+                                src={activeSimulation ? ((activeSimulation as any).qr_url || `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${typeof window !== 'undefined' ? window.location.origin : ''}/briefing?simulation_id=${activeSimulation.id}`) : "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://bharat-twin.web.app"}
+                                alt="Briefing QR"
+                                style={{ width: '64px', height: '64px' }}
                               />
                             </div>
                             <span style={{ fontSize: '8.5px', color: 'var(--success)', fontWeight: 800, display: 'flex', alignItems: 'center', gap: '3px' }}>
@@ -916,7 +916,7 @@ export default function ScenarioSandbox() {
                     <span style={{ fontWeight: 800, color: 'var(--primary)', display: 'block', marginBottom: '2px', textTransform: 'uppercase' }}>Formula (Trust Calculation Chain)</span>
                     Economic Loss = Agriculture + Power + Water + Healthcare
                   </div>
-                  
+
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     <div style={{ background: 'rgba(217, 48, 37, 0.02)', border: '1px solid rgba(217, 48, 37, 0.08)', borderRadius: '6px', padding: '8px 10px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(217,48,37,0.08)', paddingBottom: '4px', marginBottom: '4px', fontSize: '9.5px', fontWeight: 750 }}>
@@ -948,7 +948,7 @@ export default function ScenarioSandbox() {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div style={{ background: 'rgba(30, 142, 62, 0.02)', border: '1px solid rgba(30, 142, 62, 0.08)', borderRadius: '6px', padding: '8px 10px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(30,142,62,0.08)', paddingBottom: '4px', marginBottom: '4px', fontSize: '9.5px', fontWeight: 750 }}>
                         <span style={{ color: 'var(--success)' }}>NDMA DEPLOYED (MITIGATED)</span>
@@ -980,7 +980,7 @@ export default function ScenarioSandbox() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div style={{
                     padding: '8px 10px', background: 'rgba(30, 142, 62, 0.08)',
                     border: '1px solid rgba(30, 142, 62, 0.18)', borderRadius: '6px',
@@ -1001,7 +1001,7 @@ export default function ScenarioSandbox() {
                       Confidence Envelopes
                     </span>
                   </div>
-                  
+
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {[
                       { name: 'Aggregate Risk', value: riskScore, conf: 94 },
@@ -1011,7 +1011,7 @@ export default function ScenarioSandbox() {
                     ].map((m, idx) => {
                       const low = Math.max(0, m.value - 4);
                       const high = Math.min(100, m.value + 5);
-                      
+
                       return (
                         <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
                           <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '9.5px', fontWeight: 600 }}>
@@ -1051,7 +1051,7 @@ export default function ScenarioSandbox() {
                       Impact Stress Gauges
                     </span>
                   </div>
-                <div className="radial-gauges-row" style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                  <div className="radial-gauges-row" style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                     <RadialGauge value={heatHazard} label="Heat Hazard" color="var(--risk-critical)" />
                     <RadialGauge value={waterStress} label="Water Stress" color="var(--accent)" />
                     <RadialGauge value={cropRisk} label="Crop Risk" color="var(--success)" />
@@ -1083,7 +1083,7 @@ export default function ScenarioSandbox() {
           fontFamily: "'Inter', sans-serif",
           animation: 'fadeIn 0.5s ease-out'
         }}>
-          
+
           <div className="wow-overlay-card" style={{
             width: '640px',
             background: 'rgba(255, 255, 255, 0.98)',
@@ -1099,7 +1099,7 @@ export default function ScenarioSandbox() {
             textAlign: 'center',
             position: 'relative'
           }}>
-            
+
             {/* National Crest / Header branding */}
             <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', borderBottom: '2px solid var(--primary)', paddingBottom: '16px' }}>
               <span style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.12em' }}>
@@ -1115,7 +1115,7 @@ export default function ScenarioSandbox() {
 
             {/* Comparison Flow */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              
+
               {/* Row 1: Without Intervention */}
               <div style={{
                 background: 'rgba(217, 48, 37, 0.03)',
@@ -1254,7 +1254,7 @@ export default function ScenarioSandbox() {
         </div>
       )}
 
-      {/* DYNAMIC ISRO/NASA-INSPIRED LIGHT THEME FROSTED GLASS OVERLAY */}
+      {/* DYNAMIC ISRO-INSPIRED LIGHT THEME FROSTED GLASS OVERLAY */}
       {isSimulating && (
         <div style={{
           position: 'fixed',
@@ -1271,7 +1271,7 @@ export default function ScenarioSandbox() {
           zIndex: 9999,
           fontFamily: "'Inter', sans-serif"
         }}>
-          
+
           {/* Mission Control Panel Container */}
           <div className="mission-modal" style={{
             width: '580px',
@@ -1284,14 +1284,14 @@ export default function ScenarioSandbox() {
             flexDirection: 'column',
             gap: '24px'
           }}>
-            
+
             {/* Header branding */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid rgba(11, 61, 145, 0.12)', paddingBottom: '14px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                 <Cpu size={20} color="var(--primary)" />
                 <div>
                   <h3 style={{ fontSize: '13px', fontWeight: 900, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.06em', margin: 0 }}>
-                    ISRO/NASA MISSION CONTROL
+                    ISRO MISSION CONTROL
                   </h3>
                   <span style={{ fontSize: '9px', color: 'var(--muted)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                     Environmental Stress Simulation
@@ -1328,7 +1328,7 @@ export default function ScenarioSandbox() {
                 const stageNum = idx + 1;
                 const isDone = progress >= stage.threshold;
                 const isActive = progress < stage.threshold && (idx === 0 || progress >= [15, 35, 55, 75, 90][idx - 1]);
-                
+
                 let iconColor = 'rgba(0, 0, 0, 0.15)';
                 let textColor = 'var(--muted)';
                 let bgCircle = 'rgba(0, 0, 0, 0.04)';

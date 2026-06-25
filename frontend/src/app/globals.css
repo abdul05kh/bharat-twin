@@ -132,6 +132,113 @@ body {
   }
 }
 
+/* ─── PAGE LAYOUT MAIN: Stable scroll container replacing height:100vh+overflow:hidden ─── */
+/* Desktop: flex column, fills viewport height, inner container scrolls.               */
+/* Mobile:  height:auto so content flows naturally without flex-collapse.              */
+.page-layout-main {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  overflow: hidden;
+}
+
+@media (max-width: 1023px) {
+  .page-layout-main {
+    height: auto !important;
+    min-height: 0 !important;
+    overflow: visible !important;
+    overflow-x: hidden !important;
+  }
+}
+
+/* ─── REUSABLE LAYOUT CONTAINER ─── */
+/* Standard max-width for most pages (dashboard, analytics, risk-index, etc.) */
+.page-body-container {
+  max-width: 1400px !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+  box-sizing: border-box !important;
+  padding: 24px !important;
+}
+
+/* Wider variant for document-heavy pages (about, provenance, insights) */
+.page-body-container-wide {
+  max-width: 1600px !important;
+  width: 100% !important;
+  margin: 0 auto !important;
+  box-sizing: border-box !important;
+  padding: 24px !important;
+}
+
+@media (max-width: 1023px) {
+  .page-body-container,
+  .page-body-container-wide {
+    flex: none !important;
+    height: auto !important;
+    overflow-y: visible !important;
+    overflow: visible !important;
+    padding: 20px 16px !important;
+    max-width: 100% !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-body-container,
+  .page-body-container-wide {
+    padding: 16px !important;
+  }
+}
+
+/* ─── UNIVERSAL CARD INTEGRITY ENGINE ─── */
+/* Every card must never clip or collapse regardless of grid context */
+.premium-card,
+[class*="premium-card"] {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  height: auto;
+  min-height: auto;
+  overflow: visible;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-start;
+}
+
+/* ─── UNIVERSAL TYPOGRAPHY WRAPPING ENGINE ─── */
+/* Prevent any text from causing overflow in cards or grids */
+.premium-card h1,
+.premium-card h2,
+.premium-card h3,
+.premium-card h4,
+.premium-card p,
+.premium-card span,
+.premium-card label,
+.premium-card li,
+.page-body-container h1,
+.page-body-container h2,
+.page-body-container h3,
+.page-body-container h4,
+.page-body-container p,
+.page-body-container span,
+.page-body-container label,
+.page-body-container li,
+.page-body-container-wide h1,
+.page-body-container-wide h2,
+.page-body-container-wide h3,
+.page-body-container-wide h4,
+.page-body-container-wide p,
+.page-body-container-wide span,
+.page-body-container-wide label,
+.page-body-container-wide li {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  white-space: normal;
+  hyphens: auto;
+  min-width: 0;
+}
+
 /* ─── AMBIENT CLIMATE OVERLAYS ─── */
 .climate-ambient-overlay {
   position: fixed;
@@ -413,7 +520,8 @@ body {
   }
 
   /* Responsive grids — all collapse to single column */
-  .grid-4col {
+  .grid-4col,
+  .about-team-grid {
     grid-template-columns: 1fr 1fr !important;
   }
   .grid-split-70-30,
@@ -525,6 +633,28 @@ body {
     box-shadow: var(--shadow) !important;
     border-radius: 8px !important;
   }
+
+  /* About Flow Container Stacking on Mobile/Tablet */
+  .about-flow-container {
+    flex-wrap: wrap !important;
+    justify-content: center !important;
+    gap: 12px !important;
+  }
+  .about-flow-container > span,
+  .about-flow-container > .flow-arrow {
+    display: none !important;
+  }
+  .about-flow-container > div {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+
+  /* Map Wrapper Sizing on Mobile/Tablet */
+  .map-wrapper {
+    height: 380px !important;
+    min-height: 380px !important;
+    flex: none !important;
+  }
 }
 
 @media (max-width: 768px) {
@@ -557,6 +687,17 @@ body {
   .about-team-grid {
     grid-template-columns: 1fr !important;
     gap: 12px !important;
+  }
+
+  /* Force layout grids to expand naturally when stacked */
+  .grid-split-70-30,
+  .grid-split-60-40,
+  .grid-split-32-68,
+  .briefing-layout {
+    flex: none !important;
+    height: auto !important;
+    overflow-y: visible !important;
+    overflow: visible !important;
   }
 
   /* Risk index composite banner and breakdown cards */
@@ -678,6 +819,28 @@ body {
     overflow-x: visible !important;
     max-width: none !important;
     gap: 8px !important;
+  }
+
+  /* Utility to stack horizontal flex elements on mobile */
+  .flex-row-to-col {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+
+  /* Stacked AI Decision Trace borders */
+  .trace-left-block {
+    border-right: none !important;
+    border-bottom: 1px solid var(--border) !important;
+    padding-right: 0 !important;
+    padding-bottom: 12px !important;
+    margin-bottom: 4px !important;
+  }
+
+  /* Briefing layout children height expansion */
+  .briefing-layout > div {
+    overflow: visible !important;
+    height: auto !important;
   }
 }
 

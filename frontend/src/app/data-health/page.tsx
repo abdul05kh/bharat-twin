@@ -72,7 +72,7 @@ export default function DataHealthSecurityCenter() {
   return (
     <div className="page-root" style={{ background: 'var(--bg)', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
       <Navbar />
-      <main className="main-content-with-topbar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      <main className="page-layout-main main-content-with-topbar">
         <CommandStatusStrip />
 
         {/* Header */}
@@ -99,7 +99,8 @@ export default function DataHealthSecurityCenter() {
         </header>
 
         {/* Content Container */}
-        <div className="grid-2col" style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+        <div className="page-body-container" style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
           
           {/* Section 1: Ingestion & Sync Health */}
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', padding: '20px', borderTop: '3px solid var(--gov-saffron)' }}>
@@ -237,6 +238,7 @@ export default function DataHealthSecurityCenter() {
             </div>
           </div>
 
+          </div>
         </div>
       </main>
     </div>

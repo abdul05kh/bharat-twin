@@ -10,7 +10,7 @@ export default function AboutPage() {
     <div className="page-root" style={{ background: 'var(--bg)', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
       <Navbar />
       
-      <main className="main-content-with-topbar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      <main className="page-layout-main main-content-with-topbar">
         <CommandStatusStrip />
 
         {/* Header */}
@@ -26,7 +26,7 @@ export default function AboutPage() {
         </header>
 
         {/* Scrollable Document Body */}
-        <div style={{ flex: 1, overflowY: 'auto', padding: '20px 24px', maxWidth: '1000px', width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+        <div className="page-body-container-wide" style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '14px' }}>
           
           {/* Section 1: Vision and Platform Genesis */}
           <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '14px' }}>
@@ -79,7 +79,7 @@ export default function AboutPage() {
             </div>
             
             {/* Horizontal Flowchart */}
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', gap: '8px', overflowX: 'auto' }}>
+            <div className="about-flow-container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 0', gap: '8px', overflowX: 'auto' }}>
               {[
                 { step: '01', name: 'IMD / INSAT Ingestion', desc: '0.25° weather cell feeds & LST frames' },
                 { step: '02', name: 'Database Decoupler', desc: 'Supabase PostgreSQL startup resilience' },

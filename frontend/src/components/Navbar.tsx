@@ -21,6 +21,17 @@ export default function Navbar() {
   const toggleMobile = () => setMobileOpen(prev => !prev);
   const closeMobile = () => setMobileOpen(false);
 
+  React.useEffect(() => {
+    if (mobileOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [mobileOpen]);
+
   const sidebarContent = (
     <>
       {/* Branding */}

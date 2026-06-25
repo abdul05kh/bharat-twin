@@ -296,10 +296,10 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="page-root" style={{ background: 'var(--bg)', fontFamily: "'Inter', sans-serif", color: 'var(--text)', overflow: 'hidden' }}>
+    <div className="page-root" style={{ background: 'var(--bg)', fontFamily: "'Inter', sans-serif", color: 'var(--text)' }}>
       <Navbar />
       
-      <main className="main-content-with-topbar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', padding: '16px 20px', gap: '14px', boxSizing: 'border-box' }}>
+      <main className="page-layout-main main-content-with-topbar" style={{ padding: '16px 20px', gap: '14px', boxSizing: 'border-box' }}>
         
         {/* Top Executive Status Bar */}
         <div style={{

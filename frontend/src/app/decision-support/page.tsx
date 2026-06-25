@@ -85,7 +85,7 @@ export default function ClimateDecisionSupportCentre() {
   return (
     <div className="page-root" style={{ background: 'var(--bg)' }}>
       <Navbar />
-      <main className="main-content-with-topbar" style={{ display: 'flex', flexDirection: 'column', height: '100vh', overflow: 'hidden' }}>
+      <main className="page-layout-main main-content-with-topbar">
         <CommandStatusStrip />
 
         <header style={{
@@ -113,7 +113,7 @@ export default function ClimateDecisionSupportCentre() {
           </button>
         </header>
 
-        <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
+        <div className="page-body-container" style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
 
           {/* Prerequisites check */}
           {!latestForecast && (
@@ -226,7 +226,7 @@ export default function ClimateDecisionSupportCentre() {
                     <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '16px' }}>
                       
                       {/* Left Block: Trace Steps */}
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderRight: '1px solid var(--border)', paddingRight: '16px' }}>
+                      <div className="trace-left-block" style={{ display: 'flex', flexDirection: 'column', gap: '8px', borderRight: '1px solid var(--border)', paddingRight: '16px' }}>
                         <div>
                           <span style={{ fontSize: '9px', color: 'var(--text-muted)', fontWeight: 700, textTransform: 'uppercase', display: 'block', letterSpacing: '0.04em' }}>
                             🔍 What We Saw

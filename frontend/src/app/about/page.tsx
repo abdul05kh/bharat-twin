@@ -111,7 +111,7 @@ export default function AboutPage() {
               </strong>
             </div>
             
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', fontSize: '11.5px', lineHeight: 1.4 }}>
+            <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', fontSize: '11.5px', lineHeight: 1.4 }}>
               <div>
                 <strong style={{ color: 'var(--primary)' }}>Indian Meteorological Department (IMD)</strong>
                 <p style={{ color: 'var(--muted)', fontSize: '11px', marginTop: '2px', marginBottom: '8px' }}>
@@ -146,7 +146,7 @@ export default function AboutPage() {
               </strong>
             </div>
             
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
+            <div className="about-team-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
               {[
                 { name: 'Akshay', role: 'Project Lead', resp: 'Platform execution, NDMA policy alignment, government coordination, and operational validation.' },
                 { name: 'Abdul Kalam Hussain', role: 'AI Systems Lead', resp: 'FastAPI startup decoupler, database connection diagnostic suites, and XGBoost lag forecast training.' },
@@ -163,7 +163,7 @@ export default function AboutPage() {
           </div>
 
           {/* Section 5: National Climate Readiness Timeline & Scientific Assumptions */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '14px', paddingBottom: '20px' }}>
+          <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '14px', paddingBottom: '20px' }}>
             
             {/* National Climate Readiness Timeline */}
             <div className="premium-card" style={{ padding: '18px 22px', display: 'flex', flexDirection: 'column', gap: '12px' }}>

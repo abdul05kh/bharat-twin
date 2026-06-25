@@ -477,69 +477,213 @@ body {
     padding-bottom: 6px !important;
   }
 
-  /* Command status strip — compact */
+  /* Command status strip — compact horizontally scrollable ribbon */
   .command-status-strip {
-    overflow-x: auto;
-    flex-wrap: nowrap;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    justify-content: flex-start !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 120 !important;
+    background: var(--surface-alt) !important;
+    padding: 8px 16px !important;
+    gap: 20px !important;
+    width: 100% !important;
+    box-sizing: border-box !important;
+  }
+  .command-status-strip > div {
+    flex-shrink: 0 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+    gap: 12px !important;
+  }
+  
+  /* Climate Twin Map Stacking */
+  .map-parent-container {
+    height: auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+  }
+  .map-parent-container > div:first-child {
+    height: 400px !important;
+    min-height: 400px !important;
+  }
+  .map-hud-panel {
+    position: relative !important;
+    top: 0 !important;
+    right: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    margin-top: 14px !important;
+    box-shadow: var(--shadow) !important;
+    border-radius: 8px !important;
   }
 }
 
 @media (max-width: 768px) {
-  /* Collapse 2-column grids */
-  .grid-4col {
+  /* Global Layout & Spacing Refinements */
+  .main-content-with-topbar {
+    padding: 12px 14px !important;
+    padding-top: 56px !important; /* Keep top padding for hamburger button */
+    gap: 12px !important;
+  }
+  
+  /* Global Card Polish: Consistent card style */
+  .premium-card {
+    padding: 16px !important;
+    margin-bottom: 12px !important;
+    border-radius: 8px !important;
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.03) !important;
+    border: 1px solid var(--border) !important;
+    background: var(--surface) !important;
+  }
+
+  /* Collapse 2-column and 4-column grids to stack cleanly */
+  .grid-4col,
+  .grid-split-70-30,
+  .grid-split-60-40,
+  .grid-split-32-68,
+  .grid-2col,
+  .grid-3col,
+  .home-hero-grid,
+  .briefing-layout,
+  .about-team-grid {
     grid-template-columns: 1fr !important;
+    gap: 12px !important;
   }
 
-  /* Risk index gauges */
+  /* Risk index composite banner and breakdown cards */
+  .risk-composite-banner {
+    flex-direction: column !important;
+    align-items: center !important;
+    text-align: center !important;
+    gap: 16px !important;
+    padding: 16px !important;
+  }
   .risk-gauge-grid {
-    grid-template-columns: 1fr 1fr !important;
+    grid-template-columns: 1fr !important; /* Force full-width metric cards */
+    gap: 12px !important;
   }
 
-  /* Scenario sandbox right panel full width */
+  /* Scenario sandbox right panel full width stacking */
   .sandbox-right-panel {
     border-left: none !important;
     border-top: 1px solid var(--border) !important;
     height: auto !important;
     overflow: visible !important;
+    padding: 16px !important;
   }
 
-  /* Hero font sizes */
-  h1.hero-title {
-    font-size: 24px !important;
+  /* Mission control modal responsive bounds */
+  .mission-modal {
+    width: 95vw !important;
+    max-width: 95vw !important;
+    max-height: 90vh !important;
+    overflow-y: auto !important;
+    padding: 20px !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Typography Scaling for Mobile */
+  h1, h1.hero-title {
+    font-size: 20px !important;
+    line-height: 1.25 !important;
+  }
+  h2, .section-title {
+    font-size: 16px !important;
+    line-height: 1.3 !important;
+  }
+  h3, .card-title {
+    font-size: 14px !important;
+    line-height: 1.35 !important;
+  }
+  h4 {
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+  }
+  p, li, td, th {
+    font-size: 11.5px !important;
+    line-height: 1.5 !important;
+  }
+  .economic-chain-sum {
+    font-size: 8px !important;
+    word-break: break-all !important;
+  }
+  
+  /* Touch target sizes for interactive elements */
+  button, 
+  .btn,
+  .primary-btn,
+  input[type="button"],
+  input[type="submit"] {
+    min-height: 44px;
+    padding: 10px 16px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 12px !important;
+  }
+
+  /* Tabs and chips can be slightly more compact but easy to tap */
+  .tab-button,
+  .command-status-strip button,
+  .stressor-chips button {
+    min-height: 38px !important;
+    padding: 6px 12px !important;
   }
 
   /* Impact metric cards */
   .impact-cards-4col {
     grid-template-columns: 1fr 1fr !important;
+    gap: 10px !important;
   }
 
   /* Radial gauges container */
   .radial-gauges-row {
     flex-wrap: wrap !important;
     justify-content: center !important;
+    gap: 12px !important;
   }
 
-  /* Chain sum text small */
-  .economic-chain-sum {
-    font-size: 8px !important;
-    word-break: break-all !important;
-  }
-
-  /* Operations timeline ribbon — scroll horizontally */
+  /* Operations timeline ribbon — scroll horizontally and keep dots visible */
   .ops-timeline-ribbon {
-    overflow-x: auto !important;
+    display: flex !important;
+    flex-direction: row !important;
     flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    justify-content: flex-start !important;
+    -webkit-overflow-scrolling: touch;
+    padding: 8px 16px !important;
+    gap: 20px !important;
+  }
+  .ops-timeline-ribbon > div {
+    flex-shrink: 0 !important;
+    display: flex !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 12px !important;
   }
   .ops-timeline-dots {
-    display: none !important;
+    display: flex !important; /* Keep visible on mobile! */
+    flex-shrink: 0 !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    overflow-x: visible !important;
+    max-width: none !important;
+    gap: 8px !important;
   }
 }
 
 @media (max-width: 480px) {
   /* Extra small: single column everything */
-  .grid-4col,
-  .impact-cards-4col,
-  .risk-gauge-grid {
+  .impact-cards-4col {
     grid-template-columns: 1fr !important;
   }
 

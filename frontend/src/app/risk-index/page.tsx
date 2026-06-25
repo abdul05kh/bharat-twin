@@ -154,7 +154,7 @@ export default function ClimateRiskObservatory() {
             <div>
               {/* Composite Risk Banner */}
               {composite && (
-                <div style={{
+                <div className="risk-composite-banner" style={{
                   background: LEVEL_COLORS[composite.level]?.bg ?? 'rgba(0, 255, 102, 0.1)',
                   border: `1px solid ${LEVEL_COLORS[composite.level]?.border ?? 'rgba(0, 255, 102, 0.3)'}`,
                   borderRadius: '6px', padding: '20px 24px', marginBottom: '24px',

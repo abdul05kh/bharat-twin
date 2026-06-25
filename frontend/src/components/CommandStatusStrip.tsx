@@ -24,7 +24,7 @@ export default function CommandStatusStrip() {
   }, []);
 
   return (
-    <div style={{
+    <div className="command-status-strip" style={{
       background: 'var(--surface-alt)',
       borderBottom: '1px solid var(--border)',
       padding: '8px 20px',

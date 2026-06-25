@@ -1068,7 +1068,7 @@ export default function ClimateTwin3D({ cells, activeLayer, showBoundaries, isSi
   };
 
   return (
-    <div style={{ width: '100%', height: '100%', position: 'relative', background: '#F7F9FC' }}>
+    <div className="map-parent-container" style={{ width: '100%', height: '100%', position: 'relative', background: '#F7F9FC' }}>
       <div ref={containerRef} style={{ width: '100%', height: '100%', minHeight: '430px' }} />
       
       {/* Cinematic Projection Overlay (Requirement 6) */}
@@ -1120,7 +1120,7 @@ export default function ClimateTwin3D({ cells, activeLayer, showBoundaries, isSi
 
       {/* Futuristic Side-Docked Holographic HUD Panel & DECISION ENGINE */}
       {selectedDistrict && (
-        <div style={{
+        <div className="map-hud-panel" style={{
           position: 'absolute', top: '12px', right: '12px',
           width: '375px', background: 'rgba(255, 255, 255, 0.98)',
           backdropFilter: 'blur(12px)', border: '2px solid var(--primary)',

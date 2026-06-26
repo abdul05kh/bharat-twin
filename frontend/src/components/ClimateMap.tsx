@@ -75,7 +75,18 @@ export default function ClimateMap({ cells, activeLayer, deltaMode = 'max_temp' 
     mapRef.current = map;
     layerGroupRef.current = layerGroup;
 
+    // Setup ResizeObserver to trigger map size recalculation on container size changes or orientation changes
+    const resizeObserver = new ResizeObserver(() => {
+      if (mapRef.current) {
+        mapRef.current.invalidateSize();
+      }
+    });
+    if (mapContainerRef.current) {
+      resizeObserver.observe(mapContainerRef.current);
+    }
+
     return () => {
+      resizeObserver.disconnect();
       if (mapRef.current) {
         mapRef.current.remove();
         mapRef.current = null;

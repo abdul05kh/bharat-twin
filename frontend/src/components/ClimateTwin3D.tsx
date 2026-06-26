@@ -998,12 +998,17 @@ export default function ClimateTwin3D({ cells, activeLayer, showBoundaries, isSi
       camera.updateProjectionMatrix();
       renderer.setSize(w, h);
     };
-    window.addEventListener('resize', handleResize);
+    
+    // Setup ResizeObserver to trigger Three.js render space adjustment on container size or orientation shift
+    const resizeObserver = new ResizeObserver(() => {
+      handleResize();
+    });
+    resizeObserver.observe(container);
 
     // Cleanup Three.js memory allocations
     return () => {
       cancelAnimationFrame(animationFrameId);
-      window.removeEventListener('resize', handleResize);
+      resizeObserver.disconnect();
       canvasEl.removeEventListener('mousedown', handleMouseDown);
       canvasEl.removeEventListener('click', handleMouseClick);
       window.removeEventListener('mousemove', handleMouseMove);

@@ -21,19 +21,13 @@ export default function LegacyTimeMachineRedirect() {
       color: '#0B3D91'
     }}>
       <div style={{ textAlign: 'center' }}>
-        <div style={{ 
+        <div className="animate-spin" style={{ 
           width: '40px', height: '40px', 
           borderRadius: '50%', border: '3px solid #0B3D91', 
-          borderTopColor: 'transparent', margin: '0 auto 12px',
-          animation: 'spin 1.0s linear infinite'
+          borderTopColor: 'transparent', margin: '0 auto 12px'
         }} />
         <h3 style={{ fontWeight: 600 }}>Redirecting to Climate Scenario Sandbox...</h3>
       </div>
-      <style jsx global>{`
-        @keyframes spin {
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 }

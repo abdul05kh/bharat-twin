@@ -16,6 +16,7 @@ export default function DataHealthSecurityCenter() {
   const [pingTimer, setPingTimer] = useState<number | string>(0);
   const [dbQueryTime, setDbQueryTime] = useState<number | string>('n/a');
   const [fps, setFps] = useState<number | string>('-');
+  const [frontendRoot, setFrontendRoot] = useState('http://localhost:3000');
   
   const fetchHealth = useCallback(async () => {
     if (!selectedRegion) return;
@@ -48,6 +49,11 @@ export default function DataHealthSecurityCenter() {
     }
   }, [selectedRegion, fetchHealth]);
 
+  // Set the frontend host URL after client mount to prevent hydration warning
+  useEffect(() => {
+    setFrontendRoot(window.location.origin);
+  }, []);
+
   // Prefer server-provided render telemetry; keep placeholder if absent
   useEffect(() => {
     const renderFps = metadata?.['render_fps'] as number | undefined;
@@ -64,7 +70,7 @@ export default function DataHealthSecurityCenter() {
     gitCommit: '7dfa2c4',
     buildTime: '2026-06-22 18:34 UTC',
     apiRoot: apiBase,
-    frontendRoot: typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000',
+    frontendRoot: frontendRoot,
     envStatus: 'VERIFIED',
     corsStatus: 'ACTIVE',
   };

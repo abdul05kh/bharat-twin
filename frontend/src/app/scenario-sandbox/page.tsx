@@ -84,6 +84,12 @@ export default function ScenarioSandbox() {
 
   // Screen shake effect for WOW moments
   const [screenAlert, setScreenAlert] = useState(false);
+  
+  // Set client-side origin post-mount to prevent hydration warnings
+  const [clientOrigin, setClientOrigin] = useState('https://bharat-twin.web.app');
+  useEffect(() => {
+    setClientOrigin(window.location.origin);
+  }, []);
 
   useEffect(() => {
     fetchRegions();
@@ -835,7 +841,7 @@ export default function ScenarioSandbox() {
                           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '6px', padding: '6px' }}>
                             <div style={{ padding: '4px', background: 'white', border: '2px solid var(--success)', borderRadius: '6px', boxShadow: '0 0 10px rgba(30,142,62,0.15)' }}>
                               <img
-                                src={activeSimulation ? ((activeSimulation as any).qr_url || `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${typeof window !== 'undefined' ? window.location.origin : ''}/briefing?simulation_id=${activeSimulation.id}`) : "https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://bharat-twin.web.app"}
+                                src={activeSimulation ? ((activeSimulation as any).qr_url || `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${clientOrigin}/briefing?simulation_id=${activeSimulation.id}`) : `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${clientOrigin}`}
                                 alt="Briefing QR"
                                 style={{ width: '64px', height: '64px' }}
                               />

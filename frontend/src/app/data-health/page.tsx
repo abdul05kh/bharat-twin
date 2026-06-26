@@ -106,7 +106,7 @@ export default function DataHealthSecurityCenter() {
 
         {/* Content Container */}
         <div className="page-body-container" style={{ flex: 1, overflowY: 'auto', padding: '24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+          <div className="grid-2col" style={{ display: 'grid', gap: '20px' }}>
           
           {/* Section 1: Ingestion & Sync Health */}
           <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', padding: '20px', borderTop: '3px solid var(--gov-saffron)' }}>

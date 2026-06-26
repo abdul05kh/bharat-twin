@@ -428,7 +428,7 @@ export default function ScenarioSandbox() {
         </header>
 
         {/* Map-First Command Center Split Layout */}
-        <div className="grid-split-70-30" style={{ flex: 1, display: 'grid', gridTemplateColumns: '70% 30%', overflow: 'hidden', zIndex: 2 }}>
+        <div className="grid-split-70-30" style={{ flex: 1, display: 'grid', overflow: 'hidden', zIndex: 2 }}>
 
           {/* LEFT COLUMN: 3D Digital Earth Map Hero (70% width) */}
           <div style={{ display: 'flex', flexDirection: 'column', padding: '16px', gap: '12px', overflow: 'hidden', height: '100%', position: 'relative' }}>

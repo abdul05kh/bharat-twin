@@ -205,7 +205,7 @@ export default function ImpactAssessmentConsole() {
             <PrimaryRiskHero />
 
             {/* Metric Summary Cards */}
-            <div className="grid-3col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
+            <div className="grid-3col" style={{ display: 'grid', gap: '14px' }}>
               
               {/* Active Scenario */}
               <div className="premium-card" style={{ borderTop: '3px solid var(--primary)', padding: '14px' }}>
@@ -263,7 +263,7 @@ export default function ImpactAssessmentConsole() {
             </div>
 
             {/* Decision Consequence Matrix */}
-            <div className="grid-3col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '14px' }}>
+            <div className="grid-3col" style={{ display: 'grid', gap: '14px' }}>
               
               {/* Environmental Impacts */}
               <div className="premium-card" style={{ borderTop: '3px solid var(--accent)', padding: '14px' }}>
@@ -443,7 +443,7 @@ export default function ImpactAssessmentConsole() {
       {/* Wow Moment #1 Animation Overlay */}
       {wowAnimating && (
         <div style={{
-          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+          position: 'fixed', top: 0, left: 0, width: '100vw', height: '100dvh',
           background: 'rgba(247, 249, 252, 0.95)', zIndex: 9999,
           display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
           backdropFilter: 'blur(8px)', fontFamily: "'Inter', sans-serif"
@@ -465,7 +465,7 @@ export default function ImpactAssessmentConsole() {
               <div style={{ width: `${wowProgress}%`, height: '100%', background: 'var(--primary)', transition: 'width 0.05s linear' }} />
             </div>
 
-            <div className="grid-3col" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '8px', marginTop: '4px', fontSize: '11px', fontFamily: 'monospace' }}>
+            <div className="grid-3col" style={{ display: 'grid', gap: '8px', marginTop: '4px', fontSize: '11px', fontFamily: 'monospace' }}>
               <div>
                 <span style={{ color: 'var(--muted)', display: 'block', fontSize: '8px' }}>RISK INDEX</span>
                 <strong style={{ color: 'var(--primary)', fontSize: '14px' }}>{wowRiskScore}%</strong>

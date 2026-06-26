@@ -109,7 +109,7 @@ export default function ClimateOperationsCentre() {
           <PrimaryRiskHero />
 
           {/* Metric Cards Grid */}
-          <div className="grid-4col" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '12px' }}>
+          <div className="grid-4col" style={{ display: 'grid', gap: '12px' }}>
             {metrics.map(({ label, value, icon: Icon, color, bg }) => (
               <div key={label} className="premium-card" style={{
                 padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px',
@@ -127,7 +127,7 @@ export default function ClimateOperationsCentre() {
           </div>
 
           {/* Split Map and Sidebar */}
-          <div className="grid-split-70-30" style={{ display: 'grid', gridTemplateColumns: '70% 30%', gap: '14px' }}>
+          <div className="grid-split-70-30" style={{ display: 'grid', gap: '14px' }}>
             
             {/* Map Panel */}
             <div className="premium-card" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>

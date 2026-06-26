@@ -118,7 +118,7 @@ export default function DataProvenancePage() {
             </div>
 
             {/* Ingestion & Integrity Audits */}
-            <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+            <div className="grid-2col" style={{ display: 'grid', gap: '20px' }}>
               <div style={{ background: 'var(--surface)', border: '1px solid var(--border)', borderRadius: '6px', padding: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '14px' }}>
                   <Award size={15} color="var(--gov-cyan)" />

@@ -233,7 +233,7 @@ Verification confirms zero null coordinates or averaged grid collapses.`
 
         {/* Cinematic Layout: 2 Columns */}
         <div className="page-body-container" style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '14px' }}>
-          <div className="grid-split-32-68" style={{ display: 'grid', gridTemplateColumns: '32% 68%', gap: '14px', minHeight: 0 }}>
+          <div className="grid-split-32-68" style={{ display: 'grid', gap: '14px', minHeight: 0 }}>
           
           {/* LEFT COLUMN: Autoplay Sequencer */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>

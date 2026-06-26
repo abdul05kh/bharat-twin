@@ -351,7 +351,7 @@ export default function ClimateIntelligenceHub() {
           </div>
 
           {/* Charts Grid */}
-          <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px' }}>
+          <div className="grid-2col" style={{ display: 'grid', gap: '14px' }}>
             
             {/* Historical Chart Card */}
             <div className="premium-card" style={{ height: '350px', display: 'flex', flexDirection: 'column' }}>
@@ -464,7 +464,7 @@ export default function ClimateIntelligenceHub() {
           </div>
 
           {/* Diagnostics Section */}
-          <div className="grid-2col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '14px', marginTop: '14px' }}>
+          <div className="grid-2col" style={{ display: 'grid', gap: '14px', marginTop: '14px' }}>
             <ValidationCenter />
             <AITransparencyPanel />
           </div>

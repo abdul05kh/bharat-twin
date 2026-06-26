@@ -333,7 +333,7 @@ export default function LandingPage() {
         </div>
 
         {/* Main Split Layout */}
-        <div className="home-hero-grid" style={{ display: 'grid', gridTemplateColumns: '40% 60%', gap: '14px', flex: 1, overflow: 'hidden', minHeight: 0 }}>
+        <div className="home-hero-grid" style={{ display: 'grid', gap: '14px', flex: 1, overflow: 'hidden', minHeight: 0 }}>
           
           {/* LEFT COLUMN: Climate Simulation Theater (Workflow & Terminal) */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', overflowY: 'auto', paddingRight: '2px' }}>

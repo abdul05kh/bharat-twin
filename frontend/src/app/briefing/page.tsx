@@ -272,7 +272,7 @@ function BriefingContent() {
         </header>
 
         {/* Master Registry Workspace Layout */}
-        <div className="briefing-layout" style={{ flex: 1, display: 'grid', gridTemplateColumns: '260px 1fr', overflow: 'hidden' }}>
+        <div className="briefing-layout" style={{ flex: 1, display: 'grid', overflow: 'hidden' }}>
           
           {/* LEFT COLUMN: Scenario Registry Sidebar */}
           <aside style={{

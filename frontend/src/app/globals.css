@@ -766,6 +766,11 @@ body {
     gap: 12px !important;
   }
 
+  .sandbox-left-panel {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
   /* Scenario sandbox right panel full width stacking */
   .sandbox-right-panel {
     border-left: none !important;

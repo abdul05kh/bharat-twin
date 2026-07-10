@@ -25,12 +25,21 @@ import {
   Link2,
   TrendingUp,
   ArrowRight,
-  TrendingDown
+  TrendingDown,
+  GitBranch
 } from 'lucide-react';
 
 type Severity = 'Low' | 'Moderate' | 'High' | 'Critical';
 type Duration = '3 Days' | '1 Week' | '2 Weeks' | '1 Month';
-type Stressor = 'Heatwave' | 'Delayed Monsoon' | 'Drought' | 'AQI Surge' | 'Water Scarcity';
+type Stressor =
+  | 'Heatwave'
+  | 'Delayed Monsoon'
+  | 'Drought'
+  | 'AQI Surge'
+  | 'Water Scarcity'
+  | 'Earlier Monsoon'
+  | 'Cool Summer'
+  | 'Above-Normal Rainfall';
 
 interface SimLog {
   timestamp: string;
@@ -49,7 +58,9 @@ export default function ScenarioSandbox() {
     activeSimulation,
     setActiveStressor,
     digitalTwin,
-    fetchDigitalTwin
+    fetchDigitalTwin,
+    historicalTrends,
+    fetchHistoricalTrends
   } = useClimateStore();
 
   // Form State
@@ -99,13 +110,21 @@ export default function ScenarioSandbox() {
     if (selectedRegion) {
       fetchLatestForecast();
       fetchDigitalTwin();
+      fetchHistoricalTrends();
     }
-  }, [selectedRegion, fetchLatestForecast, fetchDigitalTwin]);
+  }, [selectedRegion, fetchLatestForecast, fetchDigitalTwin, fetchHistoricalTrends]);
 
   // Sync Global Climate Mood Engine when simulation is done
   useEffect(() => {
     if (simulationComplete && activeStressors.length > 0) {
-      setActiveStressor(activeStressors[0]);
+      const mainStressor = activeStressors[0];
+      if (mainStressor === 'Earlier Monsoon' || mainStressor === 'Above-Normal Rainfall') {
+        setActiveStressor('Water Scarcity');
+      } else if (mainStressor === 'Cool Summer') {
+        setActiveStressor('Baseline');
+      } else {
+        setActiveStressor(mainStressor);
+      }
     }
   }, [simulationComplete, activeStressors, setActiveStressor]);
 
@@ -120,11 +139,386 @@ export default function ScenarioSandbox() {
   }, [simulationLogs, isSimulating]);
 
   const toggleStressor = (str: Stressor) => {
-    if (activeStressors.includes(str)) {
-      setActiveStressors(activeStressors.filter(s => s !== str));
+    const recoveryStressors: Stressor[] = ['Earlier Monsoon', 'Cool Summer', 'Above-Normal Rainfall'];
+    const negativeStressors: Stressor[] = ['Heatwave', 'Delayed Monsoon', 'Drought', 'AQI Surge', 'Water Scarcity'];
+
+    if (recoveryStressors.includes(str)) {
+      setActiveStressors([str]);
     } else {
-      setActiveStressors([...activeStressors, str]);
+      let next = activeStressors.filter(s => negativeStressors.includes(s));
+      if (next.includes(str)) {
+        next = next.filter(s => s !== str);
+      } else {
+        next.push(str);
+      }
+      setActiveStressors(next);
     }
+  };
+
+  const getClimateVariableValues = () => {
+    const isHeatwave = activeStressors.includes('Heatwave');
+    const isMonsoon = activeStressors.includes('Delayed Monsoon');
+    const isDrought = activeStressors.includes('Drought');
+    const isAQI = activeStressors.includes('AQI Surge');
+    const isWater = activeStressors.includes('Water Scarcity');
+    const isEarlierMonsoon = activeStressors.includes('Earlier Monsoon');
+    const isCoolSummer = activeStressors.includes('Cool Summer');
+    const isAboveNormalRain = activeStressors.includes('Above-Normal Rainfall');
+
+    const mult = severity === 'Critical' ? 1.0 : severity === 'High' ? 0.75 : severity === 'Moderate' ? 0.5 : 0.25;
+    const progressFactor = simulationComplete ? 1 : isSimulating ? progress / 100 : 0;
+    const eff = mult * progressFactor;
+
+    const base = {
+      temp: 32.5,
+      rain: 2.4,
+      humidity: 62.0,
+      pressure: 1008.0,
+      wind: 12.4,
+      ndvi: 0.45,
+      soil: 24.2,
+      lst: 36.8,
+      spi: 0.02,
+      hi: 35.2,
+      et: 4.1
+    };
+
+    let dTemp = 0;
+    let dRain = 0;
+    let dHum = 0;
+    let dPres = 0;
+    let dWind = 0;
+    let dNdvi = 0;
+    let dSoil = 0;
+    let dLst = 0;
+    let dSpi = 0;
+    let dHi = 0;
+    let dEt = 0;
+
+    const isPositive = isEarlierMonsoon || isCoolSummer || isAboveNormalRain;
+
+    if (isEarlierMonsoon) {
+      dTemp = -1.5 * progressFactor;
+      dRain = 1.2 * progressFactor;
+      dHum = 12 * progressFactor;
+      dPres = -3 * progressFactor;
+      dWind = 2.5 * progressFactor;
+      dNdvi = 0.06 * progressFactor;
+      dSoil = 6.5 * progressFactor;
+      dLst = -2.5 * progressFactor;
+      dSpi = 0.8 * progressFactor;
+      dHi = -2.0 * progressFactor;
+      dEt = -0.5 * progressFactor;
+    } else if (isCoolSummer) {
+      dTemp = -3.0 * progressFactor;
+      dRain = 0.2 * progressFactor;
+      dHum = 5 * progressFactor;
+      dPres = 1 * progressFactor;
+      dWind = -1.0 * progressFactor;
+      dNdvi = 0.03 * progressFactor;
+      dSoil = 2.0 * progressFactor;
+      dLst = -4.5 * progressFactor;
+      dSpi = 0.2 * progressFactor;
+      dHi = -4.0 * progressFactor;
+      dEt = -0.8 * progressFactor;
+    } else if (isAboveNormalRain) {
+      dTemp = -1.0 * progressFactor;
+      dRain = 1.0 * progressFactor;
+      dHum = 10 * progressFactor;
+      dPres = -2 * progressFactor;
+      dWind = 1.8 * progressFactor;
+      dNdvi = 0.05 * progressFactor;
+      dSoil = 5.8 * progressFactor;
+      dLst = -1.8 * progressFactor;
+      dSpi = 0.6 * progressFactor;
+      dHi = -1.2 * progressFactor;
+      dEt = -0.3 * progressFactor;
+    } else {
+      if (isHeatwave) {
+        dTemp += 4.2 * eff;
+        dLst += 6.8 * eff;
+        dHi += 7.5 * eff;
+        dHum -= 15 * eff;
+        dSoil -= 8 * eff;
+        dNdvi -= 0.08 * eff;
+        dEt += 1.8 * eff;
+      }
+      if (isDrought) {
+        dRain -= 1.8 * eff;
+        dSoil -= 12 * eff;
+        dNdvi -= 0.12 * eff;
+        dSpi -= 1.8 * eff;
+        dHum -= 20 * eff;
+        dTemp += 1.5 * eff;
+        dLst += 3.2 * eff;
+        dEt -= 1.2 * eff;
+      }
+      if (isMonsoon) {
+        dRain -= 2.0 * eff;
+        dSoil -= 10 * eff;
+        dHum -= 18 * eff;
+        dSpi -= 1.5 * eff;
+        dTemp += 1.2 * eff;
+        dLst += 2.5 * eff;
+      }
+      if (isAQI) {
+        dPres -= 4 * eff;
+        dWind -= 4.5 * eff;
+        dTemp += 0.5 * eff;
+      }
+      if (isWater) {
+        dSoil -= 6 * eff;
+        dEt -= 0.5 * eff;
+      }
+    }
+
+    return [
+      {
+        name: 'Air Temperature',
+        icon: '🌡️',
+        current: base.temp,
+        predicted: base.temp + dTemp,
+        unit: '°C',
+        confidence: '92%',
+        reason: isPositive ? 'Reduced solar forcing and increased cloud reflectivity.' : 'Increased greenhouse trapping and synoptic subsidence.'
+      },
+      {
+        name: 'Rainfall',
+        icon: '🌧️',
+        current: base.rain,
+        predicted: Math.max(0, base.rain + dRain),
+        unit: 'mm/day',
+        confidence: '88%',
+        reason: isPositive ? 'Strengthened regional monsoon wind flows.' : 'ENSO phase mismatch and moisture flux suppression.'
+      },
+      {
+        name: 'Relative Humidity',
+        icon: '💧',
+        current: base.humidity,
+        predicted: Math.max(10, base.humidity + dHum),
+        unit: '%',
+        confidence: '85%',
+        reason: 'Governed responsively by Clausius-Clapeyron atmospheric relation.'
+      },
+      {
+        name: 'Atmospheric Pressure',
+        icon: '⏲️',
+        current: base.pressure,
+        predicted: base.pressure + dPres,
+        unit: 'hPa',
+        confidence: '95%',
+        reason: 'Movement of the regional sub-tropical high-pressure ridge.'
+      },
+      {
+        name: 'Wind Speed',
+        icon: '💨',
+        current: base.wind,
+        predicted: Math.max(1, base.wind + dWind),
+        unit: 'km/h',
+        confidence: '80%',
+        reason: 'Pressure gradient forces acting over urban roughness coefficients.'
+      },
+      {
+        name: 'Vegetation NDVI',
+        icon: '🌱',
+        current: base.ndvi,
+        predicted: Math.max(0.1, base.ndvi + dNdvi),
+        unit: 'index',
+        confidence: '90%',
+        reason: isPositive ? 'Photosynthetic recovery from early rain events.' : 'Chlorophyll absorption failure under thermal dehydration stress.'
+      },
+      {
+        name: 'Soil Moisture',
+        icon: '🪵',
+        current: base.soil,
+        predicted: Math.max(2, base.soil + dSoil),
+        unit: '%',
+        confidence: '87%',
+        reason: 'Precipitation infiltration vs root-zone transpiration balance.'
+      },
+      {
+        name: 'Land Surface Temp (LST)',
+        icon: '🌍',
+        current: base.lst,
+        predicted: base.lst + dLst,
+        unit: '°C',
+        confidence: '94%',
+        reason: 'Thermal radiative skin calibration from INSAT-3D bands.'
+      },
+      {
+        name: 'Standardized Precip (SPI)',
+        icon: '📊',
+        current: base.spi,
+        predicted: base.spi + dSpi,
+        unit: 'index',
+        confidence: '89%',
+        reason: 'Precipitation deficit standardized over seasonal normal indices.'
+      },
+      {
+        name: 'Heat Index',
+        icon: '🥵',
+        current: base.hi,
+        predicted: base.hi + dHi,
+        unit: '°C',
+        confidence: '91%',
+        reason: 'Biometeorological apparent stress combining temp and humidity.'
+      },
+      {
+        name: 'Evapotranspiration',
+        icon: '🍃',
+        current: base.et,
+        predicted: Math.max(0.5, base.et + dEt),
+        unit: 'mm/day',
+        confidence: '83%',
+        reason: 'Vapor pressure deficits vs surface stomatal conductance.'
+      }
+    ];
+  };
+
+  const getCauseEffectChain = () => {
+    const isEarlierMonsoon = activeStressors.includes('Earlier Monsoon');
+    const isCoolSummer = activeStressors.includes('Cool Summer');
+    const isAboveNormalRain = activeStressors.includes('Above-Normal Rainfall');
+    const isHeatwave = activeStressors.includes('Heatwave');
+    const isMonsoon = activeStressors.includes('Delayed Monsoon');
+    const isDrought = activeStressors.includes('Drought');
+    const isAQI = activeStressors.includes('AQI Surge');
+    const isWater = activeStressors.includes('Water Scarcity');
+
+    if (isEarlierMonsoon) {
+      return [
+        { title: 'Monsoon Onset Shift', desc: 'Precipitation arrivals advance by 10-14 days due to localized low-pressure anomalies.' },
+        { title: 'Enhanced Precipitation', desc: 'Moisture influx leads to +50% early rainfall across gridded zones.' },
+        { title: 'Evaporative Cooling', desc: 'Increased surface moisture drives localized temperature drop of -1.5°C.' },
+        { title: 'Soil Infiltration', desc: 'Root-zone moisture reserves surge, improving crop water access.' },
+        { title: 'Vegetation Recovery', desc: 'Greenness index (NDVI) increases by +0.06 as photosynthetic activity accelerates.' },
+        { title: 'Lower Vulnerability', desc: 'Composite risk score falls to Low (18/100) due to mitigated environmental stress.' }
+      ];
+    }
+    if (isCoolSummer) {
+      return [
+        { title: 'Reduced Solar Radiation', desc: 'High cloud reflectivity blocks incoming shortwave solar rays.' },
+        { title: 'Air & Soil Cooling', desc: 'Air temperatures drop by -3.0°C and Land Surface Temperatures (LST) decrease by -4.5°C.' },
+        { title: 'Low Vapor Deficit', desc: 'Evapotranspiration rates decline, preserving soil and vegetation moisture.' },
+        { title: 'Chlorophyll Stability', desc: 'Photosynthetic health is maintained, preventing heat-induced NDVI loss.' },
+        { title: 'Mitigated Risk', desc: 'Digital composite risk decreases to Low (15/100) with minimal thermal stress.' }
+      ];
+    }
+    if (isAboveNormalRain) {
+      return [
+        { title: 'Atmospheric Inflow', desc: 'Strong convective moisture convergence sweeps across the Deccan Plateau.' },
+        { title: 'Precipitation Surge', desc: 'Gridded daily rainfall averages rise by +40% relative to standard baselines.' },
+        { title: 'Groundwater Infiltration', desc: 'Soil saturation levels spike, promoting aquifer recharge dynamics.' },
+        { title: 'Photosynthetic Boom', desc: 'Agricultural crop zones exhibit dense vegetative growth (NDVI +0.05).' },
+        { title: 'Resilience Surge', desc: 'Aggregate climate stress and municipal water scarcity risks fall (22/100).' }
+      ];
+    }
+    if (isHeatwave) {
+      return [
+        { title: 'Synoptic Subsidence', desc: 'Persistent high pressure traps heat, suppressing convection and cloud cover.' },
+        { title: 'Thermal Inversion', desc: 'Air temperature spikes (+4.2°C) while Land Surface Temperature surges (+6.8°C).' },
+        { title: 'Evaporative Surge', desc: 'Vapor pressure deficit accelerates evapotranspiration (+1.8 mm/day).' },
+        { title: 'Soil Desiccation', desc: 'Rapid moisture loss dries out the root zone, creating moisture deficit.' },
+        { title: 'Crop Wilting', desc: 'Chlorophyll absorption fails, reducing photosynthetic greenness (NDVI -0.08).' },
+        { title: 'High Systemic Risk', desc: 'Composite Climate Risk peaks at High (71/100), triggering NDMA response guidelines.' }
+      ];
+    }
+    if (isDrought) {
+      return [
+        { title: 'Precipitation Deficit', desc: 'Severe meteorological dry spell locks the subcontinent (SPI falls to -1.8).' },
+        { title: 'Soil Moisture Drain', desc: 'Surface soil moisture depletes by -12%, shutting down vegetative transpiration.' },
+        { title: 'Agricultural Stress', desc: 'Chlorophyll content decays, driving NDVI loss (-0.12) and crop failure.' },
+        { title: 'Hydrological Scarcity', desc: 'Groundwater recharge drops to <60%, depleting surface reservoir stocks.' },
+        { title: 'Critical Risk Score', desc: 'Systemic composite risk surges, forcing urgent emergency orders.' }
+      ];
+    }
+    if (isMonsoon) {
+      return [
+        { title: 'Monsoon Delay Anomaly', desc: 'Weak cross-equatorial flow delays onset by 3 weeks, leaving skies clear.' },
+        { title: 'Unseasonable Heating', desc: 'Solar radiation heats dry soils, raising air temperatures by +1.2°C.' },
+        { title: 'Moisture Depletion', desc: 'Lack of rain reduces soil moisture levels by -10% across agricultural zones.' },
+        { title: 'Crop Cycle Disruption', desc: 'Delayed sowing increases seed mortality risk and restricts vegetation density.' },
+        { title: 'Vulnerability Escalation', desc: 'Composite environmental risk index climbs as drought signals compound.' }
+      ];
+    }
+    if (isAQI) {
+      return [
+        { title: 'Atmospheric Stagnation', desc: 'Low wind speeds (<1.0 km/h) and a thermal inversion trap particulate layers.' },
+        { title: 'PM2.5 Accumulation', desc: 'Particulate concentration surges, raising composite AQI to warning levels.' },
+        { title: 'Reduced Transmissivity', desc: 'Haze layer absorbs incoming light, slightly warming the air layer (+0.5°C).' },
+        { title: 'Health Strain', desc: 'Respiratory exposure metrics spike, elevating public health emergency levels.' }
+      ];
+    }
+    if (isWater) {
+      return [
+        { title: 'Hydrological Strain', desc: 'Evaporative drawdowns exceed inflows, depleting major municipal reservoirs.' },
+        { title: 'Distribution Deficit', desc: 'Groundwater levels fall, reducing daily supply capacity to urban hubs.' },
+        { title: 'Soil Dehydration', desc: 'Infiltration rates drop, drying surrounding vegetative greenways.' },
+        { title: 'Rationing Phase', desc: 'NDMA triggers reservoir restrictions and pre-positions municipal backup water logistics.' }
+      ];
+    }
+
+    return [
+      { title: 'Baseline State', desc: 'Atmospheric variables operating within standard sub-divisional limits.' },
+      { title: 'Normal Conditions', desc: 'No active climatic anomalies detected in the metropolitan zone.' }
+    ];
+  };
+
+  const getHistoricalAnalogue = () => {
+    const isEarlierMonsoon = activeStressors.includes('Earlier Monsoon');
+    const isCoolSummer = activeStressors.includes('Cool Summer');
+    const isAboveNormalRain = activeStressors.includes('Above-Normal Rainfall');
+
+    const variables = getClimateVariableValues();
+    const targetTemp = variables[0].predicted;
+    const targetRain = variables[1].predicted;
+
+    if (!historicalTrends || historicalTrends.length === 0) {
+      return {
+        isDemo: true,
+        date: 'May 18, 2015',
+        temp: 41.5,
+        rain: 0.0,
+        tempDiff: 9.0,
+        rainDiff: -2.4,
+        similarity: 94,
+        confidence: '95% Confidence Interval [89% - 98%]',
+        note: 'Matches peak Deccan plateau heatwave anomalies with high thermal pressure.'
+      };
+    }
+
+    let bestMatch = historicalTrends[0];
+    let minDistance = Infinity;
+
+    historicalTrends.forEach(trend => {
+      const tempDiff = (trend.avg_max_temp - targetTemp) / 10;
+      const rainDiff = (trend.avg_rainfall - targetRain) / 5;
+      const dist = tempDiff * tempDiff + rainDiff * rainDiff;
+      if (dist < minDistance) {
+        minDistance = dist;
+        bestMatch = trend;
+      }
+    });
+
+    const tempDiff = bestMatch.avg_max_temp - 32.5;
+    const rainDiff = bestMatch.avg_rainfall - 2.4;
+    const similarity = Math.max(72, Math.round(100 - Math.sqrt(minDistance) * 35));
+
+    return {
+      isDemo: false,
+      date: new Date(bestMatch.date).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }),
+      temp: bestMatch.avg_max_temp,
+      rain: bestMatch.avg_rainfall,
+      tempDiff: tempDiff,
+      rainDiff: rainDiff,
+      similarity: Math.min(99, similarity),
+      confidence: `±${(1.5 - (similarity * 0.01)).toFixed(2)}°C Confidence Interval [${similarity - 5}% - ${Math.min(100, similarity + 2)}%]`,
+      note: isEarlierMonsoon || isAboveNormalRain
+        ? 'Reflects historical wet spell events with positive vegetation feedback.'
+        : isCoolSummer
+        ? 'Resembles historical cloud block periods with lowered thermal radiative output.'
+        : 'Aligned with historical dry convective blocks and elevated urban heating thresholds.'
+    };
   };
 
   const addLog = (message: string, status: 'info' | 'warn' | 'success' | 'process' = 'info') => {
@@ -132,12 +526,11 @@ export default function ScenarioSandbox() {
     setSimulationLogs(prev => [...prev, { timestamp: time, status, message }]);
   };
 
-  // Sync 3D Twin active layer automatically with active stressors
   const getActiveLayerFromStressors = (stressors: Stressor[]) => {
-    if (stressors.includes('Heatwave')) return 'temperature';
+    if (stressors.includes('Heatwave') || stressors.includes('Cool Summer')) return 'temperature';
     if (stressors.includes('AQI Surge')) return 'aqi';
     if (stressors.includes('Water Scarcity') || stressors.includes('Drought')) return 'stress';
-    if (stressors.includes('Delayed Monsoon')) return 'rainfall';
+    if (stressors.includes('Delayed Monsoon') || stressors.includes('Earlier Monsoon') || stressors.includes('Above-Normal Rainfall')) return 'rainfall';
     return 'temperature';
   };
 
@@ -174,9 +567,33 @@ export default function ScenarioSandbox() {
     const isDrought = activeStressors.includes('Drought');
     const isAQI = activeStressors.includes('AQI Surge');
     const isWater = activeStressors.includes('Water Scarcity');
+    const isEarlierMonsoon = activeStressors.includes('Earlier Monsoon');
+    const isCoolSummer = activeStressors.includes('Cool Summer');
+    const isAboveNormalRain = activeStressors.includes('Above-Normal Rainfall');
 
     // Calculate stressor final values
-    if (isHeatwave) {
+    if (isEarlierMonsoon) {
+      riskEnd = 18;
+      heatEnd = 20;
+      waterEnd = 12;
+      cropEnd = 15;
+      healthEnd = 18;
+      resourceEnd = 15;
+    } else if (isCoolSummer) {
+      riskEnd = 15;
+      heatEnd = 12;
+      waterEnd = 22;
+      cropEnd = 24;
+      healthEnd = 15;
+      resourceEnd = 20;
+    } else if (isAboveNormalRain) {
+      riskEnd = 22;
+      heatEnd = 25;
+      waterEnd = 10;
+      cropEnd = 18;
+      healthEnd = 22;
+      resourceEnd = 18;
+    } else if (isHeatwave) {
       riskEnd = 71;
       heatEnd = 82;
       waterEnd = 63;
@@ -199,7 +616,7 @@ export default function ScenarioSandbox() {
       { t: 0, msg: 'Initializing ISRO-aligned Mesoscale Grid Matrix...', stat: 'info' as const },
       { t: 300, msg: 'Syncing INSAT-3D Land Surface Temperature (LST) raster bands...', stat: 'process' as const },
       { t: 600, msg: 'Loading IMD historical observations (1951-2025) for baseline calibration...', stat: 'info' as const },
-      { t: 900, msg: `Applying Climatic Stressors: ${activeStressors.join(', ')} (${severity} Anomaly)...`, stat: 'warn' as const },
+      { t: 900, msg: `Applying Climatic stressors & parameters: ${activeStressors.join(', ')}...`, stat: 'warn' as const },
       { t: 1200, msg: 'Executing XGBoost mesoscale forecast engine & multi-step lag models...', stat: 'process' as const },
       { t: 1500, msg: 'Evaluating Cellular Risk Propagation Fronts and soil moisture deficits...', stat: 'process' as const },
       { t: 1800, msg: 'Synthesizing NDMA vulnerability indices and structural resource stress scores...', stat: 'process' as const },
@@ -220,8 +637,21 @@ export default function ScenarioSandbox() {
 
     // Trigger backend models in sync
     if (latestForecast && activeStressors.length > 0) {
-      const tempAdj = isHeatwave ? 4.0 : severity === 'Critical' ? 3.0 : severity === 'High' ? 2.0 : 0.8;
-      const rainAdj = isDrought ? -40 : isMonsoon ? -60 : -10;
+      let tempAdj = 0;
+      let rainAdj = 0;
+      if (isEarlierMonsoon) {
+        tempAdj = -1.5;
+        rainAdj = 50;
+      } else if (isCoolSummer) {
+        tempAdj = -3.0;
+        rainAdj = 10;
+      } else if (isAboveNormalRain) {
+        tempAdj = -1.0;
+        rainAdj = 40;
+      } else {
+        tempAdj = isHeatwave ? 4.0 : severity === 'Critical' ? 3.0 : severity === 'High' ? 2.0 : 0.8;
+        rainAdj = isDrought ? -40 : isMonsoon ? -60 : -10;
+      }
       createScenario(
         `Sandbox: ${activeStressors.join(' & ')} (${severity})`,
         rainAdj,
@@ -430,10 +860,10 @@ export default function ScenarioSandbox() {
         {/* Map-First Command Center Split Layout */}
         <div className="grid-split-70-30" style={{ flex: 1, display: 'grid', overflow: 'hidden', zIndex: 2 }}>
 
-          {/* LEFT COLUMN: 3D Digital Earth Map Hero (70% width) */}
-          <div style={{ display: 'flex', flexDirection: 'column', padding: '16px', gap: '12px', overflow: 'hidden', height: '100%', position: 'relative' }}>
+          {/* LEFT COLUMN: 3D Digital Earth Map Hero (70% width, scrollable analysis panels) */}
+          <div className="sandbox-left-panel" style={{ display: 'flex', flexDirection: 'column', padding: '16px', gap: '20px', overflowY: 'auto', height: '100%', position: 'relative' }}>
             <div className="map-wrapper" style={{
-              flex: 1, position: 'relative',
+              height: '500px', flexShrink: 0, position: 'relative',
               border: '1px solid var(--border)', borderRadius: '8px',
               overflow: 'hidden', background: '#FFFFFF',
               boxShadow: 'var(--shadow)'
@@ -453,6 +883,213 @@ export default function ScenarioSandbox() {
                   </div>
                 </div>
               )}
+            </div>
+
+            {/* 1. CLIMATE CAUSE-AND-EFFECT CHAIN STEPPER */}
+            <div className="premium-card" style={{ padding: '20px', border: '1px solid var(--border)', borderRadius: '10px', background: 'var(--surface)', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1.5px solid var(--border)', paddingBottom: '8px' }}>
+                <GitBranch size={16} color="var(--primary)" />
+                <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  Climate Cause-and-Effect Chain
+                </span>
+              </div>
+              <p style={{ fontSize: '11px', color: 'var(--muted)', lineHeight: 1.4, margin: 0 }}>
+                Systemic feedback propagation tracing the atmospheric anomaly down to risk indices:
+              </p>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center', marginTop: '4px' }}>
+                {getCauseEffectChain().map((step, idx) => (
+                  <React.Fragment key={idx}>
+                    <div style={{
+                      background: 'var(--surface-alt)', border: '1px solid var(--border)', borderRadius: '6px',
+                      padding: '8px 12px', display: 'flex', flexDirection: 'column', gap: '3px', flex: '1 1 180px'
+                    }}>
+                      <span style={{ fontSize: '8px', color: 'var(--muted)', fontWeight: 800 }}>STAGE {idx + 1}</span>
+                      <strong style={{ fontSize: '11.5px', color: 'var(--primary)' }}>{step.title}</strong>
+                      <span style={{ fontSize: '10px', color: 'var(--text)', lineHeight: 1.3 }}>{step.desc}</span>
+                    </div>
+                    {idx < getCauseEffectChain().length - 1 && (
+                      <span style={{ fontSize: '12px', color: 'var(--muted)', fontWeight: 900 }} className="flow-arrow">→</span>
+                    )}
+                  </React.Fragment>
+                ))}
+              </div>
+            </div>
+
+            {/* 2. CLIMATE VARIABLES TELEMETRY DASHBOARD */}
+            <div className="premium-card" style={{ padding: '20px', border: '1px solid var(--border)', borderRadius: '10px', background: 'var(--surface)', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1.5px solid var(--border)', paddingBottom: '8px' }}>
+                <Activity size={16} color="var(--primary)" />
+                <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                  Climate Variables Telemetry Dashboard
+                </span>
+              </div>
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '11.5px', textAlign: 'left' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1.5px solid var(--border)', color: 'var(--muted)' }}>
+                      <th style={{ padding: '8px' }}>Variable</th>
+                      <th style={{ padding: '8px' }}>Baseline</th>
+                      <th style={{ padding: '8px' }}>Predicted</th>
+                      <th style={{ padding: '8px' }}>Delta</th>
+                      <th style={{ padding: '8px' }}>Trend</th>
+                      <th style={{ padding: '8px' }}>Confidence</th>
+                      <th style={{ padding: '8px' }}>Scientific Explanation / Attribution</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {getClimateVariableValues().map((v, idx) => {
+                      const delta = v.predicted - v.current;
+                      const pctChange = v.current > 0 ? (delta / v.current) * 100 : 0;
+                      const isUp = delta > 0;
+                      const isZero = Math.abs(delta) < 0.001;
+
+                      return (
+                        <tr key={idx} style={{ borderBottom: '1px solid var(--border)' }}>
+                          <td style={{ padding: '8px', fontWeight: 700 }}>
+                            <span style={{ marginRight: '6px' }}>{v.icon}</span>{v.name}
+                          </td>
+                          <td style={{ padding: '8px', fontFamily: 'monospace' }}>
+                            {v.current.toFixed(v.unit === 'index' ? 2 : 1)} {v.unit}
+                          </td>
+                          <td style={{ padding: '8px', fontFamily: 'monospace', fontWeight: 800 }}>
+                            {v.predicted.toFixed(v.unit === 'index' ? 2 : 1)} {v.unit}
+                          </td>
+                          <td style={{ padding: '8px', fontFamily: 'monospace', color: isZero ? 'var(--muted)' : isUp ? 'var(--critical)' : 'var(--success)' }}>
+                            {isZero ? '0.0' : `${isUp ? '+' : ''}${delta.toFixed(v.unit === 'index' ? 2 : 1)} (${isUp ? '+' : ''}${pctChange.toFixed(0)}%)`}
+                          </td>
+                          <td style={{ padding: '8px' }}>
+                            {isZero ? (
+                              <span style={{ fontSize: '10px', color: 'var(--muted)' }}>Stable</span>
+                            ) : isUp ? (
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '3px', color: 'var(--critical)', fontWeight: 700 }}><TrendingUp size={10} /> Rising</span>
+                            ) : (
+                              <span style={{ display: 'flex', alignItems: 'center', gap: '3px', color: 'var(--success)', fontWeight: 700 }}><TrendingDown size={10} /> Falling</span>
+                            )}
+                          </td>
+                          <td style={{ padding: '8px', fontWeight: 700, color: 'var(--primary)' }}>
+                            {v.confidence}
+                          </td>
+                          <td style={{ padding: '8px', color: 'var(--muted)', lineHeight: 1.35 }}>
+                            {v.reason}
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* 3. HISTORICAL CLIMATE ANALOGUE RETRIEVAL */}
+            <div className="premium-card" style={{ padding: '20px', border: '1px solid var(--border)', borderRadius: '10px', background: 'var(--surface)', display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1.5px solid var(--border)', paddingBottom: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <Database size={16} color="var(--primary)" />
+                  <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+                    Historical Climate Analogue Analysis
+                  </span>
+                </div>
+                {getHistoricalAnalogue().isDemo && (
+                  <span style={{ fontSize: '8.5px', background: 'var(--surface-alt)', color: 'var(--muted)', padding: '2px 6px', borderRadius: '4px', border: '1px solid var(--border)', fontWeight: 700, textTransform: 'uppercase' }}>
+                    Prototype Historical Analysis
+                  </span>
+                )}
+              </div>
+              <p style={{ fontSize: '11px', color: 'var(--muted)', lineHeight: 1.4, margin: 0 }}>
+                Comparing the projected gridded simulation with historical analogues retrieved from the IMD sub-divisional archive:
+              </p>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.5fr', gap: '16px' }} className="grid-split-32-68-collapsed">
+                <div style={{ background: 'var(--surface-alt)', border: '1.5px solid var(--border)', borderRadius: '8px', padding: '12px 14px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', textAlign: 'center' }}>
+                  <span style={{ fontSize: '9px', fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase' }}>Closest Analogue Match</span>
+                  <strong style={{ fontSize: '16px', color: 'var(--primary)', margin: '4px 0' }}>{getHistoricalAnalogue().date}</strong>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', background: 'rgba(11,61,145,0.06)', padding: '2px 8px', borderRadius: '12px', border: '1px solid var(--border)' }}>
+                    <span style={{ fontSize: '11px', fontWeight: 800, color: 'var(--primary)' }}>{getHistoricalAnalogue().similarity}% Similarity</span>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', justifyContent: 'center' }}>
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '11px' }}>
+                    <div>
+                      <span style={{ color: 'var(--muted)', display: 'block', fontSize: '8px', textTransform: 'uppercase' }}>Temp Departure</span>
+                      <strong style={{ color: getHistoricalAnalogue().tempDiff > 0 ? 'var(--critical)' : 'var(--success)' }}>
+                        {getHistoricalAnalogue().tempDiff > 0 ? '+' : ''}{getHistoricalAnalogue().tempDiff.toFixed(1)}°C from norm
+                      </strong>
+                    </div>
+                    <div>
+                      <span style={{ color: 'var(--muted)', display: 'block', fontSize: '8px', textTransform: 'uppercase' }}>Precip Anomaly</span>
+                      <strong style={{ color: getHistoricalAnalogue().rainDiff > 0 ? 'var(--success)' : 'var(--critical)' }}>
+                        {getHistoricalAnalogue().rainDiff > 0 ? '+' : ''}{getHistoricalAnalogue().rainDiff.toFixed(1)} mm/day
+                      </strong>
+                    </div>
+                    <div style={{ gridColumn: 'span 2' }}>
+                      <span style={{ color: 'var(--muted)', display: 'block', fontSize: '8px', textTransform: 'uppercase' }}>Confidence Interval (Attributed)</span>
+                      <strong style={{ color: 'var(--primary)', fontFamily: 'monospace' }}>{getHistoricalAnalogue().confidence}</strong>
+                    </div>
+                  </div>
+                  <div style={{ fontSize: '10.5px', color: 'var(--text)', borderTop: '1px solid var(--border)', paddingTop: '4px', lineHeight: 1.35 }}>
+                    <strong>Scientific Note:</strong> {getHistoricalAnalogue().note}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 4. METEOROLOGICAL HORIZONS & XGBOOST SHAP FEATURE CONTEXT */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }} className="grid-split-32-68-collapsed">
+              
+              {/* Horizons list */}
+              <div className="premium-card" style={{ padding: '20px', border: '1px solid var(--border)', borderRadius: '10px', background: 'var(--surface)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', borderBottom: '1.5px solid var(--border)', paddingBottom: '6px', marginBottom: '4px' }}>
+                  <Clock size={14} color="var(--primary)" />
+                  <span style={{ fontSize: '10px', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase' }}>Forecast Capability Limits</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '10.5px', lineHeight: 1.35 }}>
+                  <div>
+                    <strong style={{ color: 'var(--primary)' }}>Nowcasting (0–3 Days):</strong>
+                    <span style={{ color: 'var(--muted)', display: 'block' }}>Highest confidence (conformal band error &lt; 5%).</span>
+                  </div>
+                  <div>
+                    <strong style={{ color: 'var(--primary)' }}>Short Range (4–7 Days):</strong>
+                    <span style={{ color: 'var(--muted)', display: 'block' }}>Medium-high confidence (conformal band error &lt; 12%).</span>
+                  </div>
+                  <div>
+                    <strong style={{ color: 'var(--primary)' }}>Planning Scenario (8–14 Days):</strong>
+                    <span style={{ color: 'var(--muted)', display: 'block' }}>Scenario-based planning with wide uncertainty bounds.</span>
+                  </div>
+                  <div>
+                    <strong style={{ color: 'var(--primary)' }}>Extended (&gt; 14 Days):</strong>
+                    <span style={{ color: 'var(--muted)', display: 'block' }}>Exploratory trend analysis only; non-deterministic predictions.</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* XGBoost / SHAP values */}
+              <div className="premium-card" style={{ padding: '20px', border: '1px solid var(--border)', borderRadius: '10px', background: 'var(--surface)', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: '1.5px solid var(--border)', paddingBottom: '6px', marginBottom: '4px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <Cpu size={14} color="var(--primary)" />
+                    <span style={{ fontSize: '10px', fontWeight: 800, color: 'var(--primary)', textTransform: 'uppercase' }}>Model Feature Contribution</span>
+                  </div>
+                  <span style={{ fontSize: '7.5px', color: 'var(--muted)', textTransform: 'uppercase', border: '1px solid var(--border)', padding: '1px 4px', borderRadius: '3px' }}>SHAP</span>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', fontSize: '10px' }}>
+                  {[
+                    { name: 'Temperature Anomaly', val: 31, color: 'var(--critical)' },
+                    { name: 'Precipitation Deficit', val: 24, color: 'var(--accent)' },
+                    { name: 'Photosynthetic Health (NDVI)', val: 18, color: 'var(--success)' },
+                    { name: 'Relative Humidity Index', val: 15, color: '#9c27b0' }
+                  ].map((s, idx) => (
+                    <div key={idx} style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700 }}>
+                        <span>{s.name}</span>
+                        <span>+{s.val}%</span>
+                      </div>
+                      <div style={{ width: '100%', height: '4px', background: 'rgba(0, 0, 0, 0.05)', borderRadius: '2px', overflow: 'hidden' }}>
+                        <div style={{ width: `${s.val * 3}%`, height: '100%', background: s.color, borderRadius: '2px' }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
             </div>
           </div>
 
@@ -560,33 +1197,65 @@ export default function ScenarioSandbox() {
               </div>
 
               {/* Step 4: Stressors */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                <label style={{ fontSize: '8.5px', fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                  04 / CLIMATE STRESSORS
-                </label>
-                <div className="stressor-chips" style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                  {(['Heatwave', 'Delayed Monsoon', 'Drought', 'AQI Surge', 'Water Scarcity'] as Stressor[]).map(str => {
-                    const active = activeStressors.includes(str);
-                    return (
-                      <button
-                        key={str}
-                        onClick={() => toggleStressor(str)}
-                        style={{
-                          padding: '5px 8px',
-                          fontSize: '10px',
-                          fontWeight: 700,
-                          borderRadius: '12px',
-                          border: `1px solid ${active ? 'var(--accent)' : 'var(--border)'}`,
-                          background: active ? 'rgba(0,140,255,0.06)' : 'transparent',
-                          color: active ? 'var(--accent)' : 'var(--text)',
-                          cursor: 'pointer',
-                          transition: 'all 0.15s'
-                        }}
-                      >
-                        {active ? '✓ ' : ''}{str}
-                      </button>
-                    );
-                  })}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                  <label style={{ fontSize: '8.5px', fontWeight: 800, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    04 / CLIMATE STRESSORS (NEGATIVE)
+                  </label>
+                  <div className="stressor-chips" style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                    {(['Heatwave', 'Delayed Monsoon', 'Drought', 'AQI Surge', 'Water Scarcity'] as Stressor[]).map(str => {
+                      const active = activeStressors.includes(str);
+                      return (
+                        <button
+                          key={str}
+                          onClick={() => toggleStressor(str)}
+                          style={{
+                            padding: '5px 8px',
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            borderRadius: '12px',
+                            border: `1px solid ${active ? 'var(--accent)' : 'var(--border)'}`,
+                            background: active ? 'rgba(0,140,255,0.06)' : 'transparent',
+                            color: active ? 'var(--accent)' : 'var(--text)',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s'
+                          }}
+                        >
+                          {active ? '✓ ' : ''}{str}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
+                  <label style={{ fontSize: '8.5px', fontWeight: 800, color: 'var(--success)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                    RECOVERY SCENARIOS (POSITIVE)
+                  </label>
+                  <div className="stressor-chips" style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                    {(['Earlier Monsoon', 'Cool Summer', 'Above-Normal Rainfall'] as Stressor[]).map(str => {
+                      const active = activeStressors.includes(str);
+                      return (
+                        <button
+                          key={str}
+                          onClick={() => toggleStressor(str)}
+                          style={{
+                            padding: '5px 8px',
+                            fontSize: '10px',
+                            fontWeight: 700,
+                            borderRadius: '12px',
+                            border: `1px solid ${active ? 'var(--success)' : 'var(--border)'}`,
+                            background: active ? 'rgba(30,142,62,0.06)' : 'transparent',
+                            color: active ? 'var(--success)' : 'var(--text)',
+                            cursor: 'pointer',
+                            transition: 'all 0.15s'
+                          }}
+                        >
+                          {active ? '✓ ' : ''}{str}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
 

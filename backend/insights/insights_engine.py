@@ -30,7 +30,7 @@ ALL outputs MUST:
 - Use formal scientific and technical language
 - Reference authoritative climate thresholds (WMO, IMD, NDMA guidelines)
 - Never use conversational, chatbot, or casual language
-- Follow the structure of official government climate advisories
+- Enforce the reasoning-first order: physical climate dynamics and confidence assessments MUST precede administrative emergency directives
 - Quantify uncertainties using confidence intervals where applicable
 - Use ISO units (mm, °C, km², m³)
 """
@@ -363,14 +363,14 @@ class ClimateInsightEngine:
         sector = parsed.get("sector_analysis", {})
         
         insight_text = parsed.get("executive_summary", "") + "\n\n"
+        insight_text += "EXPLAINABILITY: " + parsed.get("explainability", "") + "\n\n"
+        insight_text += "CONFIDENCE: " + parsed.get("confidence_level", "") + "\n\n"
         insight_text += f"THREAT ASSESSMENT ({threat.get('level', 'N/A')}): "
         insight_text += threat.get("rationale", "") + f" [Confidence Score: {threat.get('confidence_score', 'N/A')}]\n\n"
         insight_text += "AGRICULTURE RISK: " + impact.get("agricultural_risk", "") + "\n\n"
         insight_text += "WATER RESOURCE RISK: " + impact.get("water_resource_risk", "") + "\n\n"
         insight_text += "URBAN HEAT RISK: " + impact.get("urban_heat_risk", "") + "\n\n"
         insight_text += "EMERGENCY PREPAREDNESS: " + impact.get("emergency_preparedness", "") + "\n\n"
-        insight_text += "CONFIDENCE: " + parsed.get("confidence_level", "") + "\n\n"
-        insight_text += "EXPLAINABILITY: " + parsed.get("explainability", "")
 
         # Format list for recommended actions
         recommended_actions_compat = []

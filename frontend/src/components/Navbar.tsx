@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Monitor, Settings2, BrainCircuit, FileText, Info, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Monitor, Settings2, BrainCircuit, FileText, Info, Menu, X, ShieldCheck } from 'lucide-react';
 
 const navItems = [
   { name: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
@@ -11,6 +11,7 @@ const navItems = [
   { name: 'Scenario Sandbox', path: '/scenario-sandbox', icon: Settings2 },
   { name: 'Intelligence', path: '/analytics', icon: BrainCircuit },
   { name: 'Reports', path: '/briefing', icon: FileText },
+  { name: 'Validation', path: '/scientific-validation', icon: ShieldCheck },
   { name: 'About', path: '/about', icon: Info },
 ];
 

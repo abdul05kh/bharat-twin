@@ -56,6 +56,12 @@ export default function ClimateTwin3D({ cells, activeLayer, showBoundaries, isSi
     isSimulatingRef.current = isSimulating;
     if (isSimulating) {
       shockwaveTimeRef.current = 0;
+      cameraTargetRef.current = {
+        theta: 0.8,
+        phi: 0.8,
+        radius: 175
+      };
+      setSelectedDistrict(null);
     }
   }, [isSimulating]);
   
@@ -788,6 +794,7 @@ export default function ClimateTwin3D({ cells, activeLayer, showBoundaries, isSi
     canvasEl.addEventListener('wheel', handleWheel, { passive: false });
 
     // --- ANIMATION LOOP ---
+    let wasSimulating = false;
     let animationFrameId: number;
     const clock = new THREE.Clock();
 
@@ -814,6 +821,7 @@ export default function ClimateTwin3D({ cells, activeLayer, showBoundaries, isSi
 
       // Climate Shock Wave WebGL Animation
       if (isSimulatingRef.current) {
+        wasSimulating = true;
         shockwaveTimeRef.current += delta * 25.0; // propagation speed
         const t = shockwaveTimeRef.current;
         
@@ -845,6 +853,23 @@ export default function ClimateTwin3D({ cells, activeLayer, showBoundaries, isSi
         // Contract reservoir water mesh in sync with the shockwave
         const waterScale = Math.max(0.2, 1.0 - (t / 60) * 0.75);
         waterMesh.scale.set(waterScale, 1, waterScale);
+      } else if (wasSimulating) {
+        // Simulation just finished! Restore normal state.
+        wasSimulating = false;
+        const posAttr = terrainGeo.attributes.position;
+        for (let i = 0; i < posAttr.count; i++) {
+          const vx = posAttr.getX(i);
+          const vz = posAttr.getZ(i);
+          posAttr.setY(i, getTerrainHeight(vx, vz));
+        }
+        posAttr.needsUpdate = true;
+        terrainGeo.computeVertexNormals();
+        
+        // Restore water scale
+        waterMesh.scale.set(1.0, 1.0, 1.0);
+        
+        // Restore target colors
+        updateTargetColors();
       }
 
       // Smooth terrain color interpolation (0.5s rate)

@@ -527,7 +527,7 @@ body {
   position: fixed;
   top: 12px;
   left: 12px;
-  z-index: 200;
+  z-index: 1200;
   width: 42px;
   height: 42px;
   border-radius: 8px;
@@ -627,9 +627,11 @@ body {
     overflow-y: auto !important;
   }
 
-  /* Header heights smaller on mobile */
+  /* Header heights smaller on mobile, offset for mobile menu button */
+  header,
   .page-header {
     padding: 0 16px !important;
+    padding-left: 64px !important;
     height: auto !important;
     min-height: 50px !important;
     flex-wrap: wrap !important;

@@ -71,6 +71,20 @@ class ClimateReportGenerator:
             firstLineIndent=-10,
             spaceAfter=4
         )
+        self.table_cell_style = ParagraphStyle(
+            'McKinseyTableCell',
+            parent=self.styles['Normal'],
+            fontName='Helvetica',
+            fontSize=9.5,
+            textColor=self.color_text_dark,
+            leading=13
+        )
+        self.header_cell_style = ParagraphStyle(
+            'McKinseyHeaderCell',
+            parent=self.table_cell_style,
+            textColor=colors.white,
+            fontName='Helvetica-Bold'
+        )
 
     def draw_forecast_chart(self, forecast_data: list, simulation_data: list = None) -> Drawing:
         """Draws a premium vector line chart comparing baseline and simulated max temperatures."""
@@ -310,13 +324,13 @@ class ClimateReportGenerator:
         ))
         
         input_table_data = [
-            [Paragraph("<b>Configuration Metric</b>", self.body_style), Paragraph("<b>Active Specification</b>", self.body_style), Paragraph("<b>Physical Dimension / Description</b>", self.body_style)],
-            [Paragraph("Target District", self.body_style), Paragraph(region_name, self.body_style), Paragraph("Municipal boundary used for geospatial intersecting.", self.body_style)],
-            [Paragraph("Active Stressors", self.body_style), Paragraph(scenario_info.get("name", "Baseline Climatology") if scenario_info else "None", self.body_style), Paragraph("Primary meteorological shock variables applied.", self.body_style)],
-            [Paragraph("Stress Intensity", self.body_style), Paragraph(f"<b>{severity_val}</b>", self.body_style), Paragraph("Anomaly magnitude multiplier.", self.body_style)],
-            [Paragraph("Temporal Window", self.body_style), Paragraph(duration_val, self.body_style), Paragraph("Duration of the continuous stress sequence.", self.body_style)],
-            [Paragraph("Thermal Offset", self.body_style), Paragraph(f"{temp_adj:+.1f} °C", self.body_style), Paragraph("Ambient air temperature boundary adjustments.", self.body_style)],
-            [Paragraph("Rainfall Offset", self.body_style), Paragraph(f"{rain_adj:+.1f}%", self.body_style), Paragraph("Atmospheric precipitation boundary adjustments.", self.body_style)]
+            [Paragraph("<b>Configuration Metric</b>", self.header_cell_style), Paragraph("<b>Active Specification</b>", self.header_cell_style), Paragraph("<b>Physical Dimension / Description</b>", self.header_cell_style)],
+            [Paragraph("Target District", self.table_cell_style), Paragraph(region_name, self.table_cell_style), Paragraph("Municipal boundary used for geospatial intersecting.", self.table_cell_style)],
+            [Paragraph("Active Stressors", self.table_cell_style), Paragraph(scenario_info.get("name", "Baseline Climatology") if scenario_info else "None", self.table_cell_style), Paragraph("Primary meteorological shock variables applied.", self.table_cell_style)],
+            [Paragraph("Stress Intensity", self.table_cell_style), Paragraph(f"<b>{severity_val}</b>", self.table_cell_style), Paragraph("Anomaly magnitude multiplier.", self.table_cell_style)],
+            [Paragraph("Temporal Window", self.table_cell_style), Paragraph(duration_val, self.table_cell_style), Paragraph("Duration of the continuous stress sequence.", self.table_cell_style)],
+            [Paragraph("Thermal Offset", self.table_cell_style), Paragraph(f"{temp_adj:+.1f} °C", self.table_cell_style), Paragraph("Ambient air temperature boundary adjustments.", self.table_cell_style)],
+            [Paragraph("Rainfall Offset", self.table_cell_style), Paragraph(f"{rain_adj:+.1f}%", self.table_cell_style), Paragraph("Atmospheric precipitation boundary adjustments.", self.table_cell_style)]
         ]
         t_input = Table(input_table_data, colWidths=[2.0*inch, 2.0*inch, 3.0*inch])
         t_input.setStyle(TableStyle([
@@ -330,9 +344,6 @@ class ClimateReportGenerator:
             ('TOPPADDING', (0,0), (-1,-1), 5),
             ('BOTTOMPADDING', (0,0), (-1,-1), 5),
         ]))
-        # Change header text color to white
-        for cell_idx in range(3):
-            input_table_data[0][cell_idx].style.textColor = colors.white
         
         story.append(t_input)
         
@@ -360,18 +371,18 @@ class ClimateReportGenerator:
         ]
         
         var_table_data = [
-            [Paragraph("<b>Climate Variable</b>", self.body_style), Paragraph("<b>Baseline</b>", self.body_style), Paragraph("<b>Predicted</b>", self.body_style), Paragraph("<b>Delta</b>", self.body_style), Paragraph("<b>Confidence</b>", self.body_style), Paragraph("<b>Attribution Reason</b>", self.body_style)]
+            [Paragraph("<b>Climate Variable</b>", self.header_cell_style), Paragraph("<b>Baseline</b>", self.header_cell_style), Paragraph("<b>Predicted</b>", self.header_cell_style), Paragraph("<b>Delta</b>", self.header_cell_style), Paragraph("<b>Confidence</b>", self.header_cell_style), Paragraph("<b>Attribution Reason</b>", self.header_cell_style)]
         ]
         for name, icon, b_val, p_val, unit, conf, reason in variables:
             d_val = p_val - b_val
             pct = (d_val / b_val * 100) if b_val else 0.0
             var_table_data.append([
-                Paragraph(f"{icon} {name}", self.body_style),
-                Paragraph(f"{b_val:.1f} {unit}", self.body_style),
-                Paragraph(f"<b>{p_val:.1f} {unit}</b>", self.body_style),
-                Paragraph(f"{d_val:+.1f} ({pct:+.0f}%)", self.body_style),
-                Paragraph(conf, self.body_style),
-                Paragraph(reason, self.body_style)
+                Paragraph(f"{icon} {name}", self.table_cell_style),
+                Paragraph(f"{b_val:.1f} {unit}", self.table_cell_style),
+                Paragraph(f"<b>{p_val:.1f} {unit}</b>", self.table_cell_style),
+                Paragraph(f"{d_val:+.1f} ({pct:+.0f}%)", self.table_cell_style),
+                Paragraph(conf, self.table_cell_style),
+                Paragraph(reason, self.table_cell_style)
             ])
             
         t_var = Table(var_table_data, colWidths=[1.8*inch, 0.9*inch, 0.9*inch, 1.0*inch, 0.8*inch, 1.6*inch])
@@ -384,8 +395,6 @@ class ClimateReportGenerator:
             ('TOPPADDING', (0,0), (-1,-1), 4),
             ('BOTTOMPADDING', (0,0), (-1,-1), 4),
         ]))
-        for cell_idx in range(6):
-            var_table_data[0][cell_idx].style.textColor = colors.white
         story.append(t_var)
         story.append(Spacer(1, 10))
         
@@ -448,13 +457,13 @@ class ClimateReportGenerator:
         
         # SHAP weights
         shap_data = [
-            [Paragraph("<b>Engineered Model Feature</b>", self.body_style), Paragraph("<b>SHAP Global Weight</b>", self.body_style), Paragraph("<b>Validation Status</b>", self.body_style)],
-            [Paragraph("Air Temperature (Tmax)", self.body_style), Paragraph("31%", self.body_style), Paragraph("Verified (p < 0.05)", self.body_style)],
-            [Paragraph("Precipitation Deviation (Pr)", self.body_style), Paragraph("24%", self.body_style), Paragraph("Verified (p < 0.05)", self.body_style)],
-            [Paragraph("Vegetation Health (NDVI)", self.body_style), Paragraph("18%", self.body_style), Paragraph("Verified (p < 0.05)", self.body_style)],
-            [Paragraph("Relative Humidity Index (RH)", self.body_style), Paragraph("15%", self.body_style), Paragraph("Verified (p < 0.05)", self.body_style)],
-            [Paragraph("Atmospheric Wind (U)", self.body_style), Paragraph("7%", self.body_style), Paragraph("Illustrative Feature", self.body_style)],
-            [Paragraph("Surface Pressure (P)", self.body_style), Paragraph("5%", self.body_style), Paragraph("Illustrative Feature", self.body_style)]
+            [Paragraph("<b>Engineered Model Feature</b>", self.header_cell_style), Paragraph("<b>SHAP Global Weight</b>", self.header_cell_style), Paragraph("<b>Validation Status</b>", self.header_cell_style)],
+            [Paragraph("Air Temperature (Tmax)", self.table_cell_style), Paragraph("31%", self.table_cell_style), Paragraph("Verified (p < 0.05)", self.table_cell_style)],
+            [Paragraph("Precipitation Deviation (Pr)", self.table_cell_style), Paragraph("24%", self.table_cell_style), Paragraph("Verified (p < 0.05)", self.table_cell_style)],
+            [Paragraph("Vegetation Health (NDVI)", self.table_cell_style), Paragraph("18%", self.table_cell_style), Paragraph("Verified (p < 0.05)", self.table_cell_style)],
+            [Paragraph("Relative Humidity Index (RH)", self.table_cell_style), Paragraph("15%", self.table_cell_style), Paragraph("Verified (p < 0.05)", self.table_cell_style)],
+            [Paragraph("Atmospheric Wind (U)", self.table_cell_style), Paragraph("7%", self.table_cell_style), Paragraph("Illustrative Feature", self.table_cell_style)],
+            [Paragraph("Surface Pressure (P)", self.table_cell_style), Paragraph("5%", self.table_cell_style), Paragraph("Illustrative Feature", self.table_cell_style)]
         ]
         t_shap = Table(shap_data, colWidths=[2.5*inch, 2.0*inch, 2.5*inch])
         t_shap.setStyle(TableStyle([
@@ -465,8 +474,6 @@ class ClimateReportGenerator:
             ('TOPPADDING', (0,0), (-1,-1), 4),
             ('BOTTOMPADDING', (0,0), (-1,-1), 4),
         ]))
-        for cell_idx in range(3):
-            shap_data[0][cell_idx].style.textColor = colors.white
         story.append(t_shap)
         story.append(Spacer(1, 8))
         
